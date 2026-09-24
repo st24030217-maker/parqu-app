@@ -11,6 +11,7 @@ import { AutoPaymentConfig } from './components/AutoPaymentConfig';
 import { ParkingSimulator } from './components/ParkingSimulator';
 import { TransactionHistory } from './components/TransactionHistory';
 import { StaggeredGrid } from './components/ui/staggered-grid';
+import { BackgroundGradientAnimation } from './components/ui/background-gradient-animation';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { 
   CreditCard, 
@@ -45,15 +46,18 @@ const MainContent = ({ onReplayLoading }) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white relative selection:bg-white selection:text-black">
-      {/* Luces y texturas ambientales a Color de Alta Fidelidad + Textura Cereal Grid */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[750px] bg-indigo-600/[0.12] rounded-full blur-[160px]" />
-        <div className="absolute top-1/2 right-1/4 w-[650px] h-[650px] bg-cyan-600/[0.08] rounded-full blur-[150px]" />
-        <div className="absolute bottom-1/4 left-1/4 w-[600px] h-[600px] bg-purple-600/[0.10] rounded-full blur-[140px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(#4a4a55_1.2px,transparent_1.2px)] [background-size:24px_24px] opacity-45" />
-      </div>
-
+    <BackgroundGradientAnimation
+      gradientBackgroundStart="rgb(5, 5, 10)"
+      gradientBackgroundEnd="rgb(0, 0, 0)"
+      firstColor="35, 75, 230"
+      secondColor="130, 45, 215"
+      thirdColor="6, 175, 205"
+      fourthColor="75, 85, 215"
+      fifthColor="145, 65, 235"
+      pointerColor="90, 130, 255"
+      size="75%"
+      className="min-h-screen flex flex-col text-white selection:bg-white selection:text-black"
+    >
       <div className="relative z-10 flex flex-col min-h-screen">
         <Header onReplayLoading={onReplayLoading} />
 
@@ -275,7 +279,7 @@ const MainContent = ({ onReplayLoading }) => {
           </div>
         </footer>
       </div>
-    </div>
+    </BackgroundGradientAnimation>
   );
 };
 
