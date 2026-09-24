@@ -31,3 +31,9 @@ lerna-debug.log*
 *.sw?
 .DS_Store
 Thumbs.db
+
+# Agent y configuraciones locales de IA
+.agents/
+.claude/
+agent/
+skills-lock.json

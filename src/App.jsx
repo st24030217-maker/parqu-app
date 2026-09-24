@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { ParkingProvider, useParking } from './context/ParkingContext';
 import { Header } from './components/Header';
+import { LoadingScreen } from './components/LoadingScreen';
 import { DigitalCard } from './components/DigitalCard';
 import { VehicleOwnerForm } from './components/VehicleOwnerForm';
 import { AutoPaymentConfig } from './components/AutoPaymentConfig';
@@ -18,7 +20,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-const MainContent = () => {
+const MainContent = ({ onReplayLoading }) => {
   const { activeSession, vehicle } = useParking();
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'autopay', 'vehicle', 'history'
 
@@ -31,7 +33,7 @@ const MainContent = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
-      <Header />
+      <Header onReplayLoading={onReplayLoading} />
 
       {/* Banner de Sesión Activa si está en otra pestaña */}
       {activeSession && activeTab !== 'dashboard' && (
@@ -193,35 +195,35 @@ const MainContent = () => {
 
       </main>
 
-      {/* Footer con Powered By sss.solutions */}
+      {/* Footer con Powered by SSS.Solutions */}
       <footer className="border-t border-slate-800/80 bg-slate-950 py-8 text-center text-xs text-slate-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
           
-          {/* Identidad parqu */}
+          {/* Identidad Park */}
           <div className="flex items-center gap-3">
             <div className="bg-white p-1 rounded-xl shadow-sm flex items-center justify-center">
               <img 
                 src="/parqu-logo.png" 
-                alt="parqu" 
+                alt="Park" 
                 className="h-7 w-auto object-contain"
               />
             </div>
             <div className="text-left">
-              <span className="font-bold text-white tracking-wide block">parqu digital</span>
+              <span className="font-bold text-white tracking-wide block">Park Digital</span>
               <span className="text-[11px] text-slate-500">Parquímetro inteligente con autocobro</span>
             </div>
           </div>
 
-          {/* Powered by sss.solutions */}
+          {/* Powered by SSS.Solutions */}
           <div className="flex flex-col sm:flex-row items-center gap-3 py-2 px-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-inner">
             <span className="text-xs uppercase tracking-widest font-semibold text-slate-400">
-              Powered by
+              Powered by SSS.Solutions
             </span>
             <div className="flex items-center gap-2">
               <img 
                 src="/sss-solutions-logo.jpg" 
-                alt="sss.solutions" 
-                className="h-8 w-auto rounded-lg object-contain shadow-sm border border-slate-800"
+                alt="SSS Solutions" 
+                className="h-8 w-auto rounded-lg object-contain shadow-sm border border-slate-800 bg-white p-0.5"
               />
             </div>
           </div>
@@ -239,9 +241,16 @@ const MainContent = () => {
 };
 
 export default function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
   return (
     <ParkingProvider>
-      <MainContent />
+      <AnimatePresence mode="wait">
+        {isLoading && (
+          <LoadingScreen onComplete={() => setIsLoading(false)} />
+        )}
+      </AnimatePresence>
+      <MainContent onReplayLoading={() => setIsLoading(true)} />
     </ParkingProvider>
   );
 }
