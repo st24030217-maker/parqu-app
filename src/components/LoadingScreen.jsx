@@ -78,16 +78,14 @@ export const LoadingScreen = ({ onComplete }) => {
           initial={{ scale: 0.8, opacity: 0, y: -20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="relative mb-6"
+          className="relative mb-6 flex items-center justify-center"
         >
-          <div className="absolute -inset-2 bg-white/10 rounded-3xl blur-xl" />
-          <div className="relative bg-white p-4 rounded-3xl shadow-[0_0_40px_rgba(255,255,255,0.12)] border border-neutral-200 flex items-center justify-center">
-            <img
-              src="/parqu-logo.png"
-              alt="Park Logo"
-              className="h-16 sm:h-20 w-auto object-contain"
-            />
-          </div>
+          <div className="absolute -inset-4 bg-white/15 rounded-full blur-2xl pointer-events-none" />
+          <img
+            src="/parqu-logo-white.png"
+            alt="Park Logo"
+            className="h-20 sm:h-24 w-auto object-contain relative z-10 drop-shadow-[0_0_30px_rgba(255,255,255,0.35)]"
+          />
         </motion.div>
 
         {/* Nombre de la app: PARK con Stagger Text (letra por letra) */}
@@ -141,12 +139,12 @@ export const LoadingScreen = ({ onComplete }) => {
           </TextAnimation>
         </div>
 
-        {/* Logotipo Oficial de SSS.Solutions */}
-        <div className="bg-white p-2 rounded-2xl border border-neutral-700 shadow-[0_0_20px_rgba(255,255,255,0.06)] flex items-center justify-center hover:scale-105 transition-transform duration-300">
+        {/* Logotipo Oficial de SSS.Solutions (Totalmente transparente sin fondos) */}
+        <div className="flex items-center justify-center hover:scale-105 transition-transform duration-300 py-1">
           <img
-            src="/sss-solutions-logo.jpg"
+            src="/sss-solutions-logo.png"
             alt="SSS.Solutions Logo"
-            className="h-8 sm:h-9 w-auto rounded-lg object-contain"
+            className="h-8 sm:h-10 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.25)]"
           />
         </div>
 
