@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { WebcamPixelGrid } from './ui/webcam-pixel-grid';
-import { LiquidMetalButton } from './ui/liquid-metal';
+import { RadialGlowButton } from './ui/radial-glow-button';
 import { FlipFadeText } from './ui/flip-fade-text';
 import { TextAnimation } from './ui/staggerText';
 import { ArrowRight } from 'lucide-react';
@@ -68,30 +68,20 @@ export const LoadingScreen = ({ onComplete }) => {
               />
             </div>
 
-            {/* BOTÓN PRINCIPAL CON ANIMACIÓN LIQUID METAL: Empecemos */}
+            {/* BOTÓN PRINCIPAL CON ANIMACIÓN RADIAL GLOW: Empecemos */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               className="pt-2 flex flex-col items-center justify-center"
             >
-              <LiquidMetalButton
+              <RadialGlowButton
                 onClick={onComplete}
-                borderWidth={4}
-                size="lg"
-                metalConfig={{
-                  colorBack: "#1a1a1f",
-                  colorTint: "#ffffff",
-                  speed: 0.7,
-                  repetition: 4,
-                  distortion: 0.25,
-                  scale: 1,
-                }}
-                icon={<ArrowRight className="w-5 h-5 text-white" />}
-                className="font-mono text-base sm:text-lg tracking-wider"
+                className="text-base sm:text-lg font-bold"
               >
-                Empecemos
-              </LiquidMetalButton>
+                <span>Empecemos</span>
+                <ArrowRight className="w-5 h-5 text-white inline transition-transform duration-300 group-hover:translate-x-1.5" />
+              </RadialGlowButton>
             </motion.div>
 
           </main>
