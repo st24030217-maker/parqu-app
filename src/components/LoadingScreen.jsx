@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { WebcamPixelGrid } from './ui/webcam-pixel-grid';
+import { LiquidMetalButton } from './ui/liquid-metal';
 import { TextAnimation } from './ui/staggerText';
 import { ArrowRight, ShieldCheck, Zap, Sparkles } from 'lucide-react';
 
@@ -30,7 +31,7 @@ export const LoadingScreen = ({ onComplete }) => {
           {/* Espaciador superior limpio */}
           <div className="w-full h-4" />
 
-          {/* Hero Central: Logotipo Parqu, Título Parqu y Botón de Entrada */}
+          {/* Hero Central: Logotipo Parqu, Título Parqu, Badges y Botón Liquid Metal "Empecemos" */}
           <main className="flex flex-col items-center justify-center text-center max-w-xl w-full my-auto space-y-6">
             
             {/* Logotipo Parqu 100% Transparente con resplandor */}
@@ -78,23 +79,30 @@ export const LoadingScreen = ({ onComplete }) => {
               </span>
             </motion.div>
 
-            {/* BOTÓN PRINCIPAL: Entrar al Sistema */}
+            {/* BOTÓN PRINCIPAL CON ANIMACIÓN LIQUID METAL: Empecemos */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="pt-4 w-full max-w-xs sm:max-w-sm flex flex-col items-center gap-3"
+              className="pt-4 flex flex-col items-center justify-center"
             >
-              <button
+              <LiquidMetalButton
                 onClick={onComplete}
-                className="group relative w-full py-4 px-8 rounded-2xl bg-white text-black font-mono font-bold text-base tracking-wide flex items-center justify-center gap-3 shadow-[0_0_35px_rgba(255,255,255,0.35)] hover:shadow-[0_0_50px_rgba(255,255,255,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 overflow-hidden"
+                borderWidth={4}
+                size="lg"
+                metalConfig={{
+                  colorBack: "#1a1a1f",
+                  colorTint: "#ffffff",
+                  speed: 0.7,
+                  repetition: 4,
+                  distortion: 0.25,
+                  scale: 1,
+                }}
+                icon={<ArrowRight className="w-5 h-5 text-white" />}
+                className="font-mono text-base tracking-wider"
               >
-                {/* Resplandor animado de fondo en hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-neutral-200/50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
-                
-                <span className="relative z-10">Entrar al Sistema</span>
-                <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
-              </button>
+                Empecemos
+              </LiquidMetalButton>
             </motion.div>
 
           </main>
