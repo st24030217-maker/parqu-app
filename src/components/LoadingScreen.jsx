@@ -4,7 +4,7 @@ import { WebcamPixelGrid } from './ui/webcam-pixel-grid';
 import { LiquidMetalButton } from './ui/liquid-metal';
 import { FlipFadeText } from './ui/flip-fade-text';
 import { TextAnimation } from './ui/staggerText';
-import { ArrowRight, ShieldCheck, Zap, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export const LoadingScreen = ({ onComplete }) => {
   return (
@@ -27,13 +27,13 @@ export const LoadingScreen = ({ onComplete }) => {
         showControls={false}
         className="h-full w-full"
       >
-        <div className="flex flex-col justify-between items-center h-full w-full px-4 sm:px-6 py-8 sm:py-10 relative z-10">
+        <div className="flex flex-col justify-between items-center h-full w-full px-4 sm:px-6 py-8 sm:py-12 relative z-10">
           
           {/* Espaciador superior limpio */}
           <div className="w-full h-4" />
 
           {/* Hero Central: Logotipo Parqu, Animación Flip-Fade Text y Botón Liquid Metal "Empecemos" */}
-          <main className="flex flex-col items-center justify-center text-center max-w-xl w-full my-auto space-y-6">
+          <main className="flex flex-col items-center justify-center text-center max-w-xl w-full my-auto space-y-8">
             
             {/* Logotipo Parqu 100% Transparente con resplandor */}
             <motion.div
@@ -46,12 +46,12 @@ export const LoadingScreen = ({ onComplete }) => {
               <img
                 src="/parqu-logo-white.png"
                 alt="Parqu Logo"
-                className="h-24 sm:h-28 md:h-32 w-auto object-contain relative z-10 drop-shadow-[0_0_35px_rgba(255,255,255,0.4)]"
+                className="h-28 sm:h-32 md:h-36 w-auto object-contain relative z-10 drop-shadow-[0_0_40px_rgba(255,255,255,0.45)]"
               />
             </motion.div>
 
             {/* Animación Flip-Fade Text: PARQU -> MÁS FÁCIL -> SIN FILAS -> SIN MONEDAS -> EN UN TOQUE */}
-            <div className="w-full flex items-center justify-center">
+            <div className="w-full flex items-center justify-center py-2">
               <FlipFadeText
                 words={[
                   "PARQU",
@@ -64,37 +64,16 @@ export const LoadingScreen = ({ onComplete }) => {
                 interval={2600}
                 letterDuration={0.55}
                 staggerDelay={0.07}
-                textClassName="text-4xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+                textClassName="text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight drop-shadow-[0_0_35px_rgba(255,255,255,0.35)]"
               />
             </div>
-
-            {/* Badges de características */}
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35, duration: 0.6 }}
-              className="flex flex-wrap items-center justify-center gap-2 pt-1"
-            >
-              <span className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-neutral-900/90 border border-neutral-800 text-xs font-mono text-neutral-300 backdrop-blur-md">
-                <Zap className="w-3.5 h-3.5 text-white" />
-                Cero Filas
-              </span>
-              <span className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-neutral-900/90 border border-neutral-800 text-xs font-mono text-neutral-300 backdrop-blur-md">
-                <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                Cero Monedas
-              </span>
-              <span className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-neutral-900/90 border border-neutral-800 text-xs font-mono text-neutral-300 backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5 text-white" />
-                Autocobro Continuo
-              </span>
-            </motion.div>
 
             {/* BOTÓN PRINCIPAL CON ANIMACIÓN LIQUID METAL: Empecemos */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="pt-4 flex flex-col items-center justify-center"
+              transition={{ delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="pt-2 flex flex-col items-center justify-center"
             >
               <LiquidMetalButton
                 onClick={onComplete}
@@ -109,7 +88,7 @@ export const LoadingScreen = ({ onComplete }) => {
                   scale: 1,
                 }}
                 icon={<ArrowRight className="w-5 h-5 text-white" />}
-                className="font-mono text-base tracking-wider"
+                className="font-mono text-base sm:text-lg tracking-wider"
               >
                 Empecemos
               </LiquidMetalButton>
