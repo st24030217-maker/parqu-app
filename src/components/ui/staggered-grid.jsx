@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { InteractiveParticles } from './interactive-particles';
 import { 
   CreditCard, 
   Zap, 
@@ -269,9 +270,7 @@ export function StaggeredGrid({
       if (gridSectionRef.current) {
         const cards = gridSectionRef.current.querySelectorAll('.feature-card-item');
 
-        // Cada tarjeta entra una por una flotando desde abajo con rotación 3D y se acomoda en su celda
         cards.forEach((card, index) => {
-          // Factor de delay escalonado para que entren progresivamente en oleada
           gsap.fromTo(card,
             {
               y: 180 + (index % 4) * 40,
@@ -305,31 +304,50 @@ export function StaggeredGrid({
   return (
     <div ref={containerRef} className={`relative w-full overflow-hidden text-white ${className}`}>
       
-      {/* 1. Header con Animación Stagger "BIENVENIDOS A PARQU" */}
+      {/* 1. Header con Animación Stagger "BIENVENIDOS A PARQU" + Shader de Partículas Interactivas */}
       <section 
         ref={titleSectionRef}
-        className="pt-20 pb-12 px-4 flex flex-col items-center justify-center text-center relative z-10 [perspective:1000px]"
+        className="pt-16 pb-12 px-4 flex flex-col items-center justify-center text-center relative z-10 [perspective:1000px] min-h-[460px] sm:min-h-[500px]"
       >
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neutral-900/90 border border-neutral-800 text-xs font-mono text-neutral-300 mb-6 backdrop-blur-md shadow-[0_0_20px_rgba(255,255,255,0.05)]">
-          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-          <span className="tracking-[0.25em] uppercase font-bold text-[11px]">SISTEMA INTELIGENTE DE PARQUÍMETROS</span>
+        {/* Capa de Partículas Interactivas Three.js (GPU Fluid Particles) */}
+        <div className="absolute inset-0 z-0 opacity-75 pointer-events-auto flex items-center justify-center overflow-hidden">
+          <InteractiveParticles
+            src="/parqu-logo-white.png"
+            size={1.4}
+            randomness={2.2}
+            depth={3.8}
+            touchRadius={0.25}
+            color="#ffffff"
+            className="w-full h-full"
+          />
         </div>
 
-        {/* Título Monumental con animación de letras individuales */}
-        <div
-          ref={titleTextRef}
-          className="text font-black uppercase tracking-tight flex flex-wrap justify-center text-[clamp(2.5rem,7.5vw,6.5rem)] leading-[0.95] text-white max-w-6xl select-none"
-        >
-          {splitText(centerText)}
-        </div>
+        {/* Gradiente sutil para garantizar legibilidad perfecta del texto sobre las partículas */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80 pointer-events-none z-1" />
 
-        <p className="text-xs sm:text-sm md:text-base text-neutral-400 font-mono mt-6 max-w-2xl leading-relaxed px-4">
-          Descubre todas las funciones que ofrece <span className="text-white font-bold">Parqu</span>. Desliza hacia abajo para ver cómo se integran en cascada y haz clic en cualquier módulo para usarlo.
-        </p>
+        {/* Contenido en primer plano */}
+        <div className="relative z-10 flex flex-col items-center justify-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neutral-950/80 border border-neutral-800 text-xs font-mono text-neutral-300 mb-6 backdrop-blur-md shadow-[0_0_25px_rgba(255,255,255,0.06)]">
+            <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            <span className="tracking-[0.25em] uppercase font-bold text-[11px]">SISTEMA INTELIGENTE DE PARQUÍMETROS</span>
+          </div>
 
-        <div className="flex items-center gap-2 mt-8 text-xs font-mono text-neutral-400 animate-bounce">
-          <span>Desliza para ver las funciones</span>
-          <ArrowDown className="w-3.5 h-3.5 text-white" />
+          {/* Título Monumental con animación de letras individuales */}
+          <div
+            ref={titleTextRef}
+            className="text font-black uppercase tracking-tight flex flex-wrap justify-center text-[clamp(2.5rem,7.5vw,6.5rem)] leading-[0.95] text-white max-w-6xl select-none drop-shadow-[0_0_35px_rgba(255,255,255,0.3)]"
+          >
+            {splitText(centerText)}
+          </div>
+
+          <p className="text-xs sm:text-sm md:text-base text-neutral-300 font-mono mt-6 max-w-2xl leading-relaxed px-4 drop-shadow-md">
+            Descubre todas las funciones que ofrece <span className="text-white font-bold">Parqu</span>. Desliza hacia abajo para ver cómo se integran en cascada y haz clic en cualquier módulo para usarlo.
+          </p>
+
+          <div className="flex items-center gap-2 mt-8 text-xs font-mono text-neutral-400 animate-bounce">
+            <span>Desliza para ver las funciones</span>
+            <ArrowDown className="w-3.5 h-3.5 text-white" />
+          </div>
         </div>
       </section>
 
