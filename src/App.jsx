@@ -12,6 +12,7 @@ import { ParkingSimulator } from './components/ParkingSimulator';
 import { TransactionHistory } from './components/TransactionHistory';
 import { StaggeredGrid } from './components/ui/staggered-grid';
 import { BackgroundGradientAnimation } from './components/ui/background-gradient-animation';
+import { HeroParallax } from './components/ui/hero-parallax';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { 
   CreditCard, 
@@ -23,7 +24,8 @@ import {
   Sparkles,
   Smartphone,
   ChevronRight,
-  Sliders
+  Sliders,
+  QrCode
 } from 'lucide-react';
 
 const MainContent = ({ onReplayLoading }) => {
@@ -495,6 +497,150 @@ const MainContent = ({ onReplayLoading }) => {
           )}
 
         </main>
+
+        {/* 3. SECCIÓN HERO PARALLAX: Módulos y Arquitectura Parqu en 3D */}
+        <section className="w-full border-t border-neutral-900 overflow-hidden">
+          <HeroParallax 
+            products={[
+              {
+                title: "Tarjeta Digital NFC",
+                category: "IDENTIDAD VIAL",
+                description: "Credencial digital con saldo en tiempo real, contactless y lectura oficial.",
+                icon: <CreditCard className="w-7 h-7 text-emerald-400" />,
+                gradient: "from-emerald-950/40 via-neutral-900/40 to-black",
+                tag: "NFC ACTIVO",
+                tab: "dashboard"
+              },
+              {
+                title: "Autocobro Continuo",
+                category: "FINANZAS",
+                description: "Débito automatizado segundo a segundo exacto. Cero filas y cero monedas.",
+                icon: <Zap className="w-7 h-7 text-amber-400" />,
+                gradient: "from-amber-950/40 via-neutral-900/40 to-black",
+                tag: "AUTOMÁTICO",
+                tab: "autopay"
+              },
+              {
+                title: "Simulador Metropolitano",
+                category: "MOVILIDAD",
+                description: "Selección de cajones metropolitanos, telemetría y cronómetro en tiempo real.",
+                icon: <Clock className="w-7 h-7 text-indigo-400" />,
+                gradient: "from-indigo-950/40 via-neutral-900/40 to-black",
+                tag: "TELEMETRÍA",
+                tab: "dashboard"
+              },
+              {
+                title: "Credencial QR de Tránsito",
+                category: "INSPECCIÓN",
+                description: "Validación instantánea para agentes viales con encriptación 256-bit.",
+                icon: <QrCode className="w-7 h-7 text-cyan-400" />,
+                gradient: "from-cyan-950/40 via-neutral-900/40 to-black",
+                tag: "OFICIAL",
+                tab: "dashboard"
+              },
+              {
+                title: "Padrón Vehicular & Placas",
+                category: "VEHÍCULOS",
+                description: "Vinculación directa de placas, datos del titular y padrón vial.",
+                icon: <Car className="w-7 h-7 text-purple-400" />,
+                gradient: "from-purple-950/40 via-neutral-900/40 to-black",
+                tag: "PADRÓN VIAL",
+                tab: "vehicle"
+              },
+              {
+                title: "Historial & Recibos CFDI",
+                category: "CONTABILIDAD",
+                description: "Bitácora detallada de transacciones, folios de parquímetro y comprobantes.",
+                icon: <History className="w-7 h-7 text-blue-400" />,
+                gradient: "from-blue-950/40 via-neutral-900/40 to-black",
+                tag: "AUDITABLE",
+                tab: "history"
+              },
+              {
+                title: "Garantía Cero Multas",
+                category: "PROTECCIÓN",
+                description: "Cobertura activa contra infracciones mientras tu coche esté en el cajón.",
+                icon: <ShieldCheck className="w-7 h-7 text-emerald-400" />,
+                gradient: "from-emerald-950/40 via-neutral-900/40 to-black",
+                tag: "PROTEGIDO",
+                tab: "autopay"
+              },
+              {
+                title: "Seguridad Bancaria 256-Bit",
+                category: "SEGURIDAD",
+                description: "Infraestructura de cifrado bancario desarrollada con tecnología SSS.Solutions.",
+                icon: <ShieldCheck className="w-7 h-7 text-cyan-400" />,
+                gradient: "from-cyan-950/40 via-neutral-900/40 to-black",
+                tag: "ENCRIPTADO",
+                tab: "autopay"
+              },
+              {
+                title: "Telemetría de Consumo",
+                category: "MÉTRICAS",
+                description: "Monitoreo en vivo de saldo debitado, tiempo transcurrido y tarifa por minuto.",
+                icon: <Sparkles className="w-7 h-7 text-amber-400" />,
+                gradient: "from-amber-950/40 via-neutral-900/40 to-black",
+                tag: "EN VIVO",
+                tab: "dashboard"
+              },
+              {
+                title: "Tecnología SSS.Solutions",
+                category: "INNOVACIÓN",
+                description: "Arquitectura metropolitana de vanguardia para ciudades inteligentes.",
+                icon: <Sparkles className="w-7 h-7 text-purple-400" />,
+                gradient: "from-purple-950/40 via-neutral-900/40 to-black",
+                tag: "SMART CITY",
+                tab: "dashboard"
+              },
+              {
+                title: "Pase Móvil PWA Ready",
+                category: "EXPERIENCIA",
+                description: "Interfaz fluida adaptada a smartphones y tabletas sin descargas pesadas.",
+                icon: <Smartphone className="w-7 h-7 text-indigo-400" />,
+                gradient: "from-indigo-950/40 via-neutral-900/40 to-black",
+                tag: "RESPONSIVO",
+                tab: "dashboard"
+              },
+              {
+                title: "Tarifa Justa por Minuto",
+                category: "TRANSPARENCIA",
+                description: "Tarificación exacta de $0.25 MXN por minuto sin redondeos abusivos.",
+                icon: <Zap className="w-7 h-7 text-emerald-400" />,
+                gradient: "from-emerald-950/40 via-neutral-900/40 to-black",
+                tag: "EXACTO",
+                tab: "history"
+              },
+              {
+                title: "Recargas de Saldo Exprés",
+                category: "PAGOS",
+                description: "Añade saldo instantáneo a tu monedero con tarjetas de débito o crédito.",
+                icon: <CreditCard className="w-7 h-7 text-cyan-400" />,
+                gradient: "from-cyan-950/40 via-neutral-900/40 to-black",
+                tag: "INSTANTÁNEO",
+                tab: "dashboard"
+              },
+              {
+                title: "Control de Flotas",
+                category: "EMPRESAS",
+                description: "Gestión unificada de múltiples placas vehiculares bajo una misma cuenta.",
+                icon: <Car className="w-7 h-7 text-blue-400" />,
+                gradient: "from-blue-950/40 via-neutral-900/40 to-black",
+                tag: "FLOTAS",
+                tab: "vehicle"
+              },
+              {
+                title: "Centro de Operaciones",
+                category: "SISTEMA",
+                description: "Panel de control centralizado con acceso rápido a todas las herramientas.",
+                icon: <Sparkles className="w-7 h-7 text-white" />,
+                gradient: "from-neutral-800/40 via-neutral-900/40 to-black",
+                tag: "CENTRAL",
+                tab: "dashboard"
+              }
+            ]}
+            onSelectProduct={handleSelectFeature}
+          />
+        </section>
 
         {/* Footer con Logos 100% Transparentes y Powered by SSS.Solutions */}
         <footer className="border-t border-neutral-800/80 bg-black py-8 text-center text-xs text-neutral-400 mt-12">
