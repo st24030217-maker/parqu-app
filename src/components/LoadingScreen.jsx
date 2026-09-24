@@ -19,12 +19,12 @@ export const LoadingScreen = ({ onComplete }) => {
       }}
       className="fixed inset-0 z-50 flex flex-col bg-black text-white overflow-hidden select-none"
     >
-      {/* Fondo interactivo Aceternity Webcam Pixel Grid a Color */}
+      {/* Fondo interactivo Aceternity Webcam Pixel Grid a Color con Cámara en Vivo */}
       <WebcamPixelGrid
-        pixelSize={16}
+        pixelSize={14}
         gap={2}
-        autoStartCamera={false}
-        showControls={false}
+        autoStartCamera={true}
+        showControls={true}
         className="h-full w-full"
       >
         <div className="flex flex-col justify-between items-center h-full w-full px-4 sm:px-6 py-8 sm:py-12 relative z-10">

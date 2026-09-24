@@ -273,14 +273,19 @@ export function WebcamPixelGrid({
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.15)_0%,rgba(0,0,0,0.8)_100%)]" />
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black via-transparent to-black/60" />
 
-      {/* Control flotante opcional (desactivado por defecto para limpieza total) */}
+      {/* Control flotante con estado de cámara y botón interactivo */}
       {showControls && (
         <div className="absolute top-6 right-6 z-30 pointer-events-auto">
           <button
             onClick={toggleCamera}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold transition-all duration-300 border backdrop-blur-md bg-neutral-900/80 text-neutral-200 border-neutral-700 hover:text-white"
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold transition-all duration-300 border backdrop-blur-md shadow-lg ${
+              isCameraActive
+                ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50 shadow-emerald-500/20'
+                : 'bg-neutral-900/80 text-neutral-200 border-neutral-700 hover:text-white hover:border-neutral-500'
+            }`}
           >
-            <span>{isCameraActive ? 'Cámara Activa' : 'Color Dinámico'}</span>
+            <span className={`w-2 h-2 rounded-full ${isCameraActive ? 'bg-emerald-400 animate-ping' : 'bg-neutral-500'}`} />
+            <span>{isCameraActive ? 'Cámara Pixeleada Activa' : 'Activar Cámara'}</span>
           </button>
         </div>
       )}
