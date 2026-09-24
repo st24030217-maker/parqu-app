@@ -285,6 +285,12 @@ export default function App() {
   const handleStart = () => {
     setIsLoading(false);
     window.scrollTo({ top: 0, behavior: 'instant' });
+    setTimeout(() => {
+      sileo.success({
+        title: '¡Bienvenido a Parqu!',
+        description: 'Pase digital y red inteligente de parquímetros sincronizados.',
+      });
+    }, 300);
   };
 
   const handleReplay = () => {
