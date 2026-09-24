@@ -11,6 +11,7 @@ import { AutoPaymentConfig } from './components/AutoPaymentConfig';
 import { ParkingSimulator } from './components/ParkingSimulator';
 import { TransactionHistory } from './components/TransactionHistory';
 import { StaggeredGrid } from './components/ui/staggered-grid';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { 
   CreditCard, 
   Car, 
@@ -70,10 +71,12 @@ const MainContent = ({ onReplayLoading }) => {
 
         {/* 1. SECCIÓN DE BIENVENIDA & STAGGERED GRID SHOWCASE DE FUNCIONES */}
         <div className="w-full border-b border-neutral-900">
-          <StaggeredGrid 
-            centerText="BIENVENIDOS A PARQU"
-            onSelectFeature={handleSelectFeature}
-          />
+          <ErrorBoundary fallbackText="Bienvenido a Parqu - Cargando Funciones...">
+            <StaggeredGrid 
+              centerText="BIENVENIDOS A PARQU"
+              onSelectFeature={handleSelectFeature}
+            />
+          </ErrorBoundary>
         </div>
 
         {/* 2. SECCIÓN DEL SISTEMA INTERACTIVO (TARJETA, SIMULADOR, CONFIGURACIÓN, HISTORIAL) */}
@@ -284,7 +287,9 @@ export default function App() {
       <Toaster position="top-right" theme="dark" />
       <AnimatePresence mode="wait">
         {isLoading && (
-          <LoadingScreen onComplete={() => setIsLoading(false)} />
+          <ErrorBoundary fallbackText="Iniciando Parqu...">
+            <LoadingScreen onComplete={() => setIsLoading(false)} />
+          </ErrorBoundary>
         )}
       </AnimatePresence>
       <MainContent onReplayLoading={() => setIsLoading(true)} />

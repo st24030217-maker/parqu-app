@@ -268,10 +268,22 @@ export function InteractiveParticles({
       const readCanvas = document.createElement("canvas");
       readCanvas.width = imgWidth;
       readCanvas.height = imgHeight;
-      const rctx = readCanvas.getContext("2d");
-      rctx.scale(1, -1);
-      rctx.drawImage(texture.image, 0, 0, imgWidth, imgHeight * -1);
-      const colors = Float32Array.from(rctx.getImageData(0, 0, imgWidth, imgHeight).data);
+      const rctx = readCanvas.getContext("2d", { willReadFrequently: true });
+      if (rctx) {
+        rctx.save();
+        rctx.scale(1, -1);
+        rctx.drawImage(texture.image, 0, -imgHeight, imgWidth, imgHeight);
+        rctx.restore();
+      }
+      
+      let colors = new Float32Array(numPoints * 4);
+      try {
+        if (rctx) {
+          colors = Float32Array.from(rctx.getImageData(0, 0, imgWidth, imgHeight).data);
+        }
+      } catch (err) {
+        console.warn("Error reading particle pixel data:", err);
+      }
 
       let numVisible = 0;
       for (let i = 0; i < numPoints; i++) {

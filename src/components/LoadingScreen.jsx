@@ -23,7 +23,7 @@ export const LoadingScreen = ({ onComplete }) => {
       <WebcamPixelGrid
         pixelSize={16}
         gap={2}
-        autoStartCamera={true}
+        autoStartCamera={false}
         showControls={false}
         className="h-full w-full"
       >

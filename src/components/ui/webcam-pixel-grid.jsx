@@ -115,12 +115,14 @@ export function WebcamPixelGrid({
       if (!containerRef.current || !canvas) return;
       const rect = containerRef.current.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = Math.max(1, Math.floor(rect.width));
+      const h = Math.max(1, Math.floor(rect.height));
       
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
-      ctx.scale(dpr, dpr);
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
     resize();
@@ -128,8 +130,8 @@ export function WebcamPixelGrid({
 
     const render = () => {
       time += 0.03;
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
+      const width = canvas.clientWidth || 300;
+      const height = canvas.clientHeight || 300;
 
       if (width === 0 || height === 0) {
         animFrameRef.current = requestAnimationFrame(render);
@@ -140,15 +142,15 @@ export function WebcamPixelGrid({
       ctx.fillRect(0, 0, width, height);
 
       const cellSize = pixelSize + gap;
-      const cols = Math.ceil(width / cellSize);
-      const rows = Math.ceil(height / cellSize);
+      const cols = Math.max(1, Math.ceil(width / cellSize));
+      const rows = Math.max(1, Math.ceil(height / cellSize));
 
       const video = videoRef.current;
       const hasLiveVideo = isCameraActive && video && video.readyState >= 2;
 
       let pixelData = null;
 
-      if (hasLiveVideo && offCtx) {
+      if (hasLiveVideo && offCtx && cols > 0 && rows > 0) {
         offscreen.width = cols;
         offscreen.height = rows;
         // Efecto espejo horizontal para la cámara
