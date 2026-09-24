@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Toaster } from 'sileo';
 import 'sileo/styles.css';
@@ -10,6 +10,7 @@ import { VehicleOwnerForm } from './components/VehicleOwnerForm';
 import { AutoPaymentConfig } from './components/AutoPaymentConfig';
 import { ParkingSimulator } from './components/ParkingSimulator';
 import { TransactionHistory } from './components/TransactionHistory';
+import { StaggeredGrid } from './components/ui/staggered-grid';
 import { 
   CreditCard, 
   Car, 
@@ -19,12 +20,14 @@ import {
   ShieldCheck, 
   Sparkles,
   Smartphone,
-  ChevronRight
+  ChevronRight,
+  Sliders
 } from 'lucide-react';
 
 const MainContent = ({ onReplayLoading }) => {
   const { activeSession, vehicle } = useParking();
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'autopay', 'vehicle', 'history'
+  const systemRef = useRef(null);
 
   const tabs = [
     { id: 'dashboard', label: 'Tarjeta & Parquímetro', icon: CreditCard, badge: activeSession ? 'EN VIVO' : null },
@@ -32,6 +35,13 @@ const MainContent = ({ onReplayLoading }) => {
     { id: 'vehicle', label: 'Vehículo & Titular', icon: Car },
     { id: 'history', label: 'Historial de Cobros', icon: History },
   ];
+
+  const handleSelectFeature = (tabId) => {
+    setActiveTab(tabId);
+    if (systemRef.current) {
+      systemRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white relative selection:bg-white selection:text-black">
@@ -48,8 +58,8 @@ const MainContent = ({ onReplayLoading }) => {
         {/* Banner de Sesión Activa si está en otra pestaña */}
         {activeSession && activeTab !== 'dashboard' && (
           <div 
-            onClick={() => setActiveTab('dashboard')}
-            className="bg-neutral-900/90 border-b border-amber-500/40 px-4 py-2.5 text-center text-xs font-mono font-semibold text-amber-300 flex items-center justify-center gap-2 cursor-pointer hover:bg-neutral-900 transition backdrop-blur-md"
+            onClick={() => handleSelectFeature('dashboard')}
+            className="bg-neutral-900/90 border-b border-amber-500/40 px-4 py-2.5 text-center text-xs font-mono font-semibold text-amber-300 flex items-center justify-center gap-2 cursor-pointer hover:bg-neutral-900 transition backdrop-blur-md sticky top-20 z-30"
           >
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
             <span>Vehículo {vehicle.plates} actualmente en parquímetro. Clic para ver contador o liberar cajón.</span>
@@ -57,29 +67,41 @@ const MainContent = ({ onReplayLoading }) => {
           </div>
         )}
 
-        {/* Contenedor Principal */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* 1. SECCIÓN DE BIENVENIDA & STAGGERED GRID SHOWCASE DE FUNCIONES */}
+        <div className="w-full border-b border-neutral-900">
+          <StaggeredGrid 
+            centerText="BIENVENIDOS A PARQU"
+            onSelectFeature={handleSelectFeature}
+          />
+        </div>
+
+        {/* 2. SECCIÓN DEL SISTEMA INTERACTIVO (TARJETA, SIMULADOR, CONFIGURACIÓN, HISTORIAL) */}
+        <main 
+          ref={systemRef} 
+          id="interactive-system"
+          className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8 scroll-mt-24"
+        >
           
-          {/* Encabezado de Bienvenida y Selector de Pestañas */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Encabezado del Panel Interactivo y Selector de Pestañas */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl bg-neutral-950/90 border border-neutral-800 backdrop-blur-xl">
             <div>
               <div className="flex items-center gap-2 mb-1 text-xs font-mono text-neutral-400">
                 <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                <span className="tracking-widest uppercase">Sistema Inteligente de Parquímetros</span>
+                <span className="tracking-widest uppercase">Panel de Control en Vivo</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
-                <span>Parquímetro Digital Metropolitano</span>
+              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
+                <span>Centro de Operaciones Parqu</span>
                 <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-neutral-900 text-neutral-300 border border-neutral-800 hidden sm:inline-block">
                   Cero Filas • Cero Monedas
                 </span>
-              </h1>
-              <p className="text-xs sm:text-sm text-neutral-400 mt-1 font-mono">
-                Todos los cobros de estacionamiento se cargan automáticamente a tu tarjeta digital vinculada.
+              </h2>
+              <p className="text-xs text-neutral-400 mt-1 font-mono">
+                Interactúa con tu tarjeta digital, activa el simulador o ajusta tus parámetros de autocobro.
               </p>
             </div>
 
             {/* Navegación por Pestañas */}
-            <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-950/80 border border-neutral-800 backdrop-blur-md overflow-x-auto">
+            <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-900/90 border border-neutral-800 backdrop-blur-md overflow-x-auto">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -90,7 +112,7 @@ const MainContent = ({ onReplayLoading }) => {
                     className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition whitespace-nowrap relative ${
                       isActive
                         ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.25)]'
-                        : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+                        : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -210,7 +232,7 @@ const MainContent = ({ onReplayLoading }) => {
         </main>
 
         {/* Footer con Logos 100% Transparentes y Powered by SSS.Solutions */}
-        <footer className="border-t border-neutral-800/80 bg-black py-8 text-center text-xs text-neutral-400">
+        <footer className="border-t border-neutral-800/80 bg-black py-8 text-center text-xs text-neutral-400 mt-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
             
             {/* Identidad Park - Logo Transparente sin cajas de fondo */}
