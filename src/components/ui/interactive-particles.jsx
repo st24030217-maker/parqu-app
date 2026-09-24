@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import gsap from "gsap";
 import { cn } from "../../lib/utils";
@@ -76,9 +76,9 @@ void main() {
   displaced.xy -= uTextureSize * 0.5;
 
   float t = texture2D(uTouch, puv).r;
-  displaced.z += t * 30.0 * rndz;
-  displaced.x += cos(angle) * t * 30.0 * rndz;
-  displaced.y += sin(angle) * t * 30.0 * rndz;
+  displaced.z += t * 35.0 * rndz;
+  displaced.x += cos(angle) * t * 35.0 * rndz;
+  displaced.y += sin(angle) * t * 35.0 * rndz;
 
   float psize = (snoise(vec2(uTime, pindex) * 0.5) + 2.0);
   psize *= max(grey, 0.2);
@@ -126,7 +126,7 @@ class TouchTexture {
   maxAge = 120;
   trail = [];
 
-  constructor(radius = 0.15) {
+  constructor(radius = 0.2) {
     this.radius = radius;
     this.canvas = document.createElement("canvas");
     this.canvas.width = this.canvas.height = this.size;
@@ -176,7 +176,7 @@ class TouchTexture {
 
     const radius = this.size * this.radius * intensity;
     const grd = this.ctx.createRadialGradient(pos.x, pos.y, radius * 0.25, pos.x, pos.y, radius);
-    grd.addColorStop(0, "rgba(255, 255, 255, 0.3)");
+    grd.addColorStop(0, "rgba(255, 255, 255, 0.4)");
     grd.addColorStop(1, "rgba(0, 0, 0, 0.0)");
     this.ctx.beginPath();
     this.ctx.fillStyle = grd;
@@ -186,17 +186,17 @@ class TouchTexture {
 }
 
 export function InteractiveParticles({
-  src = "/parqu-logo-white.png",
-  allowUpload = false,
-  maxDimension = 280,
+  text,
+  src,
+  maxDimension = 320,
   className = "",
   background = "transparent",
   color = "#ffffff",
   size = 1.3,
-  randomness = 2.0,
+  randomness = 1.8,
   depth = 3.5,
-  touchRadius = 0.2,
-  threshold = 30,
+  touchRadius = 0.25,
+  threshold = 25,
 }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -204,7 +204,7 @@ export function InteractiveParticles({
   useEffect(() => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
-    if (!container || !canvas || !src) return;
+    if (!container || !canvas) return;
 
     let disposed = false;
     const getSize = () => ({
@@ -250,9 +250,8 @@ export function InteractiveParticles({
     };
     window.addEventListener("pointermove", onPointerMove);
 
-    const loader = new THREE.TextureLoader();
-    loader.setCrossOrigin("anonymous");
-    loader.load(src, (texture) => {
+    // Función para procesar una textura generada o cargada
+    const processTexture = (texture, width, height) => {
       if (disposed) {
         texture.dispose();
         return;
@@ -260,11 +259,10 @@ export function InteractiveParticles({
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
 
-      const image = texture.image;
-      const longest = Math.max(image.width, image.height);
+      const longest = Math.max(width, height);
       const scaleDown = longest > maxDimension ? maxDimension / longest : 1;
-      imgWidth = Math.max(1, Math.round(image.width * scaleDown));
-      imgHeight = Math.max(1, Math.round(image.height * scaleDown));
+      imgWidth = Math.max(1, Math.round(width * scaleDown));
+      imgHeight = Math.max(1, Math.round(height * scaleDown));
       const numPoints = imgWidth * imgHeight;
 
       const readCanvas = document.createElement("canvas");
@@ -272,7 +270,7 @@ export function InteractiveParticles({
       readCanvas.height = imgHeight;
       const rctx = readCanvas.getContext("2d");
       rctx.scale(1, -1);
-      rctx.drawImage(image, 0, 0, imgWidth, imgHeight * -1);
+      rctx.drawImage(texture.image, 0, 0, imgWidth, imgHeight * -1);
       const colors = Float32Array.from(rctx.getImageData(0, 0, imgWidth, imgHeight).data);
 
       let numVisible = 0;
@@ -351,11 +349,37 @@ export function InteractiveParticles({
       gsap.fromTo(uniforms.uSize, { value: 0.5 }, { value: size, duration: 1.2 });
       gsap.to(uniforms.uRandom, { value: randomness, duration: 1.2 });
       gsap.fromTo(uniforms.uDepth, { value: 35.0 }, { value: depth, duration: 1.6 });
-    });
+    };
+
+    if (text) {
+      // Generar canvas con la tipografía de "BIENVENIDO A PARQU"
+      const textCanvas = document.createElement("canvas");
+      textCanvas.width = 1200;
+      textCanvas.height = 320;
+      const tctx = textCanvas.getContext("2d");
+      
+      tctx.fillStyle = "#000000";
+      tctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
+
+      tctx.fillStyle = "#ffffff";
+      tctx.textAlign = "center";
+      tctx.textBaseline = "middle";
+      tctx.font = "900 110px system-ui, -apple-system, sans-serif";
+      tctx.fillText(text.toUpperCase(), textCanvas.width / 2, textCanvas.height / 2);
+
+      const texture = new THREE.CanvasTexture(textCanvas);
+      processTexture(texture, textCanvas.width, textCanvas.height);
+    } else if (src) {
+      const loader = new THREE.TextureLoader();
+      loader.setCrossOrigin("anonymous");
+      loader.load(src, (texture) => {
+        processTexture(texture, texture.image.width, texture.image.height);
+      });
+    }
 
     const applyScale = () => {
       if (!object3D || !hitArea || !imgHeight) return;
-      const scale = (fovHeight * 0.7) / imgHeight;
+      const scale = (fovHeight * 0.72) / imgHeight;
       object3D.scale.set(scale, scale, 1);
       hitArea.scale.set(scale, scale, 1);
     };
@@ -424,7 +448,7 @@ export function InteractiveParticles({
       if (touch && touch.texture) touch.texture.dispose();
       renderer.dispose();
     };
-  }, [src, color, size, randomness, depth, touchRadius, threshold, maxDimension]);
+  }, [text, src, color, size, randomness, depth, touchRadius, threshold, maxDimension]);
 
   return (
     <div
