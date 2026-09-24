@@ -27,8 +27,19 @@ import {
 } from 'lucide-react';
 
 const MainContent = ({ onReplayLoading }) => {
-  const { activeSession, vehicle } = useParking();
+  const { 
+    activeSession, 
+    vehicle, 
+    card, 
+    autoPay, 
+    addBalance, 
+    startSession, 
+    endSession 
+  } = useParking();
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'autopay', 'vehicle', 'history'
+  const [showQRQuickModal, setShowQRQuickModal] = useState(false);
+  const [showRechargeQuickModal, setShowRechargeQuickModal] = useState(false);
+  const [rechargeAmt, setRechargeAmt] = useState(150);
   const systemRef = useRef(null);
 
   const tabs = [
@@ -42,6 +53,18 @@ const MainContent = ({ onReplayLoading }) => {
     setActiveTab(tabId);
     if (systemRef.current) {
       systemRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleQuickRechargeSubmit = (e) => {
+    e.preventDefault();
+    if (rechargeAmt > 0) {
+      addBalance(Number(rechargeAmt));
+      sileo.success({
+        title: '¡Recarga Exitosa!',
+        description: `Se han añadido $${rechargeAmt}.00 MXN a tu tarjeta Parqu.`,
+      });
+      setShowRechargeQuickModal(false);
     }
   };
 
@@ -87,56 +110,290 @@ const MainContent = ({ onReplayLoading }) => {
         <main 
           ref={systemRef} 
           id="interactive-system"
-          className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8 scroll-mt-24"
+          className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 scroll-mt-24"
         >
           
-          {/* Encabezado del Panel Interactivo y Selector de Pestañas */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl bg-neutral-950/90 border border-neutral-800 backdrop-blur-xl">
-            <div>
-              <div className="flex items-center gap-2 mb-1 text-xs font-mono text-neutral-400">
-                <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                <span className="tracking-widest uppercase">Panel de Control en Vivo</span>
+          {/* ENCABEZADO PRINCIPAL DEL CENTRO DE OPERACIONES & SELECTOR DE PESTAÑAS */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-neutral-950/90 border border-neutral-800/90 backdrop-blur-xl shadow-2xl space-y-6">
+            
+            {/* Fila Superior: Título, Estatus en Vivo y Pestañas */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-2 mb-1.5 text-xs font-mono text-neutral-400">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="tracking-widest uppercase font-bold text-emerald-300">SISTEMA METROPOLITANO EN VIVO</span>
+                  <span className="text-neutral-600">•</span>
+                  <span className="text-neutral-400">0 Filas • 0 Monedas</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-3">
+                  <span>Centro de Operaciones Parqu</span>
+                </h2>
+                <p className="text-xs sm:text-sm text-neutral-400 mt-1 font-mono">
+                  Control centralizado de tarjeta virtual, parquímetros municipales y telemetría de autocobro.
+                </p>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-                <span>Centro de Operaciones Parqu</span>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-neutral-900 text-neutral-300 border border-neutral-800 hidden sm:inline-block">
-                  Cero Filas • Cero Monedas
-                </span>
-              </h2>
-              <p className="text-xs text-neutral-400 mt-1 font-mono">
-                Interactúa con tu tarjeta digital, activa el simulador o ajusta tus parámetros de autocobro.
-              </p>
+
+              {/* Selector de Pestañas Moderno */}
+              <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-neutral-900/90 border border-neutral-800 flex-wrap">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition-all duration-200 ${
+                        isActive
+                          ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)] scale-[1.02]'
+                          : 'text-neutral-400 hover:text-white hover:bg-neutral-800/80'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span>{tab.label}</span>
+                      {tab.badge && (
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-mono ${
+                          isActive ? 'bg-black text-white' : 'bg-neutral-800 text-neutral-300'
+                        }`}>
+                          {tab.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Navegación por Pestañas */}
-            <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-900/90 border border-neutral-800 backdrop-blur-md overflow-x-auto">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition whitespace-nowrap relative ${
-                      isActive
-                        ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.25)]'
-                        : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{tab.label}</span>
-                    {tab.badge && (
-                      <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-mono ${
-                        isActive ? 'bg-black text-white' : 'bg-neutral-800 text-neutral-300'
-                      }`}>
-                        {tab.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+            {/* BARRA DE FUNCIONES RÁPIDAS (QUICK ACTIONS TOOLBAR) */}
+            <div className="pt-4 border-t border-neutral-800/80">
+              <div className="flex items-center justify-between mb-3 text-[11px] font-mono text-neutral-400 uppercase tracking-wider">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="font-bold text-white">Funciones Rápidas</span>
+                </div>
+                <span className="text-neutral-500">Acceso inmediato con 1 toque</span>
+              </div>
+
+              {/* Grid de Botones de Funciones Rápidas */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                
+                {/* 1. Recargar Saldo */}
+                <button
+                  onClick={() => setShowRechargeQuickModal(true)}
+                  className="flex items-center gap-3 p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 hover:border-emerald-500/50 hover:bg-neutral-900 transition-all duration-200 group text-left"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                    <CreditCard className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-white block group-hover:text-emerald-300 transition-colors">
+                      Recargar Saldo
+                    </span>
+                    <span className="text-[10px] font-mono text-neutral-400">
+                      Saldo: ${card.balance.toFixed(2)}
+                    </span>
+                  </div>
+                </button>
+
+                {/* 2. Código QR Oficial */}
+                <button
+                  onClick={() => setShowQRQuickModal(true)}
+                  className="flex items-center gap-3 p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 hover:border-cyan-500/50 hover:bg-neutral-900 transition-all duration-200 group text-left"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-cyan-950/60 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
+                    <QrCode className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-white block group-hover:text-cyan-300 transition-colors">
+                      Credencial QR
+                    </span>
+                    <span className="text-[10px] font-mono text-neutral-400">
+                      Inspección de Tránsito
+                    </span>
+                  </div>
+                </button>
+
+                {/* 3. Simulador de Cajón */}
+                <button
+                  onClick={() => {
+                    setActiveTab('dashboard');
+                    sileo.info({
+                      title: 'Simulador de Parquímetro',
+                      description: 'Selecciona tu cajón metropolitano o inicia estancia.',
+                    });
+                  }}
+                  className="flex items-center gap-3 p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 hover:border-indigo-500/50 hover:bg-neutral-900 transition-all duration-200 group text-left"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-indigo-950/60 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-white block group-hover:text-indigo-300 transition-colors">
+                      {activeSession ? 'Cajón Activo' : 'Simular Estancia'}
+                    </span>
+                    <span className="text-[10px] font-mono text-neutral-400">
+                      {activeSession ? 'En Parquímetro' : 'Tarifa: $0.25/min'}
+                    </span>
+                  </div>
+                </button>
+
+                {/* 4. Configurar Autocobro */}
+                <button
+                  onClick={() => {
+                    setActiveTab('autopay');
+                    sileo.info({
+                      title: 'Configuración de Autocobro',
+                      description: 'Ajusta límites, cuenta bancaria y reglas de débito.',
+                    });
+                  }}
+                  className="flex items-center gap-3 p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 hover:border-purple-500/50 hover:bg-neutral-900 transition-all duration-200 group text-left"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-purple-950/60 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-white block group-hover:text-purple-300 transition-colors">
+                      Modo Autocobro
+                    </span>
+                    <span className="text-[10px] font-mono text-neutral-400">
+                      {autoPay.fundingSource === 'CARD' ? 'Débito Bancario' : 'Saldo Monedero'}
+                    </span>
+                  </div>
+                </button>
+
+                {/* 5. Vehículo & Placas */}
+                <button
+                  onClick={() => {
+                    setActiveTab('vehicle');
+                    sileo.info({
+                      title: 'Padrón Vehicular',
+                      description: `Vehículo actual: ${vehicle.plates} • ${vehicle.brand} ${vehicle.model}`,
+                    });
+                  }}
+                  className="col-span-2 sm:col-span-1 flex items-center gap-3 p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 hover:border-amber-500/50 hover:bg-neutral-900 transition-all duration-200 group text-left"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-amber-950/60 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                    <Car className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-white block group-hover:text-amber-300 transition-colors">
+                      {vehicle.plates}
+                    </span>
+                    <span className="text-[10px] font-mono text-neutral-400">
+                      {vehicle.brand} {vehicle.model}
+                    </span>
+                  </div>
+                </button>
+
+              </div>
             </div>
+
           </div>
+
+          {/* Modal Rápido de Recarga de Saldo */}
+          {showRechargeQuickModal && (
+            <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+              <div className="bg-neutral-950 border border-neutral-800 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-3">
+                  <CreditCard className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-1 font-mono">Recarga Rápida de Saldo</h3>
+                <p className="text-xs text-neutral-400 mb-6">
+                  Saldo disponible: <span className="text-emerald-400 font-bold font-mono">${card.balance.toFixed(2)} MXN</span>
+                </p>
+
+                <form onSubmit={handleQuickRechargeSubmit} className="space-y-4 text-left">
+                  <div>
+                    <label className="text-xs text-neutral-400 font-mono block mb-2">Selecciona un monto:</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[100, 200, 500].map((amt) => (
+                        <button
+                          key={amt}
+                          type="button"
+                          onClick={() => setRechargeAmt(amt)}
+                          className={`py-2 rounded-xl text-xs font-mono font-bold border transition ${
+                            rechargeAmt === amt
+                              ? 'bg-white text-black border-white'
+                              : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:border-neutral-700'
+                          }`}
+                        >
+                          ${amt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowRechargeQuickModal(false)}
+                      className="flex-1 py-2.5 rounded-xl border border-neutral-800 text-neutral-400 text-xs font-mono hover:bg-neutral-900 transition"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 py-2.5 rounded-xl bg-white text-black text-xs font-mono font-bold hover:bg-neutral-200 transition shadow-[0_0_20px_rgba(255,255,255,0.25)]"
+                    >
+                      Recargar ${rechargeAmt}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Modal Rápido de Código QR */}
+          {showQRQuickModal && (
+            <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+              <div className="bg-neutral-950 border border-neutral-800 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+                <h3 className="text-lg font-bold text-white mb-1 font-mono">Credencial QR de Inspección</h3>
+                <p className="text-xs text-neutral-400 mb-6">
+                  Lectura directa para agentes de tránsito vial
+                </p>
+
+                <div className="bg-white p-4 rounded-2xl inline-block shadow-inner mb-4">
+                  <svg className="w-48 h-48 mx-auto" viewBox="0 0 100 100">
+                    <rect width="100" height="100" fill="white" />
+                    <rect x="5" y="5" width="26" height="26" fill="black" />
+                    <rect x="9" y="9" width="18" height="18" fill="white" />
+                    <rect x="13" y="13" width="10" height="10" fill="black" />
+                    <rect x="69" y="5" width="26" height="26" fill="black" />
+                    <rect x="73" y="9" width="18" height="18" fill="white" />
+                    <rect x="77" y="13" width="10" height="10" fill="black" />
+                    <rect x="5" y="69" width="26" height="26" fill="black" />
+                    <rect x="9" y="73" width="18" height="18" fill="white" />
+                    <rect x="13" y="77" width="10" height="10" fill="black" />
+                    <rect x="36" y="10" width="8" height="8" fill="black" />
+                    <rect x="48" y="10" width="6" height="6" fill="black" />
+                    <rect x="36" y="24" width="6" height="6" fill="black" />
+                    <rect x="46" y="20" width="10" height="10" fill="black" />
+                    <rect x="10" y="38" width="6" height="6" fill="black" />
+                    <rect x="20" y="44" width="8" height="8" fill="black" />
+                    <rect x="35" y="40" width="30" height="20" fill="black" />
+                    <rect x="40" y="45" width="20" height="10" fill="white" />
+                    <rect x="70" y="40" width="8" height="8" fill="black" />
+                    <rect x="82" y="48" width="6" height="6" fill="black" />
+                    <rect x="38" y="70" width="8" height="8" fill="black" />
+                    <rect x="50" y="76" width="12" height="12" fill="black" />
+                    <rect x="68" y="70" width="6" height="6" fill="black" />
+                    <rect x="78" y="80" width="10" height="10" fill="black" />
+                  </svg>
+                </div>
+
+                <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 mb-6 text-xs font-mono text-neutral-300 flex items-center justify-between">
+                  <span>Placas: <strong className="text-white">{vehicle.plates}</strong></span>
+                  <span className="text-emerald-400">● Validado</span>
+                </div>
+
+                <button
+                  onClick={() => setShowQRQuickModal(false)}
+                  className="w-full py-2.5 rounded-xl bg-white text-black text-xs font-mono font-bold hover:bg-neutral-200 transition"
+                >
+                  Cerrar Credencial
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Contenido Dinámico según Pestaña */}
           {activeTab === 'dashboard' && (
