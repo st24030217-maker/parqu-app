@@ -45,7 +45,7 @@ export function WebcamPixelGrid({
         if (onCameraStatusChange) onCameraStatusChange(true);
       }
     } catch (err) {
-      console.warn('Cámara no disponible, activando modo pixelado ambiental interactivo:', err.message);
+      console.warn('Cámara no disponible, activando modo pixelado a color ambiental:', err.message);
       setCameraError(err.message);
       setIsCameraActive(false);
       if (onCameraStatusChange) onCameraStatusChange(false);
@@ -96,7 +96,7 @@ export function WebcamPixelGrid({
     mouseRef.current = { x: -1000, y: -1000, active: false };
   };
 
-  // Loop de renderizado del Canvas con Bloques de Píxeles Cuadrados Reales (Pixel Art Shader Grid)
+  // Loop de renderizado del Canvas con Bloques de Píxeles a TODO COLOR
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -127,7 +127,7 @@ export function WebcamPixelGrid({
     window.addEventListener('resize', resize);
 
     const render = () => {
-      time += 0.035;
+      time += 0.03;
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
 
@@ -136,7 +136,7 @@ export function WebcamPixelGrid({
         return;
       }
 
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = '#050508';
       ctx.fillRect(0, 0, width, height);
 
       const cellSize = pixelSize + gap;
@@ -166,7 +166,7 @@ export function WebcamPixelGrid({
 
       const mouse = mouseRef.current;
 
-      // Renderizar la cuadrícula de BLOQUES PIXELADOS
+      // Renderizar la cuadrícula de BLOQUES PIXELADOS A TODO COLOR
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const px = c * cellSize;
@@ -174,51 +174,63 @@ export function WebcamPixelGrid({
           const centerX = px + pixelSize / 2;
           const centerY = py + pixelSize / 2;
 
-          let intensity = 0;
+          let colorFill = '';
 
           if (pixelData) {
             const index = (r * cols + c) * 4;
-            const red = pixelData[index];
-            const green = pixelData[index + 1];
-            const blue = pixelData[index + 2];
-            // Luminancia relativa
+            let red = pixelData[index];
+            let green = pixelData[index + 1];
+            let blue = pixelData[index + 2];
+
+            // Realce vibrante de colores de la cámara
             const luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255;
-            intensity = inverted ? 1 - luminance : luminance;
-          } else {
-            // Ondas de flujo digital pixeleado procedural si no hay cámara activa
-            const distToCenter = Math.hypot(centerX - width / 2, centerY - height / 2);
-            const waveX = Math.sin(c * 0.15 + time * 1.2);
-            const waveY = Math.cos(r * 0.15 - time * 0.9);
-            const ripple = Math.sin(distToCenter * 0.025 - time * 1.8);
             
-            // Umbralización de píxeles para aspecto retro / cyber bloque
-            const rawVal = (waveX * 0.35 + waveY * 0.35 + ripple * 0.3) * 0.5 + 0.5;
-            // Cuantización de intensidad en escalones de píxel
-            intensity = Math.floor(rawVal * 6) / 6;
-          }
-
-          // Interacción de proximidad con el cursor del mouse
-          if (mouse.active) {
-            const dx = centerX - mouse.x;
-            const dy = centerY - mouse.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const maxRadius = 160;
-
-            if (dist < maxRadius) {
-              const mouseFactor = 1 - dist / maxRadius;
-              intensity = Math.min(1, intensity + mouseFactor * 0.85);
+            // Interacción con el cursor sobre la cámara en vivo
+            if (mouse.active) {
+              const dx = centerX - mouse.x;
+              const dy = centerY - mouse.y;
+              const dist = Math.hypot(dx, dy);
+              if (dist < 140) {
+                const boost = (1 - dist / 140) * 80;
+                red = Math.min(255, red + boost);
+                green = Math.min(255, green + boost);
+                blue = Math.min(255, blue + boost);
+              }
             }
+
+            colorFill = `rgb(${red}, ${green}, ${blue})`;
+          } else {
+            // Generador procedural de ondas cromáticas vibrantes (Cyan, Violeta, Púrpura, Azul, Esmeralda)
+            const distToCenter = Math.hypot(centerX - width / 2, centerY - height / 2);
+            const wave1 = Math.sin(c * 0.12 + time * 1.5);
+            const wave2 = Math.cos(r * 0.12 - time * 1.2);
+            const ripple = Math.sin(distToCenter * 0.02 - time * 2.0);
+
+            const rawIntensity = (wave1 * 0.35 + wave2 * 0.35 + ripple * 0.3) * 0.5 + 0.5;
+            
+            // Espectro de color continuo y dinámico
+            let hue = (c * 3.5 + r * 2.5 + time * 30) % 360;
+            let saturation = 90;
+            let lightness = Math.max(10, Math.min(65, rawIntensity * 60 + 10));
+
+            // Respuesta al cursor del ratón con ondas de resplandor
+            if (mouse.active) {
+              const dx = centerX - mouse.x;
+              const dy = centerY - mouse.y;
+              const dist = Math.hypot(dx, dy);
+              if (dist < 160) {
+                const mousePower = (1 - dist / 160);
+                lightness = Math.min(85, lightness + mousePower * 45);
+                hue = (hue + mousePower * 60) % 360;
+              }
+            }
+
+            colorFill = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
           }
 
-          // Renderizado de bloque de píxel cuadrado sólido
-          // Si la intensidad es muy baja, mantener el marco de píxel tenue
-          const minAlpha = 0.04;
-          const alpha = Math.max(minAlpha, Math.min(0.92, intensity));
-          const brightness = Math.floor(255 * alpha);
-
-          ctx.fillStyle = `rgb(${brightness}, ${brightness}, ${brightness})`;
+          ctx.fillStyle = colorFill;
           
-          // Bloque de píxel rectangular/cuadrado con 1px de separación para efecto de matriz LCD/LED
+          // Bloque de píxel rectangular/cuadrado estilo display LCD/LED a color
           ctx.fillRect(px, py, pixelSize, pixelSize);
         }
       }
@@ -252,37 +264,37 @@ export function WebcamPixelGrid({
         className="hidden pointer-events-none"
       />
 
-      {/* Canvas del fondo con efecto pixeleado auténtico */}
+      {/* Canvas del fondo con efecto pixeleado a TODO COLOR */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 block w-full h-full pointer-events-none"
       />
 
-      {/* Gradientes de contraste para resaltar el contenido */}
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.2)_0%,rgba(0,0,0,0.85)_100%)]" />
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black via-transparent to-black/70" />
+      {/* Gradientes de contraste para resaltar el contenido preservando el color de fondo */}
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.15)_0%,rgba(0,0,0,0.8)_100%)]" />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black via-transparent to-black/60" />
 
       {/* Control flotante para activar/desactivar la cámara */}
       <div className="absolute top-6 right-6 z-30 pointer-events-auto">
         <button
           onClick={toggleCamera}
-          title={isCameraActive ? 'Desactivar cámara' : 'Activar cámara en vivo'}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold transition-all duration-300 border backdrop-blur-md ${
+          title={isCameraActive ? 'Desactivar cámara' : 'Activar cámara a color'}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold transition-all duration-300 border backdrop-blur-md shadow-lg ${
             isCameraActive
-              ? 'bg-white/10 text-white border-white/40 shadow-[0_0_20px_rgba(255,255,255,0.25)] hover:bg-white/20'
-              : 'bg-neutral-900/80 text-neutral-300 border-neutral-700 hover:text-white hover:border-white/40'
+              ? 'bg-white/15 text-white border-white/40 shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:bg-white/25'
+              : 'bg-neutral-900/80 text-neutral-200 border-neutral-700 hover:text-white hover:border-white/50'
           }`}
         >
           {isCameraActive ? (
             <>
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <Camera className="w-3.5 h-3.5 text-white" />
-              <span>Cámara Pixeleada</span>
+              <span>Cámara a Color</span>
             </>
           ) : (
             <>
-              <Sparkles className="w-3.5 h-3.5 text-neutral-400" />
-              <span>Pixeleado Dinámico</span>
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Color Dinámico</span>
             </>
           )}
         </button>

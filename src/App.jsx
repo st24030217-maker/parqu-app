@@ -45,11 +45,12 @@ const MainContent = ({ onReplayLoading }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white relative selection:bg-white selection:text-black">
-      {/* Luces y texturas ambientales en Blanco y Negro idénticas a la pantalla de carga */}
+      {/* Luces y texturas ambientales a Color de Alta Fidelidad */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-white/[0.03] rounded-full blur-[160px]" />
-        <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-white/[0.02] rounded-full blur-[140px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(#262626_1px,transparent_1px)] [background-size:28px_28px] opacity-40" />
+        <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-indigo-600/[0.07] rounded-full blur-[160px]" />
+        <div className="absolute top-1/2 right-1/4 w-[600px] h-[600px] bg-cyan-600/[0.05] rounded-full blur-[150px]" />
+        <div className="absolute bottom-1/4 left-1/4 w-[550px] h-[550px] bg-purple-600/[0.06] rounded-full blur-[140px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(#333333_1px,transparent_1px)] [background-size:28px_28px] opacity-35" />
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
