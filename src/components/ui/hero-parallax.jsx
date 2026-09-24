@@ -113,17 +113,39 @@ export const HeroParallax = ({
 
 export const Header = ({ title, subtitle, description }) => {
   return (
-    <div className="max-w-7xl relative mx-auto py-16 md:py-28 px-4 sm:px-6 w-full left-0 top-0 z-20">
-      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neutral-950/90 border border-neutral-800 text-xs font-mono text-neutral-300 mb-6 backdrop-blur-md shadow-[0_0_25px_rgba(255,255,255,0.06)]">
-        <Sparkles className="w-3.5 h-3.5 text-white" />
-        <span className="tracking-[0.25em] uppercase font-bold text-[11px] text-white">{subtitle}</span>
+    <div className="max-w-7xl relative mx-auto py-16 md:py-28 px-4 sm:px-6 w-full left-0 top-0 z-20 overflow-visible">
+      {/* FONDO SSS.SOLUTIONS: Logo transparente y watermark tecnológico */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl pointer-events-none select-none flex flex-col items-center justify-center opacity-20 transition-opacity duration-700">
+        <div className="relative flex flex-col items-center justify-center">
+          {/* Resplandor ambiental de SSS.Solutions */}
+          <div className="absolute -inset-10 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
+          
+          {/* Logo Oficial Transparente de SSS.Solutions */}
+          <img 
+            src="/sss-solutions-logo.png" 
+            alt="SSS.Solutions" 
+            className="h-32 sm:h-48 md:h-60 w-auto object-contain drop-shadow-[0_0_60px_rgba(255,255,255,0.45)]"
+          />
+          
+          {/* Marca de agua tipográfica SSS.SOLUTIONS */}
+          <span className="text-4xl sm:text-6xl md:text-8xl font-black tracking-[0.35em] font-mono text-white/30 uppercase mt-3 whitespace-nowrap drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+            SSS.SOLUTIONS
+          </span>
+        </div>
       </div>
-      <h1 className="text-3xl sm:text-5xl md:text-7xl font-black text-white tracking-tight leading-tight max-w-4xl">
-        {title}
-      </h1>
-      <p className="max-w-2xl text-sm sm:text-base md:text-lg mt-6 text-neutral-400 font-mono leading-relaxed">
-        {description}
-      </p>
+
+      <div className="relative z-10">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neutral-950/90 border border-neutral-800 text-xs font-mono text-neutral-300 mb-6 backdrop-blur-md shadow-[0_0_25px_rgba(255,255,255,0.06)]">
+          <Sparkles className="w-3.5 h-3.5 text-white" />
+          <span className="tracking-[0.25em] uppercase font-bold text-[11px] text-white">{subtitle}</span>
+        </div>
+        <h1 className="text-3xl sm:text-5xl md:text-7xl font-black text-white tracking-tight leading-tight max-w-4xl drop-shadow-[0_4px_25px_rgba(0,0,0,0.9)]">
+          {title}
+        </h1>
+        <p className="max-w-2xl text-sm sm:text-base md:text-lg mt-6 text-neutral-400 font-mono leading-relaxed drop-shadow-[0_2px_15px_rgba(0,0,0,0.8)]">
+          {description}
+        </p>
+      </div>
     </div>
   );
 };
