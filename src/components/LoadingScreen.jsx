@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { WebcamPixelGrid } from './ui/webcam-pixel-grid';
 import { LiquidMetalButton } from './ui/liquid-metal';
+import { FlipFadeText } from './ui/flip-fade-text';
 import { TextAnimation } from './ui/staggerText';
 import { ArrowRight, ShieldCheck, Zap, Sparkles } from 'lucide-react';
 
@@ -31,7 +32,7 @@ export const LoadingScreen = ({ onComplete }) => {
           {/* Espaciador superior limpio */}
           <div className="w-full h-4" />
 
-          {/* Hero Central: Logotipo Parqu, Título Parqu, Badges y Botón Liquid Metal "Empecemos" */}
+          {/* Hero Central: Logotipo Parqu, Animación Flip-Fade Text y Botón Liquid Metal "Empecemos" */}
           <main className="flex flex-col items-center justify-center text-center max-w-xl w-full my-auto space-y-6">
             
             {/* Logotipo Parqu 100% Transparente con resplandor */}
@@ -49,13 +50,22 @@ export const LoadingScreen = ({ onComplete }) => {
               />
             </motion.div>
 
-            {/* Título Principal deletreando "Parqu" */}
-            <div>
-              <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white flex items-center justify-center">
-                <TextAnimation delay={0.2} divideBy="letter" className="font-black text-white tracking-tight">
-                  Parqu
-                </TextAnimation>
-              </h1>
+            {/* Animación Flip-Fade Text: PARQU -> MÁS FÁCIL -> SIN FILAS -> SIN MONEDAS -> EN UN TOQUE */}
+            <div className="w-full flex items-center justify-center">
+              <FlipFadeText
+                words={[
+                  "PARQU",
+                  "MÁS FÁCIL",
+                  "SIN FILAS",
+                  "SIN MONEDAS",
+                  "EN UN TOQUE",
+                  "AUTOCOBRO"
+                ]}
+                interval={2600}
+                letterDuration={0.55}
+                staggerDelay={0.07}
+                textClassName="text-4xl sm:text-6xl font-black text-white tracking-tight drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+              />
             </div>
 
             {/* Badges de características */}
