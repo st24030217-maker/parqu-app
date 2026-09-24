@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Camera, Sparkles } from 'lucide-react';
 
 export function WebcamPixelGrid({
   className = '',
@@ -8,6 +7,7 @@ export function WebcamPixelGrid({
   inverted = false,
   interactive = true,
   autoStartCamera = true,
+  showControls = false,
   onCameraStatusChange,
   children,
 }) {
@@ -182,9 +182,6 @@ export function WebcamPixelGrid({
             let green = pixelData[index + 1];
             let blue = pixelData[index + 2];
 
-            // Realce vibrante de colores de la cámara
-            const luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255;
-            
             // Interacción con el cursor sobre la cámara en vivo
             if (mouse.active) {
               const dx = centerX - mouse.x;
@@ -274,31 +271,17 @@ export function WebcamPixelGrid({
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.15)_0%,rgba(0,0,0,0.8)_100%)]" />
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black via-transparent to-black/60" />
 
-      {/* Control flotante para activar/desactivar la cámara */}
-      <div className="absolute top-6 right-6 z-30 pointer-events-auto">
-        <button
-          onClick={toggleCamera}
-          title={isCameraActive ? 'Desactivar cámara' : 'Activar cámara a color'}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold transition-all duration-300 border backdrop-blur-md shadow-lg ${
-            isCameraActive
-              ? 'bg-white/15 text-white border-white/40 shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:bg-white/25'
-              : 'bg-neutral-900/80 text-neutral-200 border-neutral-700 hover:text-white hover:border-white/50'
-          }`}
-        >
-          {isCameraActive ? (
-            <>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <Camera className="w-3.5 h-3.5 text-white" />
-              <span>Cámara a Color</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Color Dinámico</span>
-            </>
-          )}
-        </button>
-      </div>
+      {/* Control flotante opcional (desactivado por defecto para limpieza total) */}
+      {showControls && (
+        <div className="absolute top-6 right-6 z-30 pointer-events-auto">
+          <button
+            onClick={toggleCamera}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold transition-all duration-300 border backdrop-blur-md bg-neutral-900/80 text-neutral-200 border-neutral-700 hover:text-white"
+          >
+            <span>{isCameraActive ? 'Cámara Activa' : 'Color Dinámico'}</span>
+          </button>
+        </div>
+      )}
 
       {/* Contenido superpuesto */}
       {children && <div className="relative z-20 w-full h-full">{children}</div>}
