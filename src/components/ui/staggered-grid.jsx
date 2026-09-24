@@ -14,7 +14,9 @@ import {
   Gauge, 
   Lock, 
   Receipt,
-  ArrowDown
+  ArrowDown,
+  Layers,
+  ChevronRight
 } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -26,258 +28,322 @@ export function StaggeredGrid({
   onSelectFeature,
   className = "",
 }) {
-  const [isLoaded, setIsLoaded] = useState(false);
   const [activeBento, setActiveBento] = useState(0);
-  const gridFullRef = useRef(null);
-  const textRef = useRef(null);
+  const containerRef = useRef(null);
+  const titleSectionRef = useRef(null);
+  const titleTextRef = useRef(null);
+  const bentoSectionRef = useRef(null);
+  const gridSectionRef = useRef(null);
 
-  // Divide texto en caracteres individuales para la animación GSAP
+  // Divide texto en caracteres individuales para la cinemática de entrada GSAP
   const splitText = (text) => {
     return text.split('').map((char, i) => (
       <span
         key={i}
-        className="char inline-block"
-        style={{ willChange: 'transform, opacity' }}
+        className="char inline-block will-change-transform"
+        style={{ transformOrigin: '50% 100%' }}
       >
         {char === ' ' ? '\u00A0' : char}
       </span>
     ));
   };
 
-  useEffect(() => {
-    setIsLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    const ctx = gsap.context(() => {
-      // 1. Animación del Texto Principal "BIENVENIDOS A PARQU"
-      if (textRef.current) {
-        const chars = textRef.current.querySelectorAll('.char');
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: textRef.current,
-            start: 'top 85%',
-            end: 'center 40%',
-            scrub: 1.2,
-          }
-        }).from(chars, {
-          ease: 'power3.out',
-          yPercent: 200,
-          autoAlpha: 0,
-          stagger: {
-            each: 0.04,
-            from: 'center'
-          }
-        });
-      }
-
-      // 2. Animación en Cascada (Stagger) de la Cuadrícula
-      if (gridFullRef.current) {
-        const gridItems = gridFullRef.current.querySelectorAll('.stagger-grid-item');
-        const numCols = window.innerWidth < 768 ? 2 : window.innerWidth < 1024 ? 4 : 6;
-        const middleCol = Math.floor(numCols / 2);
-
-        // Agrupar elementos por columnas para el efecto de onda
-        const columns = Array.from({ length: numCols }, () => []);
-        gridItems.forEach((item, index) => {
-          const colIndex = index % numCols;
-          columns[colIndex].push(item);
-        });
-
-        columns.forEach((colElements, colIdx) => {
-          const distanceFactor = Math.abs(colIdx - middleCol) * 0.15;
-
-          gsap.timeline({
-            scrollTrigger: {
-              trigger: gridFullRef.current,
-              start: 'top 80%',
-              end: 'bottom 70%',
-              scrub: 1.2,
-            }
-          }).from(colElements, {
-            y: 120,
-            autoAlpha: 0,
-            scale: 0.9,
-            delay: distanceFactor,
-            ease: 'sine.out',
-            stagger: 0.1,
-          });
-        });
-      }
-    });
-
-    return () => ctx.revert();
-  }, [isLoaded]);
-
-  // Lista de características de Parqu para las tarjetas de la cuadrícula
+  // Lista de características de Parqu
   const defaultFeatures = [
     {
       id: 'card',
-      title: 'Tarjeta Digital',
-      desc: 'Pase inteligente de parquímetro con saldo en tiempo real.',
+      title: 'Tarjeta Digital Inteligente',
+      subtitle: 'PASE VIRTUAL ACTIVO',
+      desc: 'Pase inteligente de parquímetro con saldo en tiempo real y código QR para inspectores de tránsito.',
       icon: CreditCard,
-      category: 'ACCESO',
+      category: 'IDENTIDAD',
+      badge: 'EN VIVO',
       tab: 'dashboard'
     },
     {
       id: 'autopay',
-      title: 'Autocobro Continuo',
-      desc: 'Cobro segundo a segundo exacto sin necesidad de monedas.',
+      title: 'Autocobro por Segundo',
+      subtitle: 'DEBITO AUTOMATIZADO',
+      desc: 'Cobro segundo a segundo exacto. Cero filas, cero monedas y sin multas por tiempo expirado.',
       icon: Zap,
-      category: 'TECNOLOGÍA',
+      category: 'COBRO',
+      badge: 'AUTOMÁTICO',
       tab: 'autopay'
     },
     {
-      id: 'plates',
-      title: 'Gestión Vehicular',
-      desc: 'Vinculación de placas, marca y titular en el sistema.',
-      icon: Car,
-      category: 'VEHÍCULO',
-      tab: 'vehicle'
-    },
-    {
       id: 'simulator',
-      title: 'Cajones Inteligentes',
-      desc: 'Detección y simulador de parquímetro metropolitano.',
+      title: 'Cajones en Tiempo Real',
+      subtitle: 'SIMULADOR METROPOLITANO',
+      desc: 'Simula tu estancia en parquímetros municipales, activa cronómetros y calcula tu tarifa al instante.',
       icon: MapPin,
       category: 'MOVILIDAD',
+      badge: 'INTERACTIVO',
       tab: 'dashboard'
     },
     {
+      id: 'plates',
+      title: 'Gestión Vehicular y Placas',
+      subtitle: 'VINCULACIÓN OFICIAL',
+      desc: 'Asocia las placas de tu vehículo y datos del titular con sincronización directa al padrón vial.',
+      icon: Car,
+      category: 'VEHÍCULO',
+      badge: 'REGISTRO',
+      tab: 'vehicle'
+    },
+    {
       id: 'history',
-      title: 'Historial & Recibos',
-      desc: 'Registro con folios fiscales y comprobantes descargables.',
+      title: 'Historial y Recibos Fiscales',
+      subtitle: 'COMPROBANTES CFDI',
+      desc: 'Consulta tu bitácora detallada de transacciones, folios fiscales y descarga recibos al instante.',
       icon: History,
       category: 'FINANZAS',
+      badge: 'AUDITABLE',
       tab: 'history'
     },
     {
       id: 'security',
-      title: 'Seguridad 256-Bit',
-      desc: 'Encriptación bancaria y certificación SSS.Solutions.',
+      title: 'Encriptación Bancaria 256-Bit',
+      subtitle: 'PROTECCIÓN TOTAL',
+      desc: 'Cifrado de grado bancario y validación segura desarrollada con tecnología SSS.Solutions.',
       icon: Lock,
-      category: 'PROTECCIÓN',
+      category: 'SEGURIDAD',
+      badge: 'PROTEGIDO',
       tab: 'autopay'
     },
     {
       id: 'qr',
-      title: 'Validación QR',
-      desc: 'Escaneo rápido para oficiales de tránsito municipales.',
+      title: 'Inspección QR Instantánea',
+      subtitle: 'CONTROL DE TRÁNSITO',
+      desc: 'Los agentes municipales validan tu estancia en un segundo escaneando tu credencial digital.',
       icon: QrCode,
       category: 'INSPECCIÓN',
+      badge: 'OFICIAL',
       tab: 'dashboard'
     },
     {
       id: 'nofines',
-      title: 'Cero Multas',
-      desc: 'Garantía activa contra multas por expiración de tiempo.',
+      title: 'Garantía Cero Multas',
+      subtitle: 'COBERTURA ACTIVA',
+      desc: 'Protección activa contra multas por descuido de tiempo mientras tu vehículo permanezca en el cajón.',
       icon: ShieldCheck,
       category: 'GARANTÍA',
+      badge: 'GARANTIZADO',
       tab: 'autopay'
     },
     {
       id: 'realtime',
-      title: 'Métricas en Vivo',
-      desc: 'Consumo por minuto y alertas inteligentes al instante.',
+      title: 'Telemetría de Consumo',
+      subtitle: 'MÉTRICAS POR MINUTO',
+      desc: 'Monitoreo en vivo de saldo debitado, tiempo acumulado y proyecciones de costo de aparcamiento.',
       icon: Gauge,
       category: 'TELEMETRÍA',
+      badge: 'MÉTRICAS',
       tab: 'dashboard'
     },
     {
       id: 'mobile',
-      title: 'Mobile First',
-      desc: 'Experiencia táctil fluida y compatible con cualquier móvil.',
+      title: 'Experiencia Mobile First',
+      subtitle: 'DISEÑO ADAPTATIVO',
+      desc: 'Interfaz táctil reactiva optimizada para operar fluidamente desde cualquier smartphone o tableta.',
       icon: Smartphone,
-      category: 'INTERFAZ',
+      category: 'EXPERIENCIA',
+      badge: 'PWA READY',
       tab: 'dashboard'
     },
     {
       id: 'receipt',
-      title: 'Cobro Transparente',
-      desc: 'Sin comisiones ocultas. Paga únicamente lo que usas.',
+      title: 'Tarifa Justa por Minuto',
+      subtitle: 'CERO COMISIONES OCULTAS',
+      desc: 'Paga con exactitud matemática el tiempo que utilizas el cajón, sin redondeos abusivos.',
       icon: Receipt,
-      category: 'TARIFA',
+      category: 'TRANSPARENCIA',
+      badge: 'EXACTITUD',
       tab: 'history'
     },
     {
       id: 'innovation',
-      title: 'Powered by SSS',
-      desc: 'Infraestructura de nueva generación para smart cities.',
+      title: 'Infraestructura SSS.Solutions',
+      subtitle: 'TECNOLOGÍA METROPOLITANA',
+      desc: 'Arquitectura de vanguardia que moderniza la movilidad urbana en ciudades inteligentes.',
       icon: Sparkles,
       category: 'INNOVACIÓN',
+      badge: 'SMART CITY',
       tab: 'dashboard'
     }
   ];
 
   const itemsToRender = featureItems.length > 0 ? featureItems : defaultFeatures;
 
-  // Bento Items destacados para la sección interactiva expandible
+  // Bento Items Principales
   const defaultBento = [
     {
       id: 'bento-1',
-      title: 'Autocobro sin Monedas',
-      subtitle: 'CERO FILAS • CERO MULTAS',
-      desc: 'El sistema debita automáticamente el tiempo de estancia con precisión de segundo, eliminando parquímetros físicos y multas.',
-      icon: <Zap className="w-5 h-5 text-amber-400" />,
-      tag: '01. AUTONOMÍA',
+      title: 'Autocobro Continuo',
+      subtitle: '01. CERO FILAS • CERO MONEDAS',
+      desc: 'El sistema debita de forma ininterrumpida el tiempo de estancia exacto en el parquímetro, protegiéndote contra multas de tránsito.',
+      icon: <Zap className="w-6 h-6 text-white" />,
+      tag: 'CERO FILAS',
       actionTab: 'autopay'
     },
     {
       id: 'bento-2',
       title: 'Tarjeta Digital Oficial',
-      subtitle: 'PASE METROPOLITANO',
-      desc: 'Tu credencial digital interactiva con QR de inspección, saldo en vivo y recargas rápidas con garantía de saldo protegido.',
-      icon: <CreditCard className="w-5 h-5 text-white" />,
-      tag: '02. IDENTIDAD',
+      subtitle: '02. PASE METROPOLITANO',
+      desc: 'Tu credencial oficial con saldo protegido, sincronización instantánea y código QR para lectura de inspectores viales.',
+      icon: <CreditCard className="w-6 h-6 text-white" />,
+      tag: 'PASE DIGITAL',
       actionTab: 'dashboard'
     },
     {
       id: 'bento-3',
-      title: 'Cajones en Tiempo Real',
-      subtitle: 'SIMULADOR INTELIGENTE',
-      desc: 'Selecciona tu cajón en zonas metropolitanas, monitorea el tiempo en parquímetro y recibe notificaciones dinámicas.',
-      icon: <MapPin className="w-5 h-5 text-emerald-400" />,
-      tag: '03. MONITOREO',
+      title: 'Simulador en Tiempo Real',
+      subtitle: '03. CONTROL DE CAJONES',
+      desc: 'Selecciona cajones metropolitanos, observa el cronómetro dinámico y monitorea el gasto segundo a segundo en vivo.',
+      icon: <MapPin className="w-6 h-6 text-white" />,
+      tag: 'SIMULADOR',
       actionTab: 'dashboard'
     }
   ];
 
   const bentoList = bentoItems.length > 0 ? bentoItems : defaultBento;
 
+  // Configuración de GSAP ScrollTrigger para la entrada escalonada y acomodo
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      
+      // 1. Animación del Título Principal "BIENVENIDOS A PARQU"
+      if (titleTextRef.current) {
+        const chars = titleTextRef.current.querySelectorAll('.char');
+        
+        gsap.fromTo(chars, 
+          {
+            yPercent: 180,
+            autoAlpha: 0,
+            scale: 0.6,
+            rotateX: -45,
+          },
+          {
+            yPercent: 0,
+            autoAlpha: 1,
+            scale: 1,
+            rotateX: 0,
+            stagger: {
+              each: 0.035,
+              from: 'center'
+            },
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: titleSectionRef.current,
+              start: 'top 85%',
+              end: 'center 45%',
+              scrub: 1.2,
+            }
+          }
+        );
+      }
+
+      // 2. Animación de la sección Bento (Escalamiento y revelación suave)
+      if (bentoSectionRef.current) {
+        gsap.fromTo(bentoSectionRef.current,
+          {
+            y: 100,
+            autoAlpha: 0,
+            scale: 0.92,
+          },
+          {
+            y: 0,
+            autoAlpha: 1,
+            scale: 1,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: bentoSectionRef.current,
+              start: 'top 90%',
+              end: 'top 50%',
+              scrub: 1.4,
+            }
+          }
+        );
+      }
+
+      // 3. Animación de las Funciones UNA POR UNA y luego se acomodan en el Grid
+      if (gridSectionRef.current) {
+        const cards = gridSectionRef.current.querySelectorAll('.feature-card-item');
+
+        // Cada tarjeta entra una por una flotando desde abajo con rotación 3D y se acomoda en su celda
+        cards.forEach((card, index) => {
+          // Factor de delay escalonado para que entren progresivamente en oleada
+          gsap.fromTo(card,
+            {
+              y: 180 + (index % 4) * 40,
+              autoAlpha: 0,
+              scale: 0.8,
+              rotateX: 20,
+              transformOrigin: '50% 0%',
+            },
+            {
+              y: 0,
+              autoAlpha: 1,
+              scale: 1,
+              rotateX: 0,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: card,
+                start: 'top 95%',
+                end: 'top 65%',
+                scrub: 1.3,
+              }
+            }
+          );
+        });
+      }
+
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className={`relative w-full overflow-hidden text-white ${className}`}>
+    <div ref={containerRef} className={`relative w-full overflow-hidden text-white ${className}`}>
       
       {/* 1. Header con Animación Stagger "BIENVENIDOS A PARQU" */}
-      <section className="pt-16 pb-12 px-4 flex flex-col items-center justify-center text-center relative z-10">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neutral-900/90 border border-neutral-800 text-xs font-mono text-neutral-300 mb-6 backdrop-blur-md">
+      <section 
+        ref={titleSectionRef}
+        className="pt-20 pb-12 px-4 flex flex-col items-center justify-center text-center relative z-10 [perspective:1000px]"
+      >
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neutral-900/90 border border-neutral-800 text-xs font-mono text-neutral-300 mb-6 backdrop-blur-md shadow-[0_0_20px_rgba(255,255,255,0.05)]">
           <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-          <span className="tracking-[0.2em] uppercase">Ecosistema Inteligente de Estacionamiento</span>
+          <span className="tracking-[0.25em] uppercase font-bold text-[11px]">SISTEMA INTELIGENTE DE PARQUÍMETROS</span>
         </div>
 
+        {/* Título Monumental con animación de letras individuales */}
         <div
-          ref={textRef}
-          className="text font-black uppercase tracking-tight flex flex-wrap justify-center text-[clamp(2.5rem,7vw,6.5rem)] leading-[0.95] text-white max-w-6xl"
+          ref={titleTextRef}
+          className="text font-black uppercase tracking-tight flex flex-wrap justify-center text-[clamp(2.5rem,7.5vw,6.5rem)] leading-[0.95] text-white max-w-6xl select-none"
         >
           {splitText(centerText)}
         </div>
 
-        <p className="text-sm sm:text-base text-neutral-400 font-mono mt-6 max-w-2xl leading-relaxed">
-          Descubre todas las funciones que ofrece <span className="text-white font-bold">Parqu</span>. Desplázate hacia abajo para explorar las herramientas o haz clic en cualquier función para interactuar.
+        <p className="text-xs sm:text-sm md:text-base text-neutral-400 font-mono mt-6 max-w-2xl leading-relaxed px-4">
+          Descubre todas las funciones que ofrece <span className="text-white font-bold">Parqu</span>. Desliza hacia abajo para ver cómo se integran en cascada y haz clic en cualquier módulo para usarlo.
         </p>
 
-        <div className="flex items-center gap-2 mt-6 text-xs font-mono text-neutral-500 animate-bounce">
-          <span>Desliza para descubrir funciones</span>
-          <ArrowDown className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-2 mt-8 text-xs font-mono text-neutral-400 animate-bounce">
+          <span>Desliza para ver las funciones</span>
+          <ArrowDown className="w-3.5 h-3.5 text-white" />
         </div>
       </section>
 
-      {/* 2. Sección Bento Expandible Interactiva (3 Tarjetas destacadas) */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-8 relative z-10">
-        <div className="text-xs font-mono uppercase tracking-[0.2em] text-neutral-400 mb-4 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-white" />
-          <span>Pilares Principales del Sistema</span>
+      {/* 2. Sección Bento Expandible (Pilares Principales) */}
+      <section 
+        ref={bentoSectionRef}
+        className="max-w-6xl mx-auto px-4 sm:px-6 py-8 relative z-10"
+      >
+        <div className="text-xs font-mono uppercase tracking-[0.2em] text-neutral-400 mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-white" />
+            <span className="font-bold text-white">Pilares de la Plataforma</span>
+          </div>
+          <span className="text-[10px] text-neutral-500 hidden sm:inline-block">Pasa el cursor o haz clic para expandir</span>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 h-auto md:h-72 w-full">
@@ -295,31 +361,31 @@ export function StaggeredGrid({
                 onMouseEnter={() => setActiveBento(index)}
                 className={`relative overflow-hidden rounded-3xl p-6 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer border flex flex-col justify-between ${
                   isActive
-                    ? 'md:w-3/5 bg-neutral-900/90 border-neutral-600 shadow-[0_0_35px_rgba(255,255,255,0.1)]'
-                    : 'md:w-1/5 bg-neutral-950/70 border-neutral-800 hover:border-neutral-700'
+                    ? 'md:w-3/5 bg-neutral-900/95 border-neutral-600 shadow-[0_0_40px_rgba(255,255,255,0.12)]'
+                    : 'md:w-1/5 bg-neutral-950/80 border-neutral-800/80 hover:border-neutral-700'
                 }`}
               >
-                {/* Glow ambiental en card activa */}
+                {/* Glow ambiental en tarjeta expandida */}
                 {isActive && (
-                  <div className="absolute top-0 right-0 w-48 h-48 bg-white/[0.04] rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute -top-10 -right-10 w-52 h-52 bg-white/[0.06] rounded-full blur-3xl pointer-events-none" />
                 )}
 
-                {/* Encabezado de la Tarjeta Bento */}
+                {/* Encabezado */}
                 <div className="flex items-center justify-between w-full relative z-10">
                   <span className="text-[10px] font-mono font-bold tracking-widest text-neutral-400 uppercase">
                     {bento.tag}
                   </span>
-                  <div className="p-2 rounded-xl bg-neutral-900/80 border border-neutral-800">
+                  <div className="p-2.5 rounded-2xl bg-neutral-900 border border-neutral-800 text-white">
                     {bento.icon}
                   </div>
                 </div>
 
-                {/* Contenido Dinámico */}
-                <div className="relative z-10 space-y-2 mt-4">
+                {/* Contenido */}
+                <div className="relative z-10 space-y-1.5 mt-4">
                   <span className="text-[10px] font-mono text-neutral-400 tracking-wider block">
                     {bento.subtitle}
                   </span>
-                  <h3 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                  <h3 className="text-xl font-black text-white tracking-tight">
                     {bento.title}
                   </h3>
                   
@@ -330,11 +396,11 @@ export function StaggeredGrid({
                   )}
                 </div>
 
-                {/* Botón de acción rápido al hacer hover */}
+                {/* Indicador de acción */}
                 {isActive && (
                   <div className="pt-4 relative z-10 flex items-center gap-2 text-xs font-mono text-white font-bold">
-                    <span>Probar en el sistema</span>
-                    <span className="text-neutral-400">→</span>
+                    <span>Ir a este módulo</span>
+                    <ChevronRight className="w-4 h-4 text-white" />
                   </div>
                 )}
               </div>
@@ -343,22 +409,23 @@ export function StaggeredGrid({
         </div>
       </section>
 
-      {/* 3. Cuadrícula Staggered Grid de Todas las Funciones */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 relative z-10">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
-          <div className="text-xs font-mono uppercase tracking-[0.2em] text-neutral-400 flex items-center gap-2">
-            <Gauge className="w-4 h-4 text-white" />
-            <span>Catálogo Completo de Funciones Parqu</span>
+      {/* 3. Cuadrícula Staggered Grid: Las funciones van apareciendo una por una y se acomodan */}
+      <section 
+        ref={gridSectionRef}
+        className="max-w-6xl mx-auto px-4 sm:px-6 py-12 relative z-10 [perspective:1200px]"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-8">
+          <div className="text-xs font-mono uppercase tracking-[0.2em] text-neutral-300 flex items-center gap-2">
+            <Layers className="w-4 h-4 text-white" />
+            <span className="font-bold text-white">Todas las Funciones de Parqu</span>
           </div>
-          <span className="text-[11px] font-mono text-neutral-500">
-            Haz clic en cualquier tarjeta para saltar a su módulo
+          <span className="text-[11px] font-mono text-neutral-400">
+            Haz clic en cualquier tarjeta para abrir su función
           </span>
         </div>
 
-        <div
-          ref={gridFullRef}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-        >
+        {/* Grid de tarjetas que se revelan escalonadas una por una */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {itemsToRender.map((item, idx) => {
             const Icon = item.icon;
             return (
@@ -369,24 +436,35 @@ export function StaggeredGrid({
                     onSelectFeature(item.tab);
                   }
                 }}
-                className="stagger-grid-item group relative overflow-hidden rounded-2xl p-5 bg-neutral-950/80 border border-neutral-800/90 hover:border-neutral-600 hover:bg-neutral-900/90 transition-all duration-300 cursor-pointer flex flex-col justify-between gap-4 backdrop-blur-sm hover:shadow-[0_0_25px_rgba(255,255,255,0.06)]"
+                className="feature-card-item group relative overflow-hidden rounded-2xl p-5 bg-neutral-950/90 border border-neutral-800/90 hover:border-white/40 hover:bg-neutral-900 transition-all duration-300 cursor-pointer flex flex-col justify-between gap-4 backdrop-blur-md will-change-transform shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_30px_rgba(255,255,255,0.08)]"
               >
-                {/* Resplandor hover */}
-                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                {/* Resplandor superior en hover */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-                {/* Fila Superior: Icono y Categoría */}
+                {/* Fila Superior: Icono y Categoría / Badge */}
                 <div className="flex items-center justify-between relative z-10">
-                  <div className="w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-300 group-hover:text-white group-hover:border-neutral-700 transition-colors">
-                    <Icon className="w-4 h-4" />
+                  <div className="w-10 h-10 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-200 group-hover:text-white group-hover:border-neutral-600 transition-colors">
+                    <Icon className="w-5 h-5" />
                   </div>
-                  <span className="text-[9px] font-mono uppercase tracking-widest text-neutral-500 group-hover:text-neutral-400 transition-colors">
-                    {item.category}
-                  </span>
+                  <div className="flex flex-col items-end">
+                    <span className="text-[9px] font-mono uppercase tracking-widest text-neutral-400 group-hover:text-neutral-300 transition-colors">
+                      {item.category}
+                    </span>
+                    {item.badge && (
+                      <span className="text-[8px] font-mono px-1.5 py-0.5 rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 mt-1">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Fila Central: Título y Descripción */}
-                <div className="relative z-10 space-y-1">
-                  <h4 className="text-sm font-bold text-white tracking-tight group-hover:text-neutral-100 transition-colors">
+                <div className="relative z-10 space-y-1.5">
+                  <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-wider block">
+                    {item.subtitle}
+                  </span>
+                  <h4 className="text-sm font-bold text-white tracking-tight group-hover:text-white transition-colors">
                     {item.title}
                   </h4>
                   <p className="text-xs text-neutral-400 font-mono leading-relaxed">
@@ -394,10 +472,10 @@ export function StaggeredGrid({
                   </p>
                 </div>
 
-                {/* Fila Inferior: Indicador Interactivo */}
-                <div className="relative z-10 pt-2 border-t border-neutral-900 group-hover:border-neutral-800 flex items-center justify-between text-[10px] font-mono text-neutral-500 group-hover:text-white transition-colors">
-                  <span>Abrir función</span>
-                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                {/* Fila Inferior: Botón de Apertura */}
+                <div className="relative z-10 pt-3 border-t border-neutral-900 group-hover:border-neutral-800 flex items-center justify-between text-[11px] font-mono text-neutral-400 group-hover:text-white transition-colors">
+                  <span className="font-semibold">Interactuar</span>
+                  <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             );
