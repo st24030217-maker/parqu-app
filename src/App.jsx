@@ -46,12 +46,12 @@ const MainContent = ({ onReplayLoading }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white relative selection:bg-white selection:text-black">
-      {/* Luces y texturas ambientales a Color de Alta Fidelidad */}
+      {/* Luces y texturas ambientales a Color de Alta Fidelidad + Textura Cereal Grid */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-indigo-600/[0.07] rounded-full blur-[160px]" />
-        <div className="absolute top-1/2 right-1/4 w-[600px] h-[600px] bg-cyan-600/[0.05] rounded-full blur-[150px]" />
-        <div className="absolute bottom-1/4 left-1/4 w-[550px] h-[550px] bg-purple-600/[0.06] rounded-full blur-[140px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(#333333_1px,transparent_1px)] [background-size:28px_28px] opacity-35" />
+        <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[750px] bg-indigo-600/[0.12] rounded-full blur-[160px]" />
+        <div className="absolute top-1/2 right-1/4 w-[650px] h-[650px] bg-cyan-600/[0.08] rounded-full blur-[150px]" />
+        <div className="absolute bottom-1/4 left-1/4 w-[600px] h-[600px] bg-purple-600/[0.10] rounded-full blur-[140px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(#4a4a55_1.2px,transparent_1.2px)] [background-size:24px_24px] opacity-45" />
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
@@ -282,17 +282,27 @@ const MainContent = ({ onReplayLoading }) => {
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
 
+  const handleStart = () => {
+    setIsLoading(false);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  const handleReplay = () => {
+    setIsLoading(true);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
   return (
     <ParkingProvider>
       <Toaster position="top-right" theme="dark" />
       <AnimatePresence mode="wait">
         {isLoading && (
           <ErrorBoundary fallbackText="Iniciando Parqu...">
-            <LoadingScreen onComplete={() => setIsLoading(false)} />
+            <LoadingScreen onComplete={handleStart} />
           </ErrorBoundary>
         )}
       </AnimatePresence>
-      <MainContent onReplayLoading={() => setIsLoading(true)} />
+      <MainContent onReplayLoading={handleReplay} />
     </ParkingProvider>
   );
 }

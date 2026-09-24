@@ -390,8 +390,11 @@ export function InteractiveParticles({
     }
 
     const applyScale = () => {
-      if (!object3D || !hitArea || !imgHeight) return;
-      const scale = (fovHeight * 0.72) / imgHeight;
+      if (!object3D || !hitArea || !imgHeight || !imgWidth) return;
+      const fovWidth = fovHeight * camera.aspect;
+      const scaleY = (fovHeight * 0.72) / imgHeight;
+      const scaleX = (fovWidth * 0.88) / imgWidth;
+      const scale = Math.min(scaleY, scaleX);
       object3D.scale.set(scale, scale, 1);
       hitArea.scale.set(scale, scale, 1);
     };
