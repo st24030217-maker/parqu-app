@@ -46,16 +46,20 @@ export const DigitalCard = () => {
           
           {/* Fila Superior: Marca, Contactless y Estatus */}
           <div className="flex items-center justify-between z-10">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
-                <Car className="w-5 h-5 text-cyan-300" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center border border-white/40 shadow-md">
+                <img 
+                  src="/parqu-logo.png" 
+                  alt="parqu" 
+                  className="h-full w-auto object-contain"
+                />
               </div>
               <div>
-                <span className="font-extrabold text-sm tracking-wider uppercase text-cyan-200">
-                  ParkPass Digital
+                <span className="font-extrabold text-base tracking-wider uppercase text-white font-mono">
+                  parqu
                 </span>
-                <span className="block text-[10px] text-slate-300 tracking-wider font-mono">
-                  SISTEMA OFICIAL DE PARQUÍMETRO
+                <span className="block text-[9px] text-cyan-200 tracking-widest font-mono">
+                  TARJETA DIGITAL DE PARQUÍMETRO
                 </span>
               </div>
             </div>

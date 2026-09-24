@@ -193,11 +193,45 @@ const MainContent = () => {
 
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Sistema de Parquímetros Digitales & Autocobro Inteligente</span>
-          <span className="text-slate-400 font-mono">Plataforma Segura • Encriptación 256-bit</span>
+      {/* Footer con Powered By sss.solutions */}
+      <footer className="border-t border-slate-800/80 bg-slate-950 py-8 text-center text-xs text-slate-400">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          
+          {/* Identidad parqu */}
+          <div className="flex items-center gap-3">
+            <div className="bg-white p-1 rounded-xl shadow-sm flex items-center justify-center">
+              <img 
+                src="/parqu-logo.png" 
+                alt="parqu" 
+                className="h-7 w-auto object-contain"
+              />
+            </div>
+            <div className="text-left">
+              <span className="font-bold text-white tracking-wide block">parqu digital</span>
+              <span className="text-[11px] text-slate-500">Parquímetro inteligente con autocobro</span>
+            </div>
+          </div>
+
+          {/* Powered by sss.solutions */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 py-2 px-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-inner">
+            <span className="text-xs uppercase tracking-widest font-semibold text-slate-400">
+              Powered by
+            </span>
+            <div className="flex items-center gap-2">
+              <img 
+                src="/sss-solutions-logo.jpg" 
+                alt="sss.solutions" 
+                className="h-8 w-auto rounded-lg object-contain shadow-sm border border-slate-800"
+              />
+            </div>
+          </div>
+
+          {/* Seguridad y Derechos */}
+          <div className="text-center md:text-right font-mono text-[11px] text-slate-500">
+            <span>© {new Date().getFullYear()} Todos los derechos reservados.</span>
+            <span className="block text-slate-600">Encriptación Bancaria 256-bit</span>
+          </div>
+
         </div>
       </footer>
     </div>
