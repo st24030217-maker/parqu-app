@@ -10,9 +10,9 @@ const Letter = memo(function Letter({ char, letterDuration }) {
       variants={{
         initial: {
           rotateX: 90,
-          y: 20,
+          y: 15,
           opacity: 0,
-          filter: "blur(8px)",
+          filter: "blur(6px)",
         },
         animate: {
           rotateX: 0,
@@ -26,9 +26,9 @@ const Letter = memo(function Letter({ char, letterDuration }) {
         },
         exit: {
           rotateX: -90,
-          y: -20,
+          y: -15,
           opacity: 0,
-          filter: "blur(8px)",
+          filter: "blur(6px)",
           transition: {
             duration: letterDuration * 0.67,
             ease: "easeIn",
@@ -88,27 +88,38 @@ const Word = memo(function Word({
   );
 });
 
+const defaultWords = [
+  "PARQU",
+  "MÁS FÁCIL",
+  "SIN FILAS",
+  "SIN MONEDAS",
+  "EN UN TOQUE",
+  "AUTOCOBRO"
+];
+
 export function FlipFadeText({
-  words = ["PARQU", "MÁS FÁCIL", "SIN FILAS", "SIN MONEDAS", "AUTOCOBRO"],
-  interval = 2800,
+  words = defaultWords,
+  interval = 2600,
   className = "",
   textClassName = "",
   letterDuration = 0.55,
-  staggerDelay = 0.08,
+  staggerDelay = 0.07,
   exitStaggerDelay = 0.04,
 }) {
   const [index, setIndex] = useState(0);
 
+  const wordList = useMemo(() => (words && words.length > 0 ? words : defaultWords), [words]);
+
   const updateIndex = useCallback(() => {
-    setIndex((prev) => (prev + 1) % words.length);
-  }, [words.length]);
+    setIndex((prev) => (prev + 1) % wordList.length);
+  }, [wordList.length]);
 
   useEffect(() => {
     const timer = setInterval(updateIndex, interval);
     return () => clearInterval(timer);
   }, [updateIndex, interval]);
 
-  const currentWord = useMemo(() => words[index], [words, index]);
+  const currentWord = wordList[index] || wordList[0];
 
   return (
     <div className={cn("flex items-center justify-center min-h-[60px] sm:min-h-[80px]", className)}>

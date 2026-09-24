@@ -1,27 +1,64 @@
-import React, { memo, forwardRef } from "react";
-import { LiquidMetal as LiquidMetalShader } from "@paper-design/shaders-react";
+import React, { memo, forwardRef, useState, useEffect } from "react";
 import { cn } from "../../lib/utils";
 
 // ============================================================================
-// LiquidMetal - Base shader wrapper component
+// LiquidMetal - Shader con fallback ultra robusto
 // ============================================================================
 
 export const LiquidMetal = memo(function LiquidMetal({
-  colorBack = "#888888",
+  colorBack = "#1a1a1f",
   colorTint = "#ffffff",
-  speed = 0.5,
+  speed = 0.6,
   repetition = 4,
-  distortion = 0.15,
+  distortion = 0.25,
   scale = 1,
   className,
   style,
 }) {
+  const [ShaderComponent, setShaderComponent] = useState(null);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    try {
+      import("@paper-design/shaders-react")
+        .then((mod) => {
+          if (mod && mod.LiquidMetal) {
+            setShaderComponent(() => mod.LiquidMetal);
+          }
+        })
+        .catch(() => {
+          setHasError(true);
+        });
+    } catch {
+      setHasError(true);
+    }
+  }, []);
+
+  if (hasError || !ShaderComponent) {
+    // Fallback de Metal Líquido animado con CSS puro de alto rendimiento
+    return (
+      <div
+        className={cn(
+          "absolute inset-0 z-0 overflow-hidden pointer-events-none rounded-full animate-pulse",
+          className
+        )}
+        style={{
+          background: "linear-gradient(135deg, #222226 0%, #44444a 25%, #ffffff 50%, #222226 75%, #ffffff 100%)",
+          backgroundSize: "300% 300%",
+          animation: "liquidShimmer 4s ease infinite",
+          ...style,
+        }}
+      />
+    );
+  }
+
+  const Comp = ShaderComponent;
   return (
     <div
-      className={cn("absolute inset-0 z-0 overflow-hidden pointer-events-none", className)}
+      className={cn("absolute inset-0 z-0 overflow-hidden pointer-events-none rounded-full", className)}
       style={style}
     >
-      <LiquidMetalShader
+      <Comp
         colorBack={colorBack}
         colorTint={colorTint}
         speed={speed}
@@ -43,7 +80,7 @@ export const LiquidMetal = memo(function LiquidMetal({
 LiquidMetal.displayName = "LiquidMetal";
 
 // ============================================================================
-// LiquidMetalButton - Botón con efecto shader de Metal Líquido cromado
+// LiquidMetalButton - Botón interactivo con efecto shader cromado
 // ============================================================================
 
 export const LiquidMetalButton = forwardRef(
@@ -63,13 +100,13 @@ export const LiquidMetalButton = forwardRef(
     const sizeStyles = {
       sm: "py-2.5 px-6 gap-2.5 text-sm",
       md: "py-3.5 px-8 gap-3 text-base",
-      lg: "py-4 px-10 gap-4 text-lg",
+      lg: "py-4 px-10 gap-4 text-base sm:text-lg",
     };
 
     const iconSizes = {
       sm: "w-7 h-7",
-      md: "w-9 h-9",
-      lg: "w-11 h-11",
+      md: "w-8 h-8",
+      lg: "w-9 h-9",
     };
 
     return (
@@ -83,12 +120,12 @@ export const LiquidMetalButton = forwardRef(
         {...props}
       >
         <div
-          className="relative rounded-full overflow-hidden shadow-[0_0_35px_rgba(255,255,255,0.25)] group-hover:shadow-[0_0_50px_rgba(255,255,255,0.45)] transition-shadow duration-300"
+          className="relative rounded-full overflow-hidden shadow-[0_0_35px_rgba(255,255,255,0.25)] group-hover:shadow-[0_0_55px_rgba(255,255,255,0.5)] transition-shadow duration-300"
           style={{ padding: borderWidth }}
         >
           {/* Capa de shader de Metal Líquido animado en el borde */}
           <LiquidMetal
-            colorBack={metalConfig?.colorBack ?? "#222226"}
+            colorBack={metalConfig?.colorBack ?? "#1a1a1f"}
             colorTint={metalConfig?.colorTint ?? "#ffffff"}
             speed={metalConfig?.speed ?? 0.6}
             repetition={metalConfig?.repetition ?? 4}
@@ -120,7 +157,7 @@ export const LiquidMetalButton = forwardRef(
                 {icon}
               </div>
             )}
-            <span className="font-bold tracking-wide text-white drop-shadow-sm">
+            <span className="font-bold tracking-wider text-white drop-shadow-sm">
               {children}
             </span>
           </div>
