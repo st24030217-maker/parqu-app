@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Camera, CameraOff, Sparkles } from 'lucide-react';
+import { Camera, Sparkles } from 'lucide-react';
 
 export function WebcamPixelGrid({
   className = '',
-  pixelSize = 8,
-  gap = 4,
+  pixelSize = 14,
+  gap = 2,
   inverted = false,
   interactive = true,
   autoStartCamera = true,
@@ -21,7 +21,7 @@ export function WebcamPixelGrid({
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState(null);
 
-  // Iniciar la cámara
+  // Iniciar la cámara web
   const startCamera = useCallback(async () => {
     try {
       setCameraError(null);
@@ -31,8 +31,8 @@ export function WebcamPixelGrid({
 
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: { ideal: 480 },
-          height: { ideal: 360 },
+          width: { ideal: 640 },
+          height: { ideal: 480 },
           facingMode: 'user',
         },
         audio: false,
@@ -45,7 +45,7 @@ export function WebcamPixelGrid({
         if (onCameraStatusChange) onCameraStatusChange(true);
       }
     } catch (err) {
-      console.warn('Acceso a cámara no disponible, usando modo ambiental interactivo:', err.message);
+      console.warn('Cámara no disponible, activando modo pixelado ambiental interactivo:', err.message);
       setCameraError(err.message);
       setIsCameraActive(false);
       if (onCameraStatusChange) onCameraStatusChange(false);
@@ -81,7 +81,7 @@ export function WebcamPixelGrid({
     };
   }, [autoStartCamera, startCamera, stopCamera]);
 
-  // Manejo de interactividad del mouse
+  // Manejo de interactividad del cursor
   const handleMouseMove = (e) => {
     if (!interactive || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -96,14 +96,13 @@ export function WebcamPixelGrid({
     mouseRef.current = { x: -1000, y: -1000, active: false };
   };
 
-  // Loop de renderizado del Canvas Pixel Grid
+  // Loop de renderizado del Canvas con Bloques de Píxeles Cuadrados Reales (Pixel Art Shader Grid)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
-    // Crear canvas offscreen para muestrear video
     if (!offscreenCanvasRef.current) {
       offscreenCanvasRef.current = document.createElement('canvas');
     }
@@ -128,7 +127,7 @@ export function WebcamPixelGrid({
     window.addEventListener('resize', resize);
 
     const render = () => {
-      time += 0.03;
+      time += 0.035;
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
 
@@ -137,13 +136,13 @@ export function WebcamPixelGrid({
         return;
       }
 
-      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, width, height);
 
       const cellSize = pixelSize + gap;
       const cols = Math.ceil(width / cellSize);
       const rows = Math.ceil(height / cellSize);
 
-      // Si la cámara está activa y reproduciendo
       const video = videoRef.current;
       const hasLiveVideo = isCameraActive && video && video.readyState >= 2;
 
@@ -152,7 +151,7 @@ export function WebcamPixelGrid({
       if (hasLiveVideo && offCtx) {
         offscreen.width = cols;
         offscreen.height = rows;
-        // Invertir horizontalmente para efecto espejo natural de webcam
+        // Efecto espejo horizontal para la cámara
         offCtx.save();
         offCtx.scale(-1, 1);
         offCtx.drawImage(video, -cols, 0, cols, rows);
@@ -167,13 +166,13 @@ export function WebcamPixelGrid({
 
       const mouse = mouseRef.current;
 
-      // Dibujar cada celda del Pixel Grid
+      // Renderizar la cuadrícula de BLOQUES PIXELADOS
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          const x = c * cellSize;
-          const y = r * cellSize;
-          const centerX = x + pixelSize / 2;
-          const centerY = y + pixelSize / 2;
+          const px = c * cellSize;
+          const py = r * cellSize;
+          const centerX = px + pixelSize / 2;
+          const centerY = py + pixelSize / 2;
 
           let intensity = 0;
 
@@ -186,52 +185,41 @@ export function WebcamPixelGrid({
             const luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255;
             intensity = inverted ? 1 - luminance : luminance;
           } else {
-            // Animación procedimental geométrica de ondas fluidas si no hay cámara
+            // Ondas de flujo digital pixeleado procedural si no hay cámara activa
             const distToCenter = Math.hypot(centerX - width / 2, centerY - height / 2);
-            const wave1 = Math.sin(c * 0.12 + time) * 0.5 + 0.5;
-            const wave2 = Math.cos(r * 0.12 - time * 0.8) * 0.5 + 0.5;
-            const ripple = Math.sin(distToCenter * 0.02 - time * 1.5) * 0.5 + 0.5;
-            intensity = (wave1 * 0.35 + wave2 * 0.35 + ripple * 0.3) * 0.6;
+            const waveX = Math.sin(c * 0.15 + time * 1.2);
+            const waveY = Math.cos(r * 0.15 - time * 0.9);
+            const ripple = Math.sin(distToCenter * 0.025 - time * 1.8);
+            
+            // Umbralización de píxeles para aspecto retro / cyber bloque
+            const rawVal = (waveX * 0.35 + waveY * 0.35 + ripple * 0.3) * 0.5 + 0.5;
+            // Cuantización de intensidad en escalones de píxel
+            intensity = Math.floor(rawVal * 6) / 6;
           }
 
-          // Efecto de interacción del mouse
+          // Interacción de proximidad con el cursor del mouse
           if (mouse.active) {
             const dx = centerX - mouse.x;
             const dy = centerY - mouse.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            const maxRadius = 140;
+            const maxRadius = 160;
 
             if (dist < maxRadius) {
-              const mousePower = (1 - dist / maxRadius);
-              intensity = Math.min(1, intensity + mousePower * 0.7);
+              const mouseFactor = 1 - dist / maxRadius;
+              intensity = Math.min(1, intensity + mouseFactor * 0.85);
             }
           }
 
-          // Si la intensidad es muy baja, dibujar un punto sutil tenue
-          const baseAlpha = 0.06;
-          const currentAlpha = Math.max(baseAlpha, Math.min(0.95, intensity));
-          const currentSize = Math.max(1.5, pixelSize * (0.3 + intensity * 0.7));
+          // Renderizado de bloque de píxel cuadrado sólido
+          // Si la intensidad es muy baja, mantener el marco de píxel tenue
+          const minAlpha = 0.04;
+          const alpha = Math.max(minAlpha, Math.min(0.92, intensity));
+          const brightness = Math.floor(255 * alpha);
 
-          // Color monocromático obsidian: blanco resplandeciente según intensidad
-          ctx.fillStyle = `rgba(255, 255, 255, ${currentAlpha})`;
+          ctx.fillStyle = `rgb(${brightness}, ${brightness}, ${brightness})`;
           
-          // Dibujar píxel redondeado
-          const offset = (pixelSize - currentSize) / 2;
-          const px = x + offset;
-          const py = y + offset;
-          const radius = Math.min(2.5, currentSize / 2);
-
-          ctx.beginPath();
-          ctx.roundRect(px, py, currentSize, currentSize, radius);
-          ctx.fill();
-
-          // Resplandor en píxeles muy brillantes
-          if (intensity > 0.75) {
-            ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
-            ctx.shadowBlur = 6;
-          } else {
-            ctx.shadowBlur = 0;
-          }
+          // Bloque de píxel rectangular/cuadrado con 1px de separación para efecto de matriz LCD/LED
+          ctx.fillRect(px, py, pixelSize, pixelSize);
         }
       }
 
@@ -255,7 +243,7 @@ export function WebcamPixelGrid({
       onMouseLeave={handleMouseLeave}
       className={`relative w-full h-full overflow-hidden bg-black ${className}`}
     >
-      {/* Video oculto para el muestreo de la webcam */}
+      {/* Video de captura de webcam */}
       <video
         ref={videoRef}
         playsInline
@@ -264,37 +252,37 @@ export function WebcamPixelGrid({
         className="hidden pointer-events-none"
       />
 
-      {/* Canvas interactivo de Pixel Grid */}
+      {/* Canvas del fondo con efecto pixeleado auténtico */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 block w-full h-full pointer-events-none"
       />
 
-      {/* Gradientes oscuros para mejorar contraste y legibilidad del contenido */}
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.3)_0%,rgba(0,0,0,0.85)_100%)]" />
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black via-transparent to-black/60" />
+      {/* Gradientes de contraste para resaltar el contenido */}
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.2)_0%,rgba(0,0,0,0.85)_100%)]" />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black via-transparent to-black/70" />
 
-      {/* Control flotante para activar/desactivar cámara */}
+      {/* Control flotante para activar/desactivar la cámara */}
       <div className="absolute top-6 right-6 z-30 pointer-events-auto">
         <button
           onClick={toggleCamera}
-          title={isCameraActive ? 'Desactivar cámara' : 'Activar cámara para Pixel Grid'}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium transition-all duration-300 border backdrop-blur-md ${
+          title={isCameraActive ? 'Desactivar cámara' : 'Activar cámara en vivo'}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold transition-all duration-300 border backdrop-blur-md ${
             isCameraActive
-              ? 'bg-white/10 text-white border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.2)] hover:bg-white/20'
-              : 'bg-neutral-900/80 text-neutral-400 border-neutral-800 hover:text-white hover:border-neutral-700'
+              ? 'bg-white/10 text-white border-white/40 shadow-[0_0_20px_rgba(255,255,255,0.25)] hover:bg-white/20'
+              : 'bg-neutral-900/80 text-neutral-300 border-neutral-700 hover:text-white hover:border-white/40'
           }`}
         >
           {isCameraActive ? (
             <>
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <Camera className="w-3.5 h-3.5 text-white" />
-              <span>Cámara Activa</span>
+              <span>Cámara Pixeleada</span>
             </>
           ) : (
             <>
               <Sparkles className="w-3.5 h-3.5 text-neutral-400" />
-              <span>Modo Dinámico</span>
+              <span>Pixeleado Dinámico</span>
             </>
           )}
         </button>

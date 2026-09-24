@@ -17,10 +17,10 @@ export const LoadingScreen = ({ onComplete }) => {
       }}
       className="fixed inset-0 z-50 flex flex-col bg-black text-white overflow-hidden select-none"
     >
-      {/* Fondo interactivo Aceternity Webcam Pixel Grid */}
+      {/* Fondo interactivo Aceternity Webcam Pixel Grid con Bloques Pixeleados Reales */}
       <WebcamPixelGrid
-        pixelSize={7}
-        gap={3}
+        pixelSize={16}
+        gap={2}
         autoStartCamera={true}
         className="h-full w-full"
       >
@@ -28,19 +28,19 @@ export const LoadingScreen = ({ onComplete }) => {
           
           {/* Barra superior con indicadores de estado */}
           <header className="w-full max-w-6xl flex justify-between items-center">
-            <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-neutral-950/80 border border-neutral-800 backdrop-blur-md text-xs font-mono text-neutral-300">
+            <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-neutral-950/90 border border-neutral-800 backdrop-blur-md text-xs font-mono text-neutral-300">
               <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-              <span className="tracking-widest uppercase text-[11px]">PARK • SISTEMA DIGITAL METROPOLITANO</span>
+              <span className="tracking-widest uppercase text-[11px]">PARQU • SISTEMA DIGITAL METROPOLITANO</span>
             </div>
             
             {/* Espacio reservado para el botón de cámara integrado en WebcamPixelGrid */}
-            <div className="w-32 hidden sm:block" />
+            <div className="w-36 hidden sm:block" />
           </header>
 
-          {/* Hero Central: Logotipo Park, Título, Subtítulo y Botón para Continuar / Entrar */}
+          {/* Hero Central: Logotipo Parqu, Título P A R Q U, Subtítulo y Botón de Entrada */}
           <main className="flex flex-col items-center justify-center text-center max-w-xl w-full my-auto space-y-6">
             
-            {/* Logotipo Park 100% Transparente con resplandor */}
+            {/* Logotipo Parqu 100% Transparente con resplandor */}
             <motion.div
               initial={{ scale: 0.8, opacity: 0, y: -20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -50,16 +50,16 @@ export const LoadingScreen = ({ onComplete }) => {
               <div className="absolute -inset-6 bg-white/10 rounded-full blur-3xl pointer-events-none" />
               <img
                 src="/parqu-logo-white.png"
-                alt="Park Logo"
+                alt="Parqu Logo"
                 className="h-20 sm:h-24 md:h-28 w-auto object-contain relative z-10 drop-shadow-[0_0_35px_rgba(255,255,255,0.4)]"
               />
             </motion.div>
 
-            {/* Título Principal con Stagger Text */}
+            {/* Título Principal con Stagger Text deletreando "Parqu" (P A R Q U) */}
             <div className="space-y-1">
               <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white flex items-center justify-center">
                 <TextAnimation delay={0.2} divideBy="letter" className="font-black text-white tracking-tight">
-                  Park
+                  Parqu
                 </TextAnimation>
               </h1>
 

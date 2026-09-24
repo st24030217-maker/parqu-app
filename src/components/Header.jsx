@@ -25,14 +25,14 @@ export const Header = ({ onReplayLoading }) => {
             <div className="absolute -inset-2 bg-white/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
             <img 
               src="/parqu-logo-white.png" 
-              alt="Park" 
+              alt="Parqu" 
               className="h-10 sm:h-11 w-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.25)]"
             />
           </div>
           <div>
             <div className="flex items-center gap-2.5">
               <span className="font-black text-xl tracking-tight text-white group-hover:text-neutral-200 transition-colors">
-                Park
+                Parqu
               </span>
               <span className="text-[10px] uppercase font-mono tracking-widest px-2.5 py-0.5 rounded-full bg-neutral-900 text-neutral-300 border border-neutral-800">
                 Digital Pass

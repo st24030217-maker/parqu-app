@@ -235,15 +235,15 @@ const MainContent = ({ onReplayLoading }) => {
         <footer className="border-t border-neutral-800/80 bg-black py-8 text-center text-xs text-neutral-400 mt-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
             
-            {/* Identidad Park - Logo Transparente sin cajas de fondo */}
+            {/* Identidad Parqu - Logo Transparente sin cajas de fondo */}
             <div className="flex items-center gap-3">
               <img 
                 src="/parqu-logo-white.png" 
-                alt="Park" 
+                alt="Parqu" 
                 className="h-8 w-auto object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]"
               />
               <div className="text-left">
-                <span className="font-bold text-white tracking-wide block font-mono">Park Digital</span>
+                <span className="font-bold text-white tracking-wide block font-mono">Parqu Digital</span>
                 <span className="text-[11px] text-neutral-500 font-mono">Parquímetro inteligente con autocobro</span>
               </div>
             </div>
