@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { sileo } from 'sileo';
 import { 
   MapPin, 
   Clock, 
@@ -36,12 +37,20 @@ export const ParkingSimulator = () => {
   const handleStart = () => {
     startParking(selectedZone.name, selectedZone.ratePerHour);
     setJustChargedNotice(null);
+    sileo.info({
+      title: 'Parquímetro Activado',
+      description: `Cajón ocupado en ${selectedZone.name}. Autocobro activo para ${vehicle.plates}.`,
+    });
   };
 
   const handleStop = () => {
     const receipt = stopParkingAndAutoCharge();
     if (receipt) {
       setJustChargedNotice(receipt);
+      sileo.success({
+        title: 'Autocobro Liquidado',
+        description: `Cobro de ${formatCurrency(receipt.amount)} (${receipt.durationMinutes} min) procesado con éxito. Folio: ${receipt.folio}`,
+      });
     }
   };
 

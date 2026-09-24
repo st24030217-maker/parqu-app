@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { sileo } from 'sileo';
 import { 
   CreditCard, 
   ShieldCheck, 
@@ -42,7 +43,10 @@ export const AutoPaymentConfig = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.acceptedTerms && formData.enabled) {
-      alert('Debes aceptar la autorización de débito automático para activar el autocobro.');
+      sileo.warning({
+        title: 'Autorización Requerida',
+        description: 'Debes aceptar la autorización de débito automático para activar el autocobro.',
+      });
       return;
     }
 
@@ -58,6 +62,10 @@ export const AutoPaymentConfig = () => {
       authorizedAt: new Date().toISOString(),
     });
 
+    sileo.success({
+      title: 'Configuración Guardada',
+      description: 'Formato de autocobro actualizado y vinculado a tu tarjeta digital.',
+    });
     setStatusMessage('¡Formato de autocobro guardado y vinculado a tu tarjeta digital con éxito!');
     setTimeout(() => setStatusMessage(''), 4000);
   };

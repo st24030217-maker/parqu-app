@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { sileo } from 'sileo';
 import { 
   QrCode, 
   Wifi, 
@@ -24,6 +25,10 @@ export const DigitalCard = () => {
     e.preventDefault();
     if (rechargeAmount > 0) {
       addBalance(Number(rechargeAmount));
+      sileo.success({
+        title: 'Saldo Recargado con Éxito',
+        description: `Se agregaron ${formatCurrency(Number(rechargeAmount))} a tu Tarjeta Digital.`,
+      });
       setShowRechargeModal(false);
     }
   };

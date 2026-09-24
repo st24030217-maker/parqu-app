@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { Toaster } from 'sileo';
+import 'sileo/styles.css';
 import { ParkingProvider, useParking } from './context/ParkingContext';
 import { Header } from './components/Header';
 import { LoadingScreen } from './components/LoadingScreen';
@@ -256,6 +258,7 @@ export default function App() {
 
   return (
     <ParkingProvider>
+      <Toaster position="top-right" theme="dark" />
       <AnimatePresence mode="wait">
         {isLoading && (
           <LoadingScreen onComplete={() => setIsLoading(false)} />

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { sileo } from 'sileo';
 import { Car, Check, RefreshCw } from 'lucide-react';
 import { useParking } from '../context/ParkingContext';
 
@@ -23,6 +24,10 @@ export const VehicleOwnerForm = () => {
     e.preventDefault();
     updateVehicle(vehFormData);
     updateOwner(ownerFormData);
+    sileo.success({
+      title: 'Datos Guardados',
+      description: `Vehículo (${vehFormData.plates}) y titular vinculados a la tarjeta digital.`,
+    });
     setSavedNotification(true);
     setTimeout(() => setSavedNotification(false), 3000);
   };
