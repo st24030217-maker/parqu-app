@@ -13,7 +13,7 @@ import { TransactionHistory } from './components/TransactionHistory';
 import { StaggeredGrid } from './components/ui/staggered-grid';
 import { BackgroundGradientAnimation } from './components/ui/background-gradient-animation';
 import { HeroParallax } from './components/ui/hero-parallax';
-import { WobbleCardSection } from './components/WobbleCardSection';
+import { WobbleCard } from './components/ui/wobble-card';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { 
   CreditCard, 
@@ -420,49 +420,58 @@ const MainContent = ({ onReplayLoading }) => {
                 </div>
 
                 {/* Panel de Ayuda y Estatus Rápido (Col 8 a 12) */}
-                <div className="lg:col-span-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs uppercase tracking-wider font-bold text-neutral-400 font-mono flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                      Garantía de Autocobro Activa
-                    </h3>
-                  </div>
-
-                  <div className="bg-neutral-950/80 border border-neutral-800 rounded-3xl p-6 space-y-4 text-xs">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 text-white flex items-center justify-center flex-shrink-0">
-                        <Zap className="w-4 h-4" />
+                <div className="lg:col-span-5 h-full">
+                  <WobbleCard
+                    containerClassName="w-full h-full bg-gradient-to-br from-cyan-950/70 via-neutral-950 to-black border-cyan-900/40 hover:border-cyan-500/60 transition-colors shadow-2xl"
+                    className="p-6 sm:p-7 flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="px-3 py-1 rounded-full bg-cyan-900/60 border border-cyan-700/50 text-[10px] font-mono font-bold uppercase tracking-widest text-cyan-200">
+                          GARANTÍA CERO MULTAS
+                        </span>
+                        <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          Activo
+                        </span>
                       </div>
-                      <div>
-                        <span className="font-bold text-white block">Sin multas por expiración</span>
-                        <p className="text-neutral-400 mt-0.5 leading-relaxed">
-                          El sistema debita de forma continua el tiempo exacto que tu vehículo pasa en el cajón.
-                        </p>
+
+                      <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+                        Protección & Telemetría Satelital
+                      </h3>
+                      <p className="mt-2 text-xs text-neutral-300 font-mono leading-relaxed">
+                        El sistema debita segundo a segundo exacto con tarifa regulada de <strong className="text-white">$0.25 MXN/min</strong> con encriptación oficial de <strong className="text-white">SSS.Solutions</strong>.
+                      </p>
+
+                      <div className="space-y-3 mt-4 text-xs font-mono">
+                        <div className="flex items-start gap-3 p-3 rounded-xl bg-neutral-900/80 border border-neutral-800">
+                          <Zap className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-bold text-white block">Sin multas por expiración</span>
+                            <span className="text-[11px] text-neutral-400">Débito continuo sin necesidad de volver al coche.</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 p-3 rounded-xl bg-neutral-900/80 border border-neutral-800">
+                          <Smartphone className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-bold text-white block">Credencial Oficial de Tránsito</span>
+                            <span className="text-[11px] text-neutral-400">Escaneo QR oficial y contactless NFC para agentes viales.</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-3 pt-3 border-t border-neutral-800">
-                      <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 text-white flex items-center justify-center flex-shrink-0">
-                        <Smartphone className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className="font-bold text-white block">Credencial Oficial de Tránsito</span>
-                        <p className="text-neutral-400 mt-0.5 leading-relaxed">
-                          Al presionar el botón de Código QR, los oficiales de parquímetro validan la tarjeta al instante.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="pt-2">
+                    <div className="pt-4 mt-4 border-t border-cyan-900/40">
                       <button
                         onClick={() => setActiveTab('autopay')}
-                        className="w-full py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 font-mono font-semibold border border-neutral-800 hover:border-neutral-700 transition flex items-center justify-center gap-2"
+                        className="w-full py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black font-mono font-bold text-xs transition flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(6,175,205,0.3)]"
                       >
-                        <Zap className="w-4 h-4 text-amber-400" />
+                        <Zap className="w-4 h-4" />
                         Configurar Reglas del Autocobro
                       </button>
                     </div>
-                  </div>
+                  </WobbleCard>
                 </div>
 
               </div>
@@ -499,14 +508,7 @@ const MainContent = ({ onReplayLoading }) => {
 
         </main>
 
-        {/* 3. SECCIÓN WOBBLE CARD: Bento Grid 3D de Innovación y Autocobro */}
-        <div className="w-full border-t border-neutral-900/80">
-          <ErrorBoundary fallbackText="Cargando Arquitectura Wobble Card...">
-            <WobbleCardSection onSelectFeature={handleSelectFeature} />
-          </ErrorBoundary>
-        </div>
-
-        {/* 4. SECCIÓN HERO PARALLAX: Módulos y Arquitectura Parqu en 3D */}
+        {/* 3. SECCIÓN HERO PARALLAX: Módulos y Arquitectura Parqu en 3D */}
         <section className="w-full border-t border-neutral-900 overflow-hidden">
           <HeroParallax 
             products={[

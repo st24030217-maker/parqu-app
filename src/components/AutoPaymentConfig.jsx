@@ -9,9 +9,11 @@ import {
   Wallet, 
   Bell, 
   HelpCircle,
-  FileCheck2
+  FileCheck2,
+  Sparkles
 } from 'lucide-react';
 import { useParking } from '../context/ParkingContext';
+import { WobbleCard } from './ui/wobble-card';
 
 export const AutoPaymentConfig = () => {
   const { autoPay, updateAutoPay, vehicle, owner } = useParking();
@@ -71,36 +73,43 @@ export const AutoPaymentConfig = () => {
   };
 
   return (
-    <div className="bg-neutral-950/90 border border-neutral-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-neutral-800 mb-6 gap-3">
+    <WobbleCard
+      containerClassName="w-full bg-gradient-to-br from-indigo-950/70 via-neutral-950 to-black border-indigo-900/40 hover:border-indigo-500/60 transition-colors shadow-2xl"
+      className="p-6 sm:p-8 flex flex-col justify-between"
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-neutral-800/80 mb-6 gap-3">
         <div>
-          <div className="flex items-center gap-2 mb-1 text-xs font-mono text-neutral-400">
-            <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-            <span className="tracking-widest uppercase">Módulo de Transacciones</span>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="px-3 py-1 rounded-full bg-indigo-900/60 border border-indigo-700/50 text-[10px] font-mono font-bold uppercase tracking-widest text-indigo-200">
+              TECNOLOGÍA SSS.SOLUTIONS
+            </span>
+            <span className="text-neutral-500 text-xs font-mono">•</span>
+            <span className="text-[11px] font-mono text-neutral-400">DÉBITO AUTOMATIZADO</span>
           </div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2 font-mono">
-            <Zap className="w-5 h-5 text-white" />
-            Formato de Configuración para Autocobro Digital
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
+            <Zap className="w-6 h-6 text-amber-400" />
+            Configuración de Autocobro Continuo
           </h2>
-          <p className="text-xs text-neutral-400 mt-1 font-mono">
-            Configura el débito automático para que tu parquímetro se liquide sin multas ni retrasos
+          <p className="text-xs sm:text-sm text-neutral-300 mt-1 font-mono max-w-2xl leading-relaxed">
+            Elimina multas y filas domiciliando el cobro directo de tus estancias de parquímetro.
           </p>
         </div>
 
         <div className="flex items-center gap-2 font-mono">
           <span className="text-xs text-neutral-400">Estado:</span>
-          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+          <span className={`px-3.5 py-1.5 rounded-full text-xs font-bold border font-mono flex items-center gap-1.5 ${
             formData.enabled 
-              ? 'bg-neutral-900 text-white border-neutral-700' 
+              ? 'bg-emerald-950/50 text-emerald-300 border-emerald-700/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]' 
               : 'bg-rose-950/40 text-rose-400 border-rose-800/50'
           }`}>
+            <span className={`w-2 h-2 rounded-full ${formData.enabled ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
             {formData.enabled ? 'AUTOCOBRO ACTIVO' : 'PAUSADO'}
           </span>
         </div>
       </div>
 
       {statusMessage && (
-        <div className="mb-6 p-4 bg-neutral-900 border border-neutral-700 rounded-2xl text-white text-xs font-mono font-semibold flex items-center gap-2.5 shadow-[0_0_20px_rgba(255,255,255,0.08)]">
+        <div className="mb-6 p-4 bg-neutral-900/90 border border-emerald-500/40 rounded-2xl text-emerald-300 text-xs font-mono font-semibold flex items-center gap-2.5 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
           <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
           <span>{statusMessage}</span>
         </div>
@@ -108,16 +117,16 @@ export const AutoPaymentConfig = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Toggle General de Autocobro */}
-        <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 flex items-center justify-between">
+        <div className="p-5 rounded-2xl bg-neutral-900/70 border border-neutral-800 flex items-center justify-between">
           <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-amber-400">
               <Zap className="w-5 h-5" />
             </div>
             <div>
               <label htmlFor="enabled" className="text-sm font-bold text-white cursor-pointer font-mono">
                 Habilitar Débito / Autocobro Inteligente
               </label>
-              <p className="text-xs text-neutral-400 mt-0.5">
+              <p className="text-xs text-neutral-400 mt-0.5 font-mono">
                 Al terminar tu tiempo de estacionamiento o liberar el cajón, el importe se cobrará automáticamente.
               </p>
             </div>
@@ -131,7 +140,7 @@ export const AutoPaymentConfig = () => {
               onChange={handleChange}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-white"></div>
+            <div className="w-11 h-6 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
           </label>
         </div>
 
@@ -143,8 +152,8 @@ export const AutoPaymentConfig = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className={`p-4 rounded-2xl border cursor-pointer transition flex items-start gap-3 ${
               formData.fundingSource === 'CARD'
-                ? 'bg-white/10 border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]'
-                : 'bg-neutral-900/40 border-neutral-800 text-neutral-400 hover:bg-neutral-900/70'
+                ? 'bg-indigo-950/50 border-indigo-400 text-white shadow-[0_0_15px_rgba(99,102,241,0.2)]'
+                : 'bg-neutral-900/60 border-neutral-800 text-neutral-400 hover:bg-neutral-900/90'
             }`}>
               <input
                 type="radio"
@@ -152,14 +161,14 @@ export const AutoPaymentConfig = () => {
                 value="CARD"
                 checked={formData.fundingSource === 'CARD'}
                 onChange={handleChange}
-                className="mt-1 text-white focus:ring-white"
+                className="mt-1 text-indigo-500 focus:ring-indigo-400"
               />
               <div>
                 <span className="text-sm font-bold block flex items-center gap-1.5 text-white font-mono">
-                  <CreditCard className="w-4 h-4 text-white" />
+                  <CreditCard className="w-4 h-4 text-indigo-400" />
                   Tarjeta de Débito / Crédito
                 </span>
-                <span className="text-xs text-neutral-400 block mt-0.5">
+                <span className="text-xs text-neutral-400 block mt-0.5 font-mono">
                   Cargo directo a cuenta bancaria con recibo fiscal instantáneo.
                 </span>
               </div>
@@ -167,8 +176,8 @@ export const AutoPaymentConfig = () => {
 
             <label className={`p-4 rounded-2xl border cursor-pointer transition flex items-start gap-3 ${
               formData.fundingSource === 'WALLET_BALANCE'
-                ? 'bg-white/10 border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]'
-                : 'bg-neutral-900/40 border-neutral-800 text-neutral-400 hover:bg-neutral-900/70'
+                ? 'bg-indigo-950/50 border-indigo-400 text-white shadow-[0_0_15px_rgba(99,102,241,0.2)]'
+                : 'bg-neutral-900/60 border-neutral-800 text-neutral-400 hover:bg-neutral-900/90'
             }`}>
               <input
                 type="radio"
@@ -176,14 +185,14 @@ export const AutoPaymentConfig = () => {
                 value="WALLET_BALANCE"
                 checked={formData.fundingSource === 'WALLET_BALANCE'}
                 onChange={handleChange}
-                className="mt-1 text-white focus:ring-white"
+                className="mt-1 text-indigo-500 focus:ring-indigo-400"
               />
               <div>
                 <span className="text-sm font-bold block flex items-center gap-1.5 text-white font-mono">
-                  <Wallet className="w-4 h-4 text-white" />
+                  <Wallet className="w-4 h-4 text-cyan-400" />
                   Saldo Prepago de Tarjeta Digital
                 </span>
-                <span className="text-xs text-neutral-400 block mt-0.5">
+                <span className="text-xs text-neutral-400 block mt-0.5 font-mono">
                   Se descuenta del saldo acumulado en tu monedero virtual.
                 </span>
               </div>
@@ -193,7 +202,7 @@ export const AutoPaymentConfig = () => {
 
         {/* Datos Bancarios (si aplica tarjeta) */}
         {formData.fundingSource === 'CARD' && (
-          <div className="p-5 rounded-2xl bg-neutral-900/40 border border-neutral-800 space-y-4 animate-in fade-in">
+          <div className="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800 space-y-4 animate-in fade-in">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-neutral-200 uppercase tracking-wider flex items-center gap-1.5 font-mono">
                 <Lock className="w-3.5 h-3.5 text-white" />
@@ -216,7 +225,7 @@ export const AutoPaymentConfig = () => {
                   value={formData.cardHolder}
                   onChange={handleChange}
                   placeholder="NOMBRE TAL COMO APARECE"
-                  className="w-full uppercase px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-500 transition font-mono text-sm"
+                  className="w-full uppercase px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-indigo-500 transition font-mono text-sm"
                 />
               </div>
 
@@ -231,7 +240,7 @@ export const AutoPaymentConfig = () => {
                   value={formData.cardNumber}
                   onChange={handleChange}
                   placeholder="4152 •••• •••• 9921"
-                  className="w-full font-mono px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-500 transition text-sm"
+                  className="w-full font-mono px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-indigo-500 transition text-sm"
                 />
               </div>
 
@@ -245,7 +254,7 @@ export const AutoPaymentConfig = () => {
                   value={formData.bank}
                   onChange={handleChange}
                   placeholder="Ej. BBVA, Santander, Banorte, Nu"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-neutral-500 transition font-mono text-sm"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-indigo-500 transition font-mono text-sm"
                 />
               </div>
 
@@ -261,7 +270,7 @@ export const AutoPaymentConfig = () => {
                     value={formData.expiry}
                     onChange={handleChange}
                     placeholder="12/28"
-                    className="w-full font-mono text-center px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white focus:outline-none focus:border-neutral-500 transition text-sm"
+                    className="w-full font-mono text-center px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white focus:outline-none focus:border-indigo-500 transition text-sm"
                   />
                 </div>
                 <div>
@@ -275,7 +284,7 @@ export const AutoPaymentConfig = () => {
                     value={formData.cvv}
                     onChange={handleChange}
                     placeholder="•••"
-                    className="w-full font-mono text-center px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white focus:outline-none focus:border-neutral-500 transition text-sm"
+                    className="w-full font-mono text-center px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white focus:outline-none focus:border-indigo-500 transition text-sm"
                   />
                 </div>
               </div>
@@ -298,10 +307,10 @@ export const AutoPaymentConfig = () => {
                 max="800"
                 value={formData.maxLimitPerSession}
                 onChange={handleChange}
-                className="w-full pl-8 pr-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono focus:outline-none focus:border-neutral-500 transition text-sm"
+                className="w-full pl-8 pr-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono focus:outline-none focus:border-indigo-500 transition text-sm"
               />
             </div>
-            <p className="text-[11px] text-neutral-500 mt-1 font-mono">
+            <p className="text-[11px] text-neutral-400 mt-1 font-mono">
               Límite de seguridad contra cobros excesivos si olvidas retirar el vehículo.
             </p>
           </div>
@@ -313,7 +322,7 @@ export const AutoPaymentConfig = () => {
                 name="smsNotification"
                 checked={formData.smsNotification}
                 onChange={handleChange}
-                className="rounded border-neutral-700 bg-neutral-900 text-white focus:ring-white"
+                className="rounded border-neutral-700 bg-neutral-900 text-indigo-500 focus:ring-indigo-400"
               />
               <span>Enviar comprobante instantáneo vía SMS / Push</span>
             </label>
@@ -324,7 +333,7 @@ export const AutoPaymentConfig = () => {
                 name="autoRenew"
                 checked={formData.autoRenew}
                 onChange={handleChange}
-                className="rounded border-neutral-700 bg-neutral-900 text-white focus:ring-white"
+                className="rounded border-neutral-700 bg-neutral-900 text-indigo-500 focus:ring-indigo-400"
               />
               <span>Autorrenovación automática si el vehículo permanece en cajón</span>
             </label>
@@ -339,7 +348,7 @@ export const AutoPaymentConfig = () => {
             name="acceptedTerms"
             checked={formData.acceptedTerms}
             onChange={handleChange}
-            className="mt-1 rounded border-neutral-700 bg-neutral-900 text-white focus:ring-white"
+            className="mt-1 rounded border-neutral-700 bg-neutral-900 text-indigo-500 focus:ring-indigo-400"
           />
           <label htmlFor="acceptedTerms" className="text-xs text-neutral-400 leading-relaxed cursor-pointer font-mono">
             <span className="font-bold text-white block mb-0.5">
@@ -354,13 +363,15 @@ export const AutoPaymentConfig = () => {
         <div className="flex justify-end pt-2">
           <button
             type="submit"
-            className="px-6 py-3.5 rounded-2xl bg-white hover:bg-neutral-200 text-black font-bold font-mono text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)] transition transform active:scale-95"
+            className="px-6 py-3.5 rounded-2xl bg-white hover:bg-neutral-200 text-black font-bold font-mono text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.3)] transition transform active:scale-95"
           >
-            <FileCheck2 className="w-4 h-4" />
+            <FileCheck2 className="w-4 h-4 text-indigo-600" />
             Guardar Formato y Activar Autocobro
           </button>
         </div>
       </form>
-    </div>
+    </WobbleCard>
   );
 };
+
+export default AutoPaymentConfig;

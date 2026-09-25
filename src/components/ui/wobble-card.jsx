@@ -7,6 +7,7 @@ export const WobbleCard = ({
   children,
   containerClassName,
   className,
+  noise = true,
 }) => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
@@ -14,8 +15,8 @@ export const WobbleCard = ({
   const handleMouseMove = (event) => {
     const { clientX, clientY } = event;
     const rect = event.currentTarget.getBoundingClientRect();
-    const x = (clientX - (rect.left + rect.width / 2)) / 20;
-    const y = (clientY - (rect.top + rect.height / 2)) / 20;
+    const x = (clientX - (rect.left + rect.width / 2)) / 25;
+    const y = (clientY - (rect.top + rect.height / 2)) / 25;
     setMousePosition({ x, y });
   };
 
@@ -48,13 +49,13 @@ export const WobbleCard = ({
         <motion.div
           style={{
             transform: isHovering
-              ? `translate3d(${-mousePosition.x * 1.3}px, ${-mousePosition.y * 1.3}px, 0) scale3d(1.02, 1.02, 1)`
+              ? `translate3d(${-mousePosition.x * 1.2}px, ${-mousePosition.y * 1.2}px, 0) scale3d(1.01, 1.01, 1)`
               : "translate3d(0px, 0px, 0) scale3d(1, 1, 1)",
             transition: "transform 0.15s ease-out",
           }}
-          className={cn("h-full px-6 py-10 sm:px-10 sm:py-12 relative z-10", className)}
+          className={cn("h-full relative z-10", className ? className : "px-6 py-10 sm:px-10 sm:py-12")}
         >
-          <Noise />
+          {noise && <Noise />}
           {children}
         </motion.div>
       </div>
