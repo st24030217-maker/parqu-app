@@ -114,24 +114,13 @@ export const HeroParallax = ({
 export const Header = ({ title, subtitle, description }) => {
   return (
     <div className="max-w-7xl relative mx-auto py-16 md:py-28 px-4 sm:px-6 w-full left-0 top-0 z-20 overflow-visible">
-      {/* FONDO SSS.SOLUTIONS: Logo transparente y watermark tecnológico */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl pointer-events-none select-none flex flex-col items-center justify-center opacity-20 transition-opacity duration-700">
-        <div className="relative flex flex-col items-center justify-center">
-          {/* Resplandor ambiental de SSS.Solutions */}
-          <div className="absolute -inset-10 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
-          
-          {/* Logo Oficial Transparente de SSS.Solutions */}
-          <img 
-            src="/sss-solutions-logo.png" 
-            alt="SSS.Solutions" 
-            className="h-32 sm:h-48 md:h-60 w-auto object-contain drop-shadow-[0_0_60px_rgba(255,255,255,0.45)]"
-          />
-          
-          {/* Marca de agua tipográfica SSS.SOLUTIONS */}
-          <span className="text-4xl sm:text-6xl md:text-8xl font-black tracking-[0.35em] font-mono text-white/30 uppercase mt-3 whitespace-nowrap drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-            SSS.SOLUTIONS
-          </span>
-        </div>
+      {/* FONDO: Exclusivamente el Logo Oficial Transparente de SSS.Solutions */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl pointer-events-none select-none flex items-center justify-center opacity-25 transition-opacity duration-700">
+        <img 
+          src="/sss-solutions-logo.png" 
+          alt="SSS.Solutions" 
+          className="h-36 sm:h-52 md:h-64 w-auto object-contain drop-shadow-[0_0_50px_rgba(255,255,255,0.35)]"
+        />
       </div>
 
       <div className="relative z-10">
