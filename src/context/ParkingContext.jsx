@@ -47,109 +47,126 @@ const defaultAutoPay = {
   authorizedAt: '2026-01-15',
 };
 
+const defaultTransactions = [
+  {
+    id: 'TXN-901',
+    folio: 'PQM-88A2',
+    date: new Date(Date.now() - 86400000 * 2).toISOString(),
+    zone: 'Zona Financiera (Cajón #B-04)',
+    durationMinutes: 75,
+    amount: 25.00,
+    method: 'Autocobro Débito Directo (Santander •••• 8821)',
+    plate: 'XYZ-7842',
+    status: 'COMPLETADO',
+  },
+  {
+    id: 'TXN-902',
+    folio: 'PQM-34F1',
+    date: new Date(Date.now() - 86400000).toISOString(),
+    zone: 'Centro Cultural (Cajón #C-12)',
+    durationMinutes: 120,
+    amount: 36.00,
+    method: 'Autocobro Débito Directo (Santander •••• 8821)',
+    plate: 'XYZ-7842',
+    status: 'COMPLETADO',
+  }
+];
+
 export const ParkingProvider = ({ children }) => {
-  // Inicialización con persistencia en localStorage
+  // Inicialización con persistencia ultra-segura en localStorage
   const [vehicle, setVehicle] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.VEHICLE);
-    return saved ? JSON.parse(saved) : defaultVehicle;
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.VEHICLE) : null;
+      return saved ? JSON.parse(saved) : defaultVehicle;
+    } catch {
+      return defaultVehicle;
+    }
   });
 
   const [owner, setOwner] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.OWNER);
-    return saved ? JSON.parse(saved) : defaultOwner;
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.OWNER) : null;
+      return saved ? JSON.parse(saved) : defaultOwner;
+    } catch {
+      return defaultOwner;
+    }
   });
 
   const [card, setCard] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.CARD);
-    return saved ? JSON.parse(saved) : defaultCard;
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.CARD) : null;
+      return saved ? JSON.parse(saved) : defaultCard;
+    } catch {
+      return defaultCard;
+    }
   });
 
   const [autoPay, setAutoPay] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.AUTOPAY);
-    return saved ? JSON.parse(saved) : defaultAutoPay;
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.AUTOPAY) : null;
+      return saved ? JSON.parse(saved) : defaultAutoPay;
+    } catch {
+      return defaultAutoPay;
+    }
   });
 
   const [transactions, setTransactions] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.HISTORY);
-    return saved
-      ? JSON.parse(saved)
-      : [
-          {
-            id: 'TXN-901',
-            folio: 'PQM-88A2',
-            date: new Date(Date.now() - 86400000 * 2).toISOString(),
-            zone: 'Zona Financiera (Cajón #B-04)',
-            durationMinutes: 75,
-            amount: 25.00,
-            method: 'Autocobro Débito Directo (Santander •••• 8821)',
-            plate: 'XYZ-7842',
-            status: 'COMPLETADO',
-          },
-          {
-            id: 'TXN-902',
-            folio: 'PQM-34F1',
-            date: new Date(Date.now() - 86400000).toISOString(),
-            zone: 'Centro Cultural (Cajón #C-12)',
-            durationMinutes: 120,
-            amount: 36.00,
-            method: 'Autocobro Débito Directo (Santander •••• 8821)',
-            plate: 'XYZ-7842',
-            status: 'COMPLETADO',
-          }
-        ];
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.HISTORY) : null;
+      return saved ? JSON.parse(saved) : defaultTransactions;
+    } catch {
+      return defaultTransactions;
+    }
   });
 
-  // Estado del parquímetro activo
+  // Estado de sesión activa de estacionamiento (simulador)
   const [activeSession, setActiveSession] = useState(null);
+
+  // Último recibo generado por el simulador de autocobro
   const [lastReceipt, setLastReceipt] = useState(null);
 
-  // Sincronización en localStorage
+  // Guardar en localStorage de forma segura ante cambios
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.VEHICLE, JSON.stringify(vehicle));
+    try {
+      localStorage.setItem(STORAGE_KEYS.VEHICLE, JSON.stringify(vehicle));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
   }, [vehicle]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.OWNER, JSON.stringify(owner));
+    try {
+      localStorage.setItem(STORAGE_KEYS.OWNER, JSON.stringify(owner));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
   }, [owner]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.CARD, JSON.stringify(card));
+    try {
+      localStorage.setItem(STORAGE_KEYS.CARD, JSON.stringify(card));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
   }, [card]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.AUTOPAY, JSON.stringify(autoPay));
+    try {
+      localStorage.setItem(STORAGE_KEYS.AUTOPAY, JSON.stringify(autoPay));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
   }, [autoPay]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(transactions));
+    try {
+      localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(transactions));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
   }, [transactions]);
 
-  // Manejo del temporizador cuando el parquímetro está activo
-  useEffect(() => {
-    let interval = null;
-    if (activeSession && activeSession.status === 'RUNNING') {
-      interval = setInterval(() => {
-        setActiveSession((prev) => {
-          if (!prev) return null;
-          const nextSeconds = prev.secondsElapsed + 1;
-          // Cálculo proporcional por minuto con tarifa base
-          // Ejemplo: $18.00 / hora = $0.30 por minuto
-          const ratePerMinute = prev.ratePerHour / 60;
-          const minutesElapsed = Math.ceil(nextSeconds / 60);
-          const computedCost = Math.max(prev.ratePerHour * 0.25, +(minutesElapsed * ratePerMinute).toFixed(2));
-          
-          return {
-            ...prev,
-            secondsElapsed: nextSeconds,
-            currentCost: Math.min(computedCost, prev.maxLimit),
-          };
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [activeSession]);
-
-  // Acciones
+  // Actualizadores de Estado
   const updateVehicle = (newVehicleData) => {
     setVehicle((prev) => ({ ...prev, ...newVehicleData }));
   };
@@ -158,52 +175,78 @@ export const ParkingProvider = ({ children }) => {
     setOwner((prev) => ({ ...prev, ...newOwnerData }));
   };
 
+  const updateCard = (newCardData) => {
+    setCard((prev) => ({ ...prev, ...newCardData }));
+  };
+
   const updateAutoPay = (newAutoPayData) => {
     setAutoPay((prev) => ({ ...prev, ...newAutoPayData }));
   };
 
   const addBalance = (amount) => {
-    setCard((prev) => ({ ...prev, balance: prev.balance + amount }));
+    setCard((prev) => ({
+      ...prev,
+      balance: prev.balance + amount,
+    }));
   };
 
-  // Iniciar sesión de parquímetro
-  const startParking = (zoneName = 'Zona Centro Histórico (Cajón #A-18)', ratePerHour = 18.00) => {
-    const session = {
-      id: 'SESS-' + Date.now(),
-      startTime: new Date().toISOString(),
+  // Temporizador para el simulador de parquímetro en tiempo real
+  useEffect(() => {
+    let timer;
+    if (activeSession) {
+      timer = setInterval(() => {
+        setActiveSession((prev) => {
+          if (!prev) return null;
+          const secondsElapsed = prev.secondsElapsed + 1;
+          const ratePerSecond = prev.ratePerHour / 3600;
+          const rawCost = secondsElapsed * ratePerSecond;
+          const currentCost = Math.min(rawCost, prev.maxLimit);
+
+          return {
+            ...prev,
+            secondsElapsed,
+            currentCost: Number(currentCost.toFixed(2)),
+          };
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [activeSession]);
+
+  // Iniciar estancia en cajón de parquímetro
+  const startParking = (zoneName = 'Zona Centro Histórico (Cajón #A-14)', ratePerHour = 18.00) => {
+    const newSession = {
+      id: 'SESS-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
       zoneName,
       ratePerHour,
+      startTime: new Date().toISOString(),
       secondsElapsed: 0,
-      currentCost: +(ratePerHour * 0.25).toFixed(2), // Mínimo 15 minutos
-      maxLimit: autoPay.maxLimitPerSession || 200,
-      status: 'RUNNING',
+      currentCost: 0.00,
+      maxLimit: autoPay.maxLimitPerSession || 180.00,
     };
-    setActiveSession(session);
+    setActiveSession(newSession);
     setCard((prev) => ({ ...prev, status: 'EN_PARQUIMETRO' }));
   };
 
-  // Finalizar sesión y ejecutar autocobro
+  // Detener y ejecutar autocobro inmediato
   const stopParkingAndAutoCharge = () => {
     if (!activeSession) return null;
 
     const durationMinutes = Math.max(1, Math.ceil(activeSession.secondsElapsed / 60));
-    const finalAmount = activeSession.currentCost;
+    const finalAmount = Math.max(2.00, activeSession.currentCost);
+    const folio = generateTicketFolio();
 
-    // Procesar método de cobro
-    let chargeMethodDescription = '';
+    const paymentMethodDesc = autoPay.fundingSource === 'CARD'
+      ? `Autocobro Débito Directo (${autoPay.bank || 'Tarjeta Registrada'})`
+      : 'Autocobro Saldo Tarjeta Digital';
+
     if (autoPay.fundingSource === 'WALLET_BALANCE') {
-      chargeMethodDescription = 'Saldo de Tarjeta Digital';
       setCard((prev) => ({
         ...prev,
-        balance: Math.max(0, +(prev.balance - finalAmount).toFixed(2)),
-        status: 'ACTIVA',
+        balance: Math.max(0, prev.balance - finalAmount),
       }));
-    } else {
-      chargeMethodDescription = `Autocobro Domiciliado (${autoPay.bank || 'Tarjeta Registrada'})`;
-      setCard((prev) => ({ ...prev, status: 'ACTIVA' }));
     }
 
-    const folio = generateTicketFolio();
     const newTxn = {
       id: 'TXN-' + Date.now(),
       folio,
@@ -211,14 +254,15 @@ export const ParkingProvider = ({ children }) => {
       zone: activeSession.zoneName,
       durationMinutes,
       amount: finalAmount,
-      method: chargeMethodDescription,
+      method: paymentMethodDesc,
       plate: vehicle.plates,
       status: 'COMPLETADO',
     };
 
     setTransactions((prev) => [newTxn, ...prev]);
-    setLastReceipt(newTxn);
     setActiveSession(null);
+    setCard((prev) => ({ ...prev, status: 'ACTIVA' }));
+    setLastReceipt(newTxn);
 
     return newTxn;
   };
@@ -231,13 +275,14 @@ export const ParkingProvider = ({ children }) => {
         owner,
         updateOwner,
         card,
-        addBalance,
+        updateCard,
         autoPay,
         updateAutoPay,
+        transactions,
+        addBalance,
         activeSession,
         startParking,
         stopParkingAndAutoCharge,
-        transactions,
         lastReceipt,
         setLastReceipt,
       }}
@@ -247,4 +292,10 @@ export const ParkingProvider = ({ children }) => {
   );
 };
 
-export const useParking = () => useContext(ParkingContext);
+export const useParking = () => {
+  const context = useContext(ParkingContext);
+  if (!context) {
+    throw new Error('useParking must be used within a ParkingProvider');
+  }
+  return context;
+};
