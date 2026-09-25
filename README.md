@@ -8,7 +8,7 @@ Aplicación web moderna para la gestión inteligente de estacionamientos y parqu
 
 1. **🪪 Tarjeta Digital Holográfica**:
    - Muestra en relieve las placas del coche, modelo, titular y número de identificación.
-   - Sensor NFC/RFID virtual y chip EMV simulado.
+   - Sensor NFC/RFID virtual y chip EMV digital.
    - Código QR oficial para escaneo e inspección por agentes de vialidad.
    - Estatus en tiempo real (*Activa* o *En Estacionamiento*).
 
@@ -18,7 +18,7 @@ Aplicación web moderna para la gestión inteligente de estacionamientos y parqu
    - Notificaciones automáticas por SMS/Push.
    - Autorización legal expresa vinculada a la placa del vehículo.
 
-3. **⏱️ Simulador de Parquímetro en Tiempo Real**:
+3. **⏱️ Parquímetro Metropolitano en Tiempo Real**:
    - Zonas de estacionamiento (Centro Histórico, Zona Financiera, Distrito Gastronómico, Zona Médica) con tarifas diferenciadas.
    - Cronómetro segundo a segundo con cálculo de costo en vivo.
    - Autocobro automatizado al liberar el cajón.

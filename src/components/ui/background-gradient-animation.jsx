@@ -3,7 +3,7 @@ import { cn } from "../../lib/utils";
 
 /**
  * BackgroundGradientAnimation - Aceternity UI component
- * Creates an organic, interactive fluid aurora gradient background with SVG blending
+ * High performance fluid aurora gradient background with zero re-render overhead
  */
 export const BackgroundGradientAnimation = ({
   gradientBackgroundStart = "rgb(5, 5, 10)",
@@ -22,11 +22,10 @@ export const BackgroundGradientAnimation = ({
   containerClassName,
 }) => {
   const interactiveRef = useRef(null);
-
-  const [curX, setCurX] = useState(0);
-  const [curY, setCurY] = useState(0);
-  const [tgX, setTgX] = useState(0);
-  const [tgY, setTgY] = useState(0);
+  const curXRef = useRef(0);
+  const curYRef = useRef(0);
+  const tgXRef = useRef(0);
+  const tgYRef = useRef(0);
 
   useEffect(() => {
     document.body.style.setProperty(
@@ -58,27 +57,28 @@ export const BackgroundGradientAnimation = ({
     blendingValue,
   ]);
 
+  // Loop de animación fluido y eficiente sin provocar re-renders en React
   useEffect(() => {
     let animFrame;
     const move = () => {
       if (interactiveRef.current) {
-        setCurX((prev) => prev + (tgX - prev) / 20);
-        setCurY((prev) => prev + (tgY - prev) / 20);
+        curXRef.current += (tgXRef.current - curXRef.current) / 20;
+        curYRef.current += (tgYRef.current - curYRef.current) / 20;
         interactiveRef.current.style.transform = `translate(${Math.round(
-          curX
-        )}px, ${Math.round(curY)}px)`;
+          curXRef.current
+        )}px, ${Math.round(curYRef.current)}px)`;
       }
       animFrame = requestAnimationFrame(move);
     };
     animFrame = requestAnimationFrame(move);
     return () => cancelAnimationFrame(animFrame);
-  }, [tgX, tgY, curX, curY]);
+  }, []);
 
   const handleMouseMove = (event) => {
-    if (interactiveRef.current) {
+    if (interactiveRef.current && interactiveRef.current.parentElement) {
       const rect = interactiveRef.current.parentElement.getBoundingClientRect();
-      setTgX(event.clientX - rect.left);
-      setTgY(event.clientY - rect.top);
+      tgXRef.current = event.clientX - rect.left;
+      tgYRef.current = event.clientY - rect.top;
     }
   };
 

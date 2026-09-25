@@ -49,3 +49,52 @@ body {
   font-weight: 800;
   text-shadow: 0 1px 4px rgba(0,0,0,0.8);
 }
+
+/* -------------------------------------------------------------
+   NOTIFICACIONES DEL SISTEMA (Color Negro Puro / Obsidian Black)
+   ------------------------------------------------------------- */
+[data-sileo-toast] {
+  filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.95)) !important;
+}
+
+/* Fondo SVG del toast en negro puro */
+[data-sileo-svg] path,
+[data-sileo-svg] rect,
+[data-sileo-canvas] svg path {
+  fill: #000000 !important;
+  stroke: #262626 !important;
+  stroke-width: 1.5px !important;
+}
+
+/* Textos dentro del toast en blanco de alta legibilidad */
+[data-sileo-title] {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-family: 'Space Grotesk', monospace, sans-serif !important;
+  letter-spacing: -0.01em !important;
+}
+
+[data-sileo-description] {
+  color: #d4d4d4 !important;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+  font-size: 0.8rem !important;
+  line-height: 1.25rem !important;
+}
+
+/* Badge e iconos del toast con fondo oscuro obsidian */
+[data-sileo-badge] {
+  background-color: #121212 !important;
+  border: 1px solid #333333 !important;
+  color: #ffffff !important;
+}
+
+/* Botones dentro del toast */
+[data-sileo-button] {
+  background-color: #1c1c1c !important;
+  color: #ffffff !important;
+  border: 1px solid #383838 !important;
+}
+
+[data-sileo-button]:hover {
+  background-color: #2b2b2b !important;
+}

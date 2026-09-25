@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   CARD: 'parkdigital_card',
   AUTOPAY: 'parkdigital_autopay',
   HISTORY: 'parkdigital_history',
+  PINNED_LOCATIONS: 'parkdigital_pinned_locations',
 };
 
 const defaultVehicle = {
@@ -72,6 +73,21 @@ const defaultTransactions = [
   }
 ];
 
+const defaultPinnedLocations = [
+  {
+    id: 'PIN-101',
+    name: 'Cajón #A-14 • Centro Histórico',
+    address: 'Av. Juárez y Eje Central, Cuauhtémoc',
+    lat: 19.4342,
+    lng: -99.1318,
+    date: new Date(Date.now() - 3600000 * 2.5).toISOString(),
+    plates: 'XYZ-7842',
+    notes: 'Junto al parquímetro municipal #04',
+    status: 'COMPLETADO',
+    ratePerHour: 18.00,
+  }
+];
+
 export const ParkingProvider = ({ children }) => {
   // Inicialización con persistencia ultra-segura en localStorage
   const [vehicle, setVehicle] = useState(() => {
@@ -119,10 +135,23 @@ export const ParkingProvider = ({ children }) => {
     }
   });
 
-  // Estado de sesión activa de estacionamiento (simulador)
+  // Bitácora de ubicaciones fijadas por el usuario en el mapa
+  const [pinnedLocations, setPinnedLocations] = useState(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.PINNED_LOCATIONS) : null;
+      return saved ? JSON.parse(saved) : defaultPinnedLocations;
+    } catch {
+      return defaultPinnedLocations;
+    }
+  });
+
+  // Punto activo fijado en el mapa
+  const [activePinnedLocation, setActivePinnedLocation] = useState(null);
+
+  // Estado de sesión activa de estacionamiento (parquímetro metropolitano)
   const [activeSession, setActiveSession] = useState(null);
 
-  // Último recibo generado por el simulador de autocobro
+  // Último recibo generado por el sistema de autocobro
   const [lastReceipt, setLastReceipt] = useState(null);
 
   // Guardar en localStorage de forma segura ante cambios
@@ -166,6 +195,14 @@ export const ParkingProvider = ({ children }) => {
     }
   }, [transactions]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.PINNED_LOCATIONS, JSON.stringify(pinnedLocations));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+  }, [pinnedLocations]);
+
   // Actualizadores de Estado
   const updateVehicle = (newVehicleData) => {
     setVehicle((prev) => ({ ...prev, ...newVehicleData }));
@@ -190,7 +227,7 @@ export const ParkingProvider = ({ children }) => {
     }));
   };
 
-  // Temporizador para el simulador de parquímetro en tiempo real
+  // Temporizador para el parquímetro metropolitano en tiempo real
   useEffect(() => {
     let timer;
     if (activeSession) {
@@ -213,12 +250,45 @@ export const ParkingProvider = ({ children }) => {
     return () => clearInterval(timer);
   }, [activeSession]);
 
-  // Iniciar estancia en cajón de parquímetro
-  const startParking = (zoneName = 'Zona Centro Histórico (Cajón #A-14)', ratePerHour = 18.00) => {
+  // Registrar una nueva ubicación fijada en el mapa
+  const registerPinnedLocation = (locationData) => {
+    const newRecord = {
+      id: 'PIN-' + Date.now(),
+      name: locationData.name || 'Ubicación Fijada por Conductor',
+      address: locationData.address || `Lat: ${locationData.lat.toFixed(5)}, Lng: ${locationData.lng.toFixed(5)}`,
+      lat: locationData.lat,
+      lng: locationData.lng,
+      date: new Date().toISOString(),
+      plates: vehicle.plates,
+      notes: locationData.notes || 'Posición fijada en mapa satelital',
+      status: locationData.status || 'GUARDADA',
+      ratePerHour: locationData.ratePerHour || 18.00,
+    };
+
+    setPinnedLocations((prev) => [newRecord, ...prev]);
+    setActivePinnedLocation(newRecord);
+    return newRecord;
+  };
+
+  const removePinnedLocation = (id) => {
+    setPinnedLocations((prev) => prev.filter((item) => item.id !== id));
+    if (activePinnedLocation?.id === id) {
+      setActivePinnedLocation(null);
+    }
+  };
+
+  const clearPinnedLocations = () => {
+    setPinnedLocations([]);
+    setActivePinnedLocation(null);
+  };
+
+  // Iniciar estancia en cajón de parquímetro con coordenadas de ubicación fijada
+  const startParking = (zoneName = 'Zona Centro Histórico (Cajón #A-14)', ratePerHour = 18.00, coords = null) => {
     const newSession = {
       id: 'SESS-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
       zoneName,
       ratePerHour,
+      coords: coords || null,
       startTime: new Date().toISOString(),
       secondsElapsed: 0,
       currentCost: 0.00,
@@ -226,6 +296,24 @@ export const ParkingProvider = ({ children }) => {
     };
     setActiveSession(newSession);
     setCard((prev) => ({ ...prev, status: 'EN_PARQUIMETRO' }));
+
+    // Si viene con coordenadas, registrar automáticamente en la bitácora de ubicaciones
+    if (coords && coords.lat && coords.lng) {
+      const pinRecord = {
+        id: 'PIN-' + Date.now(),
+        name: zoneName,
+        address: `Cajón activo (${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)})`,
+        lat: coords.lat,
+        lng: coords.lng,
+        date: new Date().toISOString(),
+        plates: vehicle.plates,
+        notes: 'Estacionamiento activo con autocobro en curso',
+        status: 'ACTIVA',
+        ratePerHour,
+      };
+      setPinnedLocations((prev) => [pinRecord, ...prev.filter(p => p.status !== 'ACTIVA')]);
+      setActivePinnedLocation(pinRecord);
+    }
   };
 
   // Detener y ejecutar autocobro inmediato
@@ -264,6 +352,14 @@ export const ParkingProvider = ({ children }) => {
     setCard((prev) => ({ ...prev, status: 'ACTIVA' }));
     setLastReceipt(newTxn);
 
+    // Marcar ubicación activa fijada como completada en la bitácora
+    setPinnedLocations((prev) =>
+      prev.map((pin) => (pin.status === 'ACTIVA' ? { ...pin, status: 'COMPLETADO', folio } : pin))
+    );
+    if (activePinnedLocation) {
+      setActivePinnedLocation((prev) => (prev ? { ...prev, status: 'COMPLETADO', folio } : null));
+    }
+
     return newTxn;
   };
 
@@ -285,6 +381,12 @@ export const ParkingProvider = ({ children }) => {
         stopParkingAndAutoCharge,
         lastReceipt,
         setLastReceipt,
+        pinnedLocations,
+        activePinnedLocation,
+        setActivePinnedLocation,
+        registerPinnedLocation,
+        removePinnedLocation,
+        clearPinnedLocations,
       }}
     >
       {children}

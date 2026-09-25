@@ -12,11 +12,14 @@ import {
   PlusCircle,
   Sparkles
 } from 'lucide-react';
+import { CurrencyDollarIcon } from './icons/currency-dollar-icon';
 import { useParking } from '../context/ParkingContext';
 import { formatCurrency, formatPlate } from '../utils/formatters';
 
 import { DirectionAwareHover } from './ui/direction-aware-hover';
 import { CardContainer, CardBody, CardItem } from './ui/3d-card';
+import { AnimeCounter } from './ui/anime-counter';
+import { AnimeCardSheen } from './ui/anime-card-sheen';
 
 export const DigitalCard = () => {
   const { vehicle, owner, card, autoPay, addBalance, activeSession } = useParking();
@@ -83,11 +86,12 @@ export const DigitalCard = () => {
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${isParked ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`} />
           <span className="text-neutral-300 font-medium">
-            {isParked ? 'Cajón Activo' : 'Pase Virtual'}
+            {isParked ? 'Cajón Activo' : 'Saldo:'}{' '}
+            <AnimeCounter value={card.balance} prefix="$" decimals={2} suffix=" MXN" className="text-white font-bold" />
           </span>
         </div>
         <div className="flex items-center gap-1 text-neutral-400 font-medium group-hover:text-white transition-colors">
-          <span>Pasa el mouse para ver datos</span>
+          <span>Toca o pasa el mouse</span>
           <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
         </div>
       </CardItem>
@@ -96,8 +100,10 @@ export const DigitalCard = () => {
 
   return (
     <div className="w-full">
-      {/* Contenedor 3D Card Tilt + Direction-Aware Hover */}
-      <CardContainer className="w-full">
+      {/* Contenedor Holográfico Interactivo con Anime.js */}
+      <AnimeCardSheen>
+        {/* Contenedor 3D Card Tilt + Direction-Aware Hover */}
+        <CardContainer className="w-full">
         <div className="relative w-full group">
           {/* Glow de fondo animado */}
           <div className={`absolute -inset-1 rounded-3xl blur-xl opacity-40 transition duration-1000 group-hover:opacity-85 ${
@@ -216,12 +222,22 @@ export const DigitalCard = () => {
                         Desactivado
                       </span>
                     )}
-                    <span className="text-[11px] text-neutral-400 font-mono block">
-                      {autoPay.fundingSource === 'WALLET_BALANCE' 
-                        ? `Saldo: ${formatCurrency(card.balance)}`
-                        : autoPay.bank || 'Tarjeta vinculada'
-                      }
-                    </span>
+                    <div className="text-[11px] text-neutral-400 font-mono block">
+                      {autoPay.fundingSource === 'WALLET_BALANCE' ? (
+                        <span className="flex items-center gap-1 justify-end">
+                          <span>Saldo:</span>
+                          <AnimeCounter
+                            value={card.balance}
+                            prefix="$"
+                            decimals={2}
+                            suffix=" MXN"
+                            className="font-bold text-white text-xs drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]"
+                          />
+                        </span>
+                      ) : (
+                        autoPay.bank || 'Tarjeta vinculada'
+                      )}
+                    </div>
                   </div>
 
                   {/* Botón QR Flotante en 3D */}
@@ -245,6 +261,7 @@ export const DigitalCard = () => {
           </DirectionAwareHover>
         </div>
       </CardContainer>
+      </AnimeCardSheen>
 
       {/* Botones de acción rápida debajo de la tarjeta */}
       <div className="mt-4 flex items-center justify-between text-xs text-neutral-400 px-1 font-mono">
@@ -256,9 +273,9 @@ export const DigitalCard = () => {
           {autoPay.fundingSource === 'WALLET_BALANCE' && (
             <button
               onClick={() => setShowRechargeModal(true)}
-              className="text-neutral-300 hover:text-white font-medium flex items-center gap-1 transition"
+              className="text-neutral-300 hover:text-white font-medium flex items-center gap-1.5 transition"
             >
-              <PlusCircle className="w-3.5 h-3.5" />
+              <CurrencyDollarIcon size={14} className="text-emerald-400" />
               Recargar Saldo
             </button>
           )}
@@ -356,12 +373,15 @@ export const DigitalCard = () => {
       {showRechargeModal && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-neutral-950 border border-neutral-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl relative">
-            <h3 className="text-lg font-bold text-white mb-1 font-mono">Recargar Saldo de Parquímetro</h3>
-            <p className="text-xs text-neutral-400 mb-5">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(16,185,129,0.25)]">
+              <CurrencyDollarIcon size={24} strokeWidth={2} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-1 font-mono text-center">Recargar Saldo de Parquímetro</h3>
+            <p className="text-xs text-neutral-400 mb-5 font-mono text-center">
               Agrega fondos inmediatos a tu Tarjeta Digital para autocobros
             </p>
 
-            <form onSubmit={handleRecharge} className="space-y-4">
+            <form onSubmit={handleRecharge} className="space-y-4 font-mono">
               <div>
                 <label className="text-xs text-neutral-300 font-mono block mb-2">
                   Selecciona o ingresa monto (MXN)
@@ -372,13 +392,14 @@ export const DigitalCard = () => {
                       type="button"
                       key={amt}
                       onClick={() => setRechargeAmount(amt)}
-                      className={`py-2 rounded-xl font-bold font-mono text-sm border transition ${
+                      className={`py-2 rounded-xl font-bold font-mono text-sm border transition flex items-center justify-center gap-1 ${
                         rechargeAmount === amt
                           ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.25)]'
                           : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-800'
                       }`}
                     >
-                      ${amt}
+                      <CurrencyDollarIcon size={13} strokeWidth={2.2} />
+                      <span>{amt}</span>
                     </button>
                   ))}
                 </div>
@@ -402,9 +423,10 @@ export const DigitalCard = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-white hover:bg-neutral-200 text-black font-mono text-xs font-bold rounded-xl transition shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                  className="flex-1 py-2.5 bg-white hover:bg-neutral-200 text-black font-mono text-xs font-bold rounded-xl transition shadow-[0_0_15px_rgba(255,255,255,0.2)] flex items-center justify-center gap-1.5"
                 >
-                  Confirmar ${rechargeAmount}
+                  <CurrencyDollarIcon size={14} strokeWidth={2.2} />
+                  <span>Confirmar ${rechargeAmount}</span>
                 </button>
               </div>
             </form>

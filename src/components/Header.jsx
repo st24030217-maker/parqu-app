@@ -67,15 +67,10 @@ export const Header = ({ onReplayLoading }) => {
             </div>
           )}
 
-          {/* Botón rápido para volver a ver la animación de carga */}
-          <button
-            onClick={onReplayLoading}
-            className="text-xs text-neutral-400 hover:text-white transition flex items-center gap-1.5 py-1.5 px-3 rounded-full bg-neutral-900 border border-neutral-800 hover:border-neutral-700"
-            title="Reproducir animación de inicio"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-neutral-400" />
-            <span className="hidden md:inline font-mono text-[11px]">Intro</span>
-          </button>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-900/90 border border-neutral-800 text-[11px] font-mono text-neutral-300">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-white font-bold">PARQU LIVE</span>
+          </div>
         </div>
 
       </div>

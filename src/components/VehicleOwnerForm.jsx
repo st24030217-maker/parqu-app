@@ -57,7 +57,7 @@ export const VehicleOwnerForm = () => {
         </div>
 
         {savedNotification && (
-          <span className="flex items-center gap-1.5 text-xs font-mono font-semibold px-3.5 py-1.5 rounded-full bg-purple-900/60 text-purple-200 border border-purple-700/50 animate-in fade-in self-start sm:self-auto shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+          <span className="flex items-center gap-1.5 text-xs font-mono font-semibold px-3.5 py-1.5 rounded-full bg-black text-white border border-neutral-800 animate-in fade-in self-start sm:self-auto shadow-xl">
             <Check className="w-3.5 h-3.5 text-emerald-400" />
             ¡Actualizado en la Tarjeta!
           </span>

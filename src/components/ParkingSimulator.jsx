@@ -11,9 +11,12 @@ import {
   ShieldCheck,
   Sparkles
 } from 'lucide-react';
+import { CurrencyDollarIcon } from './icons/currency-dollar-icon';
 import { useParking } from '../context/ParkingContext';
 import { formatCurrency, formatTimeFromSeconds, formatPlate } from '../utils/formatters';
 import { WobbleCard } from './ui/wobble-card';
+import { DiDiParkingMap } from './DiDiParkingMap';
+import { AnimeCounter } from './ui/anime-counter';
 
 const PARKING_ZONES = [
   { id: 'Z1', name: 'Zona Centro Histórico (Cajón #A-14)', ratePerHour: 18.00 },
@@ -22,7 +25,7 @@ const PARKING_ZONES = [
   { id: 'Z4', name: 'Zona Hospitalaria & Médica (Cajón #H-02)', ratePerHour: 14.00 },
 ];
 
-export const ParkingSimulator = () => {
+export const ParkingMeter = () => {
   const { 
     vehicle, 
     owner, 
@@ -35,12 +38,14 @@ export const ParkingSimulator = () => {
   const [selectedZone, setSelectedZone] = useState(PARKING_ZONES[0]);
   const [justChargedNotice, setJustChargedNotice] = useState(null);
 
-  const handleStart = () => {
-    startParking(selectedZone.name, selectedZone.ratePerHour);
+  const handleStart = (zoneParam = null) => {
+    const targetZone = (zoneParam && zoneParam.name) ? zoneParam : selectedZone;
+    const coords = (targetZone.lat && targetZone.lng) ? { lat: targetZone.lat, lng: targetZone.lng } : null;
+    startParking(targetZone.name, targetZone.ratePerHour || 18.00, coords);
     setJustChargedNotice(null);
     sileo.info({
       title: 'Parquímetro Activado',
-      description: `Cajón ocupado en ${selectedZone.name}. Autocobro activo para ${vehicle.plates}.`,
+      description: `Cajón ocupado en ${targetZone.name}. Autocobro activo para ${vehicle.plates}.`,
     });
   };
 
@@ -72,10 +77,10 @@ export const ParkingSimulator = () => {
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
             <Clock className="w-6 h-6 text-indigo-400" />
-            Simulador de Parquímetro Metropolitano
+            Parquímetro Metropolitano en Vivo
           </h2>
           <p className="text-xs sm:text-sm text-neutral-300 mt-1 font-mono max-w-2xl leading-relaxed">
-            Experimenta el cobro automático segundo a segundo al ocupar y liberar un cajón municipal.
+            Control y cobro automático segundo a segundo al ocupar y liberar un cajón municipal.
           </p>
         </div>
 
@@ -96,16 +101,16 @@ export const ParkingSimulator = () => {
 
       {/* Notificación de Autocobro Ejecutado */}
       {justChargedNotice && !activeSession && (
-        <div className="mb-6 p-5 rounded-2xl bg-neutral-900/90 border border-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.15)] animate-in fade-in slide-in-from-top-2">
+        <div className="mb-6 p-5 rounded-2xl bg-black border border-neutral-800 shadow-[0_0_35px_rgba(0,0,0,0.9)] animate-in fade-in slide-in-from-top-2">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-emerald-400 text-black flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(16,185,129,0.4)]">
-                <CheckCircle className="w-6 h-6" />
+              <div className="w-10 h-10 rounded-xl bg-neutral-900 border border-neutral-700 text-white flex items-center justify-center flex-shrink-0 shadow-md">
+                <CheckCircle className="w-6 h-6 text-emerald-400" />
               </div>
               <div>
                 <h4 className="text-sm font-bold text-white flex items-center gap-2 font-mono">
                   ¡Autocobro Liquidado con Éxito!
-                  <span className="text-xs font-normal text-emerald-300 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-700/50 font-mono">
+                  <span className="text-xs font-normal text-white bg-neutral-900 px-2.5 py-0.5 rounded-full border border-neutral-700 font-mono">
                     Folio: {justChargedNotice.folio}
                   </span>
                 </h4>
@@ -153,10 +158,16 @@ export const ParkingSimulator = () => {
                   Monto a Cobrar (Autocobro)
                 </span>
                 <div className="font-mono text-4xl sm:text-5xl font-black text-emerald-400 drop-shadow-[0_0_25px_rgba(52,211,153,0.3)]">
-                  {formatCurrency(activeSession.currentCost)}
+                  <AnimeCounter
+                    value={activeSession.currentCost}
+                    prefix="$"
+                    decimals={2}
+                    duration={400}
+                    className="font-mono text-4xl sm:text-5xl font-black text-emerald-400"
+                  />
                 </div>
-                <div className="text-xs text-neutral-400 mt-1 flex items-center justify-center md:justify-start gap-1 font-mono">
-                  <Zap className="w-3.5 h-3.5 text-amber-400" />
+                <div className="text-xs text-neutral-400 mt-1 flex items-center justify-center md:justify-start gap-1.5 font-mono">
+                  <CurrencyDollarIcon size={14} className="text-amber-400 inline shrink-0" />
                   <span>Tarifa: {formatCurrency(activeSession.ratePerHour)}/hr</span>
                 </div>
               </div>
@@ -212,45 +223,12 @@ export const ParkingSimulator = () => {
         /* Cuando NO está estacionado */
         <div className="space-y-6">
           <div>
-            <label className="text-xs uppercase tracking-wider font-bold text-neutral-300 block mb-3 font-mono">
-              1. Selecciona la Zona de Estacionamiento a Ocupar
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {PARKING_ZONES.map((zone) => {
-                const isSelected = selectedZone.id === zone.id;
-                return (
-                  <div
-                    key={zone.id}
-                    onClick={() => setSelectedZone(zone)}
-                    className={`p-4 rounded-2xl border cursor-pointer transition flex items-center justify-between ${
-                      isSelected
-                        ? 'bg-indigo-950/60 border-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.2)]'
-                        : 'bg-neutral-900/60 border-neutral-800 hover:bg-neutral-900/90 hover:border-neutral-700'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                        isSelected ? 'bg-indigo-500 text-white font-bold' : 'bg-neutral-800 text-neutral-400'
-                      }`}>
-                        <MapPin className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className="text-sm font-bold text-white block font-mono">
-                          {zone.name}
-                        </span>
-                        <span className="text-xs text-neutral-400 font-mono">
-                          Tarifa: {formatCurrency(zone.ratePerHour)} por hora
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="w-5 h-5 rounded-full border flex items-center justify-center border-neutral-700">
-                      {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(99,102,241,1)]"></div>}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <DiDiParkingMap
+              selectedZone={selectedZone}
+              onSelectZone={setSelectedZone}
+              onStartSession={handleStart}
+              activeSession={activeSession}
+            />
           </div>
 
           {/* Resumen del Vehículo y Autocobro antes de iniciar */}
@@ -281,4 +259,5 @@ export const ParkingSimulator = () => {
   );
 };
 
-export default ParkingSimulator;
+export const ParkingSimulator = ParkingMeter;
+export default ParkingMeter;

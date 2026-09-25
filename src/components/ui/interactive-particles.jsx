@@ -250,6 +250,26 @@ export function InteractiveParticles({
     };
     window.addEventListener("pointermove", onPointerMove);
 
+    const applyScale = () => {
+      if (!object3D || !hitArea || !imgHeight || !imgWidth) return;
+      const fovWidth = fovHeight * camera.aspect;
+      const scaleY = (fovHeight * 0.72) / imgHeight;
+      const scaleX = (fovWidth * 0.88) / imgWidth;
+      const scale = Math.min(scaleY, scaleX);
+      object3D.scale.set(scale, scale, 1);
+      hitArea.scale.set(scale, scale, 1);
+    };
+
+    const applySize = () => {
+      view = getSize();
+      camera.aspect = view.width / view.height;
+      camera.updateProjectionMatrix();
+      fovHeight = 2 * Math.tan((camera.fov * Math.PI) / 180 / 2) * camera.position.z;
+      renderer.setSize(view.width, view.height);
+      rect = canvas.getBoundingClientRect();
+      applyScale();
+    };
+
     // Función para procesar una textura generada o cargada
     const processTexture = (texture, width, height) => {
       if (disposed) {
@@ -388,26 +408,6 @@ export function InteractiveParticles({
         processTexture(texture, texture.image.width, texture.image.height);
       });
     }
-
-    const applyScale = () => {
-      if (!object3D || !hitArea || !imgHeight || !imgWidth) return;
-      const fovWidth = fovHeight * camera.aspect;
-      const scaleY = (fovHeight * 0.72) / imgHeight;
-      const scaleX = (fovWidth * 0.88) / imgWidth;
-      const scale = Math.min(scaleY, scaleX);
-      object3D.scale.set(scale, scale, 1);
-      hitArea.scale.set(scale, scale, 1);
-    };
-
-    const applySize = () => {
-      view = getSize();
-      camera.aspect = view.width / view.height;
-      camera.updateProjectionMatrix();
-      fovHeight = 2 * Math.tan((camera.fov * Math.PI) / 180 / 2) * camera.position.z;
-      renderer.setSize(view.width, view.height);
-      rect = canvas.getBoundingClientRect();
-      applyScale();
-    };
 
     const resizeObserver = new ResizeObserver(applySize);
     resizeObserver.observe(container);

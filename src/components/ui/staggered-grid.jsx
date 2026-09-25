@@ -72,13 +72,13 @@ export function StaggeredGrid({
       tab: 'autopay'
     },
     {
-      id: 'simulator',
+      id: 'parking',
       title: 'Cajones en Tiempo Real',
-      subtitle: 'SIMULADOR METROPOLITANO',
-      desc: 'Simula tu estancia en parquímetros municipales, activa cronómetros y calcula tu tarifa al instante.',
+      subtitle: 'PARQUÍMETRO METROPOLITANO',
+      desc: 'Gestiona tu estancia en parquímetros municipales, activa cronómetros y calcula tu tarifa al instante.',
       icon: MapPin,
       category: 'MOVILIDAD',
-      badge: 'INTERACTIVO',
+      badge: 'EN VIVO',
       tab: 'dashboard'
     },
     {
@@ -197,11 +197,11 @@ export function StaggeredGrid({
     },
     {
       id: 'bento-3',
-      title: 'Simulador en Tiempo Real',
+      title: 'Parquímetro en Tiempo Real',
       subtitle: '03. CONTROL DE CAJONES',
       desc: 'Selecciona cajones metropolitanos, observa el cronómetro dinámico y monitorea el gasto segundo a segundo en vivo.',
       icon: <MapPin className="w-6 h-6 text-white" />,
-      tag: 'SIMULADOR',
+      tag: 'PARQUÍMETRO',
       actionTab: 'dashboard'
     }
   ];
@@ -307,10 +307,10 @@ export function StaggeredGrid({
       {/* 1. Header con Animación de Partículas GPU en las palabras "BIENVENIDO A PARQU" */}
       <section 
         ref={titleSectionRef}
-        className="pt-16 pb-12 px-4 flex flex-col items-center justify-center text-center relative z-10 [perspective:1000px] min-h-[460px] sm:min-h-[520px]"
+        className="pt-16 pb-12 px-4 flex flex-col items-center justify-center text-center relative z-10 [perspective:1000px] min-h-[460px] sm:min-h-[520px] bg-transparent"
       >
-        {/* Capa de Partículas Interactivas Three.js que forman el texto "BIENVENIDO A PARQU" */}
-        <div className="absolute inset-0 z-0 pointer-events-auto flex items-center justify-center overflow-hidden">
+        {/* Capa de Partículas Interactivas Three.js que forman el texto "BIENVENIDO A PARQU" con fondo 100% transparente */}
+        <div className="absolute inset-0 z-0 pointer-events-auto flex items-center justify-center overflow-hidden bg-transparent">
           <InteractiveParticles
             text="BIENVENIDO A PARQU"
             size={1.5}
@@ -318,29 +318,11 @@ export function StaggeredGrid({
             depth={4.0}
             touchRadius={0.3}
             color="#ffffff"
-            className="w-full h-full"
+            background="transparent"
+            className="w-full h-full bg-transparent"
           />
         </div>
 
-        {/* Gradiente sutil para garantizar legibilidad del contenido */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/90 pointer-events-none z-1" />
-
-        {/* Contenido en primer plano */}
-        <div className="relative z-10 flex flex-col items-center justify-center pointer-events-none mt-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-neutral-950/80 border border-neutral-800 text-xs font-mono text-neutral-300 mb-6 backdrop-blur-md shadow-[0_0_25px_rgba(255,255,255,0.06)] pointer-events-auto">
-            <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-            <span className="tracking-[0.25em] uppercase font-bold text-[11px]">SISTEMA INTELIGENTE DE PARQUÍMETROS</span>
-          </div>
-
-          <p className="text-xs sm:text-sm md:text-base text-neutral-300 font-mono max-w-2xl leading-relaxed px-4 drop-shadow-md pointer-events-auto">
-            Pasa el cursor sobre el texto de partículas para interactuar. Desliza hacia abajo para ver las funciones de <span className="text-white font-bold">Parqu</span>.
-          </p>
-
-          <div className="flex items-center gap-2 mt-8 text-xs font-mono text-neutral-400 animate-bounce pointer-events-auto">
-            <span>Desliza para ver las funciones</span>
-            <ArrowDown className="w-3.5 h-3.5 text-white" />
-          </div>
-        </div>
       </section>
 
       {/* 2. Sección Bento Expandible (Pilares Principales) */}
