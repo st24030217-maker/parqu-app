@@ -14,6 +14,7 @@ import { StaggeredGrid } from './components/ui/staggered-grid';
 import { BackgroundGradientAnimation } from './components/ui/background-gradient-animation';
 import { HeroParallax } from './components/ui/hero-parallax';
 import { WobbleCard } from './components/ui/wobble-card';
+import { InterfaceCraftsCards } from './components/ui/interface-crafts-cards';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { 
   CreditCard, 
@@ -166,128 +167,108 @@ const MainContent = ({ onReplayLoading }) => {
               </div>
             </div>
 
-            {/* BARRA DE FUNCIONES RÁPIDAS (QUICK ACTIONS TOOLBAR) */}
+            {/* BARRA DE ACCESO RÁPIDO (INTERFACE CRAFTS CARDS) */}
             <div className="pt-4 border-t border-neutral-800/80">
               <div className="flex items-center justify-between mb-3 text-[11px] font-mono text-neutral-400 uppercase tracking-wider">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="font-bold text-white">Funciones Rápidas</span>
+                  <span className="font-bold text-white">Acceso Rápido • Interface Crafts</span>
                 </div>
-                <span className="text-neutral-500">Acceso inmediato con 1 toque</span>
+                <span className="text-neutral-500">Ejecución inmediata en 1 toque</span>
               </div>
 
-              {/* Grid de Botones de Funciones Rápidas */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                
-                {/* 1. Recargar Saldo */}
-                <button
-                  onClick={() => setShowRechargeQuickModal(true)}
-                  className="flex items-center gap-3 p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 hover:border-emerald-500/50 hover:bg-neutral-900 transition-all duration-200 group text-left"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                    <CreditCard className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-white block group-hover:text-emerald-300 transition-colors">
-                      Recargar Saldo
-                    </span>
-                    <span className="text-[10px] font-mono text-neutral-400">
-                      Saldo: ${card.balance.toFixed(2)}
-                    </span>
-                  </div>
-                </button>
-
-                {/* 2. Código QR Oficial */}
-                <button
-                  onClick={() => setShowQRQuickModal(true)}
-                  className="flex items-center gap-3 p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 hover:border-cyan-500/50 hover:bg-neutral-900 transition-all duration-200 group text-left"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-cyan-950/60 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
-                    <QrCode className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-white block group-hover:text-cyan-300 transition-colors">
-                      Credencial QR
-                    </span>
-                    <span className="text-[10px] font-mono text-neutral-400">
-                      Inspección de Tránsito
-                    </span>
-                  </div>
-                </button>
-
-                {/* 3. Simulador de Cajón */}
-                <button
-                  onClick={() => {
-                    setActiveTab('dashboard');
-                    sileo.info({
-                      title: 'Simulador de Parquímetro',
-                      description: 'Selecciona tu cajón metropolitano o inicia estancia.',
-                    });
-                  }}
-                  className="flex items-center gap-3 p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 hover:border-indigo-500/50 hover:bg-neutral-900 transition-all duration-200 group text-left"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-indigo-950/60 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
-                    <Clock className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-white block group-hover:text-indigo-300 transition-colors">
-                      {activeSession ? 'Cajón Activo' : 'Simular Estancia'}
-                    </span>
-                    <span className="text-[10px] font-mono text-neutral-400">
-                      {activeSession ? 'En Parquímetro' : 'Tarifa: $0.25/min'}
-                    </span>
-                  </div>
-                </button>
-
-                {/* 4. Configurar Autocobro */}
-                <button
-                  onClick={() => {
-                    setActiveTab('autopay');
-                    sileo.info({
-                      title: 'Configuración de Autocobro',
-                      description: 'Ajusta límites, cuenta bancaria y reglas de débito.',
-                    });
-                  }}
-                  className="flex items-center gap-3 p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 hover:border-purple-500/50 hover:bg-neutral-900 transition-all duration-200 group text-left"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-purple-950/60 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
-                    <Zap className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-white block group-hover:text-purple-300 transition-colors">
-                      Modo Autocobro
-                    </span>
-                    <span className="text-[10px] font-mono text-neutral-400">
-                      {autoPay.fundingSource === 'CARD' ? 'Débito Bancario' : 'Saldo Monedero'}
-                    </span>
-                  </div>
-                </button>
-
-                {/* 5. Vehículo & Placas */}
-                <button
-                  onClick={() => {
-                    setActiveTab('vehicle');
-                    sileo.info({
-                      title: 'Padrón Vehicular',
-                      description: `Vehículo actual: ${vehicle.plates} • ${vehicle.brand} ${vehicle.model}`,
-                    });
-                  }}
-                  className="col-span-2 sm:col-span-1 flex items-center gap-3 p-3.5 rounded-2xl bg-neutral-900/80 border border-neutral-800 hover:border-amber-500/50 hover:bg-neutral-900 transition-all duration-200 group text-left"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-amber-950/60 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
-                    <Car className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-white block group-hover:text-amber-300 transition-colors">
-                      {vehicle.plates}
-                    </span>
-                    <span className="text-[10px] font-mono text-neutral-400">
-                      {vehicle.brand} {vehicle.model}
-                    </span>
-                  </div>
-                </button>
-
-              </div>
+              <InterfaceCraftsCards
+                items={[
+                  {
+                    id: 'recharge',
+                    icon: CreditCard,
+                    title: 'Recargar Saldo',
+                    subtitle: 'Añadir saldo express',
+                    badge: `$${card.balance.toFixed(2)}`,
+                    badgeClassName: 'bg-emerald-950/60 text-emerald-300 border-emerald-700/50',
+                    iconBg: 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-400',
+                    borderClassName: 'border-neutral-800/80 hover:border-emerald-500/50',
+                    glowGradient: 'from-emerald-500/15 via-transparent to-transparent',
+                    footerText: 'Monedero Parqu Activo',
+                    activeStatus: true,
+                    onClick: () => setShowRechargeQuickModal(true),
+                  },
+                  {
+                    id: 'qr-credential',
+                    icon: QrCode,
+                    title: 'Credencial QR',
+                    subtitle: 'Inspección de tránsito',
+                    badge: 'AES-256',
+                    badgeClassName: 'bg-cyan-950/60 text-cyan-300 border-cyan-700/50',
+                    iconBg: 'bg-cyan-950/80 border border-cyan-500/40 text-cyan-400',
+                    borderClassName: 'border-neutral-800/80 hover:border-cyan-500/50',
+                    glowGradient: 'from-cyan-500/15 via-transparent to-transparent',
+                    footerText: 'Pase Contactless Oficial',
+                    activeStatus: true,
+                    onClick: () => setShowQRQuickModal(true),
+                  },
+                  {
+                    id: 'simulator',
+                    icon: Clock,
+                    title: activeSession ? 'Cajón Activo' : 'Simular Estancia',
+                    subtitle: activeSession ? activeSession.zoneName : 'Parquímetro en vivo',
+                    badge: activeSession ? 'EN VIVO' : '$0.25/MIN',
+                    badgeClassName: activeSession ? 'bg-amber-950/60 text-amber-300 border-amber-700/50 animate-pulse' : 'bg-indigo-950/60 text-indigo-300 border-indigo-700/50',
+                    iconBg: 'bg-indigo-950/80 border border-indigo-500/40 text-indigo-400',
+                    borderClassName: 'border-neutral-800/80 hover:border-indigo-500/50',
+                    glowGradient: 'from-indigo-500/15 via-transparent to-transparent',
+                    footerText: activeSession ? 'Debitando segundo a segundo' : 'Listo para estacionar',
+                    activeStatus: activeSession !== null,
+                    onClick: () => {
+                      setActiveTab('dashboard');
+                      sileo.info({
+                        title: 'Simulador de Parquímetro',
+                        description: 'Selecciona tu cajón metropolitano o inicia estancia.',
+                      });
+                    },
+                  },
+                  {
+                    id: 'autopay',
+                    icon: Zap,
+                    title: 'Modo Autocobro',
+                    subtitle: 'Débito continuo sin filas',
+                    badge: autoPay.enabled ? 'ACTIVO' : 'PAUSADO',
+                    badgeClassName: autoPay.enabled ? 'bg-emerald-950/60 text-emerald-300 border-emerald-700/50' : 'bg-rose-950/60 text-rose-300 border-rose-700/50',
+                    iconBg: 'bg-purple-950/80 border border-purple-500/40 text-purple-400',
+                    borderClassName: 'border-neutral-800/80 hover:border-purple-500/50',
+                    glowGradient: 'from-purple-500/15 via-transparent to-transparent',
+                    footerText: autoPay.fundingSource === 'CARD' ? 'Débito Bancario' : 'Saldo Virtual',
+                    activeStatus: autoPay.enabled,
+                    onClick: () => {
+                      setActiveTab('autopay');
+                      sileo.info({
+                        title: 'Configuración de Autocobro',
+                        description: 'Ajusta límites, cuenta bancaria y reglas de débito.',
+                      });
+                    },
+                  },
+                  {
+                    id: 'vehicle',
+                    icon: Car,
+                    title: vehicle.plates,
+                    subtitle: `${vehicle.brand} ${vehicle.model}`,
+                    badge: 'PADRÓN',
+                    badgeClassName: 'bg-amber-950/60 text-amber-300 border-amber-700/50',
+                    iconBg: 'bg-amber-950/80 border border-amber-500/40 text-amber-400',
+                    borderClassName: 'border-neutral-800/80 hover:border-amber-500/50',
+                    glowGradient: 'from-amber-500/15 via-transparent to-transparent',
+                    footerText: owner.fullName,
+                    activeStatus: true,
+                    onClick: () => {
+                      setActiveTab('vehicle');
+                      sileo.info({
+                        title: 'Padrón Vehicular',
+                        description: `Vehículo actual: ${vehicle.plates} • ${vehicle.brand} ${vehicle.model}`,
+                      });
+                    },
+                  },
+                ]}
+              />
             </div>
 
           </div>
