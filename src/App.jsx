@@ -13,6 +13,7 @@ import { TransactionHistory } from './components/TransactionHistory';
 import { StaggeredGrid } from './components/ui/staggered-grid';
 import { BackgroundGradientAnimation } from './components/ui/background-gradient-animation';
 import { HeroParallax } from './components/ui/hero-parallax';
+import { WobbleCardSection } from './components/WobbleCardSection';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { 
   CreditCard, 
@@ -498,7 +499,14 @@ const MainContent = ({ onReplayLoading }) => {
 
         </main>
 
-        {/* 3. SECCIÓN HERO PARALLAX: Módulos y Arquitectura Parqu en 3D */}
+        {/* 3. SECCIÓN WOBBLE CARD: Bento Grid 3D de Innovación y Autocobro */}
+        <div className="w-full border-t border-neutral-900/80">
+          <ErrorBoundary fallbackText="Cargando Arquitectura Wobble Card...">
+            <WobbleCardSection onSelectFeature={handleSelectFeature} />
+          </ErrorBoundary>
+        </div>
+
+        {/* 4. SECCIÓN HERO PARALLAX: Módulos y Arquitectura Parqu en 3D */}
         <section className="w-full border-t border-neutral-900 overflow-hidden">
           <HeroParallax 
             products={[
