@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Toaster } from 'sileo';
+import { Toaster, sileo } from 'sileo';
 import 'sileo/styles.css';
 import { ParkingProvider, useParking } from './context/ParkingContext';
 import { Header } from './components/Header';
@@ -703,7 +703,7 @@ export default function App() {
     setTimeout(() => {
       sileo.success({
         title: '¡Bienvenido a Parqu!',
-        description: 'Pase digital y red inteligente de parquímetros sincronizados.',
+        description: 'Credencial digital y red inteligente de autocobro sincronizadas con tecnología SSS.Solutions.',
       });
     }, 300);
   };
