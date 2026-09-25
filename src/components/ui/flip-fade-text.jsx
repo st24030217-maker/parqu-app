@@ -55,8 +55,8 @@ const Word = memo(function Word({
   return (
     <motion.div
       className={cn(
-        "flex flex-wrap justify-center gap-[0.02em] font-black uppercase tracking-tight text-white",
-        textClassName
+        "flex flex-wrap justify-center gap-[0.02em] font-black uppercase tracking-tight",
+        textClassName || "text-white"
       )}
       initial="initial"
       animate="animate"
