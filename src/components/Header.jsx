@@ -26,6 +26,7 @@ export const Header = ({ onReplayLoading }) => {
             <img 
               src="/parqu-logo-white.png" 
               alt="Parqu" 
+              style={{ maxHeight: '44px' }}
               className="h-10 sm:h-11 w-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.25)]"
             />
           </div>

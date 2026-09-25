@@ -507,6 +507,7 @@ const MainContent = ({ onReplayLoading }) => {
               <img 
                 src="/parqu-logo-white.png" 
                 alt="Parqu" 
+                style={{ maxHeight: '32px' }}
                 className="h-8 w-auto object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]"
               />
               <div className="text-left">
@@ -524,6 +525,7 @@ const MainContent = ({ onReplayLoading }) => {
                 <img 
                   src="/sss-solutions-logo.png" 
                   alt="SSS Solutions" 
+                  style={{ maxHeight: '28px' }}
                   className="h-7 w-auto object-contain drop-shadow-[0_0_12px_rgba(255,255,255,0.2)] hover:scale-105 transition-transform"
                 />
               </div>

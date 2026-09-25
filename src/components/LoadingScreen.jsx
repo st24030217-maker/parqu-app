@@ -56,6 +56,7 @@ export const LoadingScreen = ({ onComplete }) => {
               <img
                 src="/parqu-logo-white.png"
                 alt="Parqu Logo"
+                style={{ maxHeight: '144px' }}
                 className="h-28 sm:h-32 md:h-36 w-auto object-contain relative z-10 drop-shadow-[0_0_40px_rgba(255,255,255,0.45)]"
               />
             </motion.div>
@@ -118,6 +119,7 @@ export const LoadingScreen = ({ onComplete }) => {
               <img
                 src="/sss-solutions-logo.png"
                 alt="SSS.Solutions Logo"
+                style={{ maxHeight: '36px' }}
                 className="h-8 sm:h-9 w-auto object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform duration-300"
               />
             </div>
