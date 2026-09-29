@@ -35,29 +35,29 @@ export const VehicleOwnerForm = () => {
 
   return (
     <WobbleCard
-      containerClassName="w-full bg-gradient-to-br from-purple-950/70 via-neutral-950 to-black border-purple-900/40 hover:border-purple-500/60 transition-colors shadow-2xl"
+      containerClassName="w-full bg-gradient-to-br from-[#01033E]/70 via-[#01033E]/40 to-transparent border-white/10 hover:border-[#807DFE]/30 backdrop-blur-xl backdrop-saturate-150 transition-colors shadow-2xl"
       className="p-6 sm:p-8 flex flex-col justify-between"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-neutral-800/80 mb-6 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-white/10 mb-6 gap-3">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="px-3 py-1 rounded-full bg-purple-900/60 border border-purple-700/50 text-[10px] font-mono font-bold uppercase tracking-widest text-purple-200">
+            <span className="px-3 py-1 rounded-full bg-[#0033FF]/20 border border-[#807DFE]/40 text-[10px] font-mono font-bold uppercase tracking-widest text-[#D4D6E6]">
               PADRÓN VIAL METROPOLITANO
             </span>
-            <span className="text-neutral-500 text-xs font-mono">•</span>
-            <span className="text-[11px] font-mono text-neutral-400">EXPEDIENTE OFICIAL</span>
+            <span className="text-[#D4D6E6]/60 text-xs font-mono">•</span>
+            <span className="text-[11px] font-mono text-[#D4D6E6]">EXPEDIENTE OFICIAL</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <Car className="w-6 h-6 text-purple-400" />
+          <h2 className="text-2xl sm:text-3xl font-black text-[#D4D6E6] tracking-tight flex items-center gap-2.5">
+            <Car className="w-6 h-6 text-[#D4D6E6]" />
             Registro de Vehículo & Titular
           </h2>
-          <p className="text-xs sm:text-sm text-neutral-300 mt-1 font-mono max-w-2xl leading-relaxed">
-            Vinculación de matrículas y padrón vehicular con telemetría de <span className="text-white font-bold">SSS.Solutions</span>.
+          <p className="text-xs sm:text-sm text-[#D4D6E6] mt-1 font-mono max-w-2xl leading-relaxed">
+            Vinculación de matrículas y padrón vehicular con telemetría de <span className="text-[#D4D6E6] font-bold">SSS.Solutions</span>.
           </p>
         </div>
 
         {savedNotification && (
-          <span className="flex items-center gap-1.5 text-xs font-mono font-semibold px-3.5 py-1.5 rounded-full bg-black text-white border border-neutral-800 animate-in fade-in self-start sm:self-auto shadow-xl">
+          <span className="flex items-center gap-1.5 text-xs font-mono font-semibold px-3.5 py-1.5 rounded-full bg-white/8 backdrop-blur-sm text-[#D4D6E6] border border-white/10 animate-in fade-in self-start sm:self-auto shadow-xl">
             <Check className="w-3.5 h-3.5 text-emerald-400" />
             ¡Actualizado en la Tarjeta!
           </span>
@@ -67,14 +67,14 @@ export const VehicleOwnerForm = () => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Sección del Coche */}
         <div>
-          <h3 className="text-xs uppercase tracking-wider font-bold text-purple-200 mb-3.5 flex items-center gap-2 font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+          <h3 className="text-xs uppercase tracking-wider font-bold text-[#D4D6E6] mb-3.5 flex items-center gap-2 font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#D4D6E6]"></span>
             1. Datos del Vehículo
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 font-mono">
             <div>
-              <label className="block text-xs font-medium text-neutral-300 mb-1">
+              <label className="block text-xs font-medium text-[#D4D6E6] mb-1">
                 Placas Vehiculares *
               </label>
               <input
@@ -84,12 +84,12 @@ export const VehicleOwnerForm = () => {
                 value={vehFormData.plates}
                 onChange={handleVehicleChange}
                 placeholder="Ej. XYZ-7842"
-                className="w-full uppercase font-mono px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-purple-500 transition text-sm"
+                className="w-full uppercase font-mono px-3.5 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-[#D4D6E6] placeholder-neutral-600 focus:outline-none focus:border-[#D4D6E6]/70 transition text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-neutral-300 mb-1">
+              <label className="block text-xs font-medium text-[#D4D6E6] mb-1">
                 Marca *
               </label>
               <input
@@ -99,12 +99,12 @@ export const VehicleOwnerForm = () => {
                 value={vehFormData.brand}
                 onChange={handleVehicleChange}
                 placeholder="Ej. Volkswagen"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-purple-500 transition text-sm font-mono"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-[#D4D6E6] placeholder-neutral-600 focus:outline-none focus:border-[#D4D6E6]/70 transition text-sm font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-neutral-300 mb-1">
+              <label className="block text-xs font-medium text-[#D4D6E6] mb-1">
                 Submarca / Modelo *
               </label>
               <input
@@ -114,12 +114,12 @@ export const VehicleOwnerForm = () => {
                 value={vehFormData.model}
                 onChange={handleVehicleChange}
                 placeholder="Ej. Golf GTI"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-purple-500 transition text-sm font-mono"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-[#D4D6E6] placeholder-neutral-600 focus:outline-none focus:border-[#D4D6E6]/70 transition text-sm font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-neutral-300 mb-1">
+              <label className="block text-xs font-medium text-[#D4D6E6] mb-1">
                 Color
               </label>
               <input
@@ -128,12 +128,12 @@ export const VehicleOwnerForm = () => {
                 value={vehFormData.color}
                 onChange={handleVehicleChange}
                 placeholder="Ej. Blanco Puro"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-purple-500 transition text-sm font-mono"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-[#D4D6E6] placeholder-neutral-600 focus:outline-none focus:border-[#D4D6E6]/70 transition text-sm font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-neutral-300 mb-1">
+              <label className="block text-xs font-medium text-[#D4D6E6] mb-1">
                 Año / Modelo
               </label>
               <input
@@ -142,12 +142,12 @@ export const VehicleOwnerForm = () => {
                 value={vehFormData.year}
                 onChange={handleVehicleChange}
                 placeholder="Ej. 2024"
-                className="w-full font-mono px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-purple-500 transition text-sm"
+                className="w-full font-mono px-3.5 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-[#D4D6E6] placeholder-neutral-600 focus:outline-none focus:border-[#D4D6E6]/70 transition text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-neutral-300 mb-1">
+              <label className="block text-xs font-medium text-[#D4D6E6] mb-1">
                 Estado Emisor de Placas
               </label>
               <input
@@ -156,22 +156,22 @@ export const VehicleOwnerForm = () => {
                 value={vehFormData.state}
                 onChange={handleVehicleChange}
                 placeholder="Ej. Jalisco / CDMX"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-purple-500 transition text-sm font-mono"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-[#D4D6E6] placeholder-neutral-600 focus:outline-none focus:border-[#D4D6E6]/70 transition text-sm font-mono"
               />
             </div>
           </div>
         </div>
 
         {/* Sección del Titular */}
-        <div className="pt-4 border-t border-neutral-800/80">
-          <h3 className="text-xs uppercase tracking-wider font-bold text-purple-200 mb-3.5 flex items-center gap-2 font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+        <div className="pt-4 border-t border-white/10">
+          <h3 className="text-xs uppercase tracking-wider font-bold text-[#D4D6E6] mb-3.5 flex items-center gap-2 font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#D4D6E6]"></span>
             2. Datos del Titular de la Tarjeta
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 font-mono">
             <div className="sm:col-span-2">
-              <label className="block text-xs font-medium text-neutral-300 mb-1">
+              <label className="block text-xs font-medium text-[#D4D6E6] mb-1">
                 Nombre Completo del Propietario / Titular *
               </label>
               <input
@@ -181,12 +181,12 @@ export const VehicleOwnerForm = () => {
                 value={ownerFormData.fullName}
                 onChange={handleOwnerChange}
                 placeholder="Ej. Sebastián Salinas"
-                className="w-full uppercase px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-purple-500 transition text-sm font-mono"
+                className="w-full uppercase px-3.5 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-[#D4D6E6] placeholder-neutral-600 focus:outline-none focus:border-[#D4D6E6]/70 transition text-sm font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-neutral-300 mb-1">
+              <label className="block text-xs font-medium text-[#D4D6E6] mb-1">
                 RFC o Identificador
               </label>
               <input
@@ -195,12 +195,12 @@ export const VehicleOwnerForm = () => {
                 value={ownerFormData.rfc}
                 onChange={handleOwnerChange}
                 placeholder="Ej. SASS940212AB1"
-                className="w-full uppercase font-mono px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-purple-500 transition text-sm"
+                className="w-full uppercase font-mono px-3.5 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-[#D4D6E6] placeholder-neutral-600 focus:outline-none focus:border-[#D4D6E6]/70 transition text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-neutral-300 mb-1">
+              <label className="block text-xs font-medium text-[#D4D6E6] mb-1">
                 Correo Electrónico para Recibos
               </label>
               <input
@@ -209,12 +209,12 @@ export const VehicleOwnerForm = () => {
                 value={ownerFormData.email}
                 onChange={handleOwnerChange}
                 placeholder="correo@ejemplo.com"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-purple-500 transition text-sm font-mono"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-[#D4D6E6] placeholder-neutral-600 focus:outline-none focus:border-[#D4D6E6]/70 transition text-sm font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-neutral-300 mb-1">
+              <label className="block text-xs font-medium text-[#D4D6E6] mb-1">
                 Teléfono de Notificaciones SMS
               </label>
               <input
@@ -223,7 +223,7 @@ export const VehicleOwnerForm = () => {
                 value={ownerFormData.phone}
                 onChange={handleOwnerChange}
                 placeholder="Ej. 33 1234 5678"
-                className="w-full font-mono px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white placeholder-neutral-600 focus:outline-none focus:border-purple-500 transition text-sm"
+                className="w-full font-mono px-3.5 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-[#D4D6E6] placeholder-neutral-600 focus:outline-none focus:border-[#D4D6E6]/70 transition text-sm"
               />
             </div>
           </div>
@@ -233,9 +233,9 @@ export const VehicleOwnerForm = () => {
         <div className="flex justify-end pt-4">
           <button
             type="submit"
-            className="px-6 py-3.5 rounded-2xl bg-white hover:bg-neutral-200 text-black font-bold font-mono text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.3)] transition transform active:scale-95"
+            className="px-6 py-3.5 rounded-2xl bg-[#0033FF] hover:bg-[#2250ff] text-white font-bold font-mono text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(0,51,255,0.4)] transition transform active:scale-95"
           >
-            <RefreshCw className="w-4 h-4 text-purple-600" />
+            <RefreshCw className="w-4 h-4 text-white" />
             Guardar & Actualizar Tarjeta Virtual
           </button>
         </div>

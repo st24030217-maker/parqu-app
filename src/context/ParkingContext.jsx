@@ -53,7 +53,7 @@ const defaultTransactions = [
     id: 'TXN-901',
     folio: 'PQM-88A2',
     date: new Date(Date.now() - 86400000 * 2).toISOString(),
-    zone: 'Zona Financiera (Cajón #B-04)',
+    zone: 'Zona Financiera (Espacio #1042)',
     durationMinutes: 75,
     amount: 25.00,
     method: 'Autocobro Débito Directo (Santander •••• 8821)',
@@ -64,7 +64,7 @@ const defaultTransactions = [
     id: 'TXN-902',
     folio: 'PQM-34F1',
     date: new Date(Date.now() - 86400000).toISOString(),
-    zone: 'Centro Cultural (Cajón #C-12)',
+    zone: 'Centro Cultural (Espacio #2055)',
     durationMinutes: 120,
     amount: 36.00,
     method: 'Autocobro Débito Directo (Santander •••• 8821)',
@@ -76,7 +76,7 @@ const defaultTransactions = [
 const defaultPinnedLocations = [
   {
     id: 'PIN-101',
-    name: 'Cajón #A-14 • Centro Histórico',
+    name: 'Espacio #1042 • Centro Histórico',
     address: 'Av. Juárez y Eje Central, Cuauhtémoc',
     lat: 19.4342,
     lng: -99.1318,
@@ -282,8 +282,8 @@ export const ParkingProvider = ({ children }) => {
     setActivePinnedLocation(null);
   };
 
-  // Iniciar estancia en cajón de parquímetro con coordenadas de ubicación fijada
-  const startParking = (zoneName = 'Zona Centro Histórico (Cajón #A-14)', ratePerHour = 18.00, coords = null) => {
+  // Iniciar estancia en parquímetro con coordenadas de ubicación fijada
+  const startParking = (zoneName = 'Espacio #1042 • Centro Histórico', ratePerHour = 18.00, coords = null) => {
     const newSession = {
       id: 'SESS-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
       zoneName,
@@ -302,7 +302,7 @@ export const ParkingProvider = ({ children }) => {
       const pinRecord = {
         id: 'PIN-' + Date.now(),
         name: zoneName,
-        address: `Cajón activo (${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)})`,
+        address: `Espacio activo (${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)})`,
         lat: coords.lat,
         lng: coords.lng,
         date: new Date().toISOString(),

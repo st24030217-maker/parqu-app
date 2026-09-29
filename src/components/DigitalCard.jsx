@@ -41,13 +41,13 @@ export const DigitalCard = () => {
 
   const isParked = activeSession !== null;
 
-  // Portada frontal completamente lisa con efecto 3D y el logo oficial de SSS.Solutions
+  // Portada frontal con efecto 3D y el logo oficial de SSS.Solutions en paleta #01033E, #0033FF, #807DFE y #D4D6E6
   const FrontCover = (
-    <CardBody className="relative w-full h-full min-h-[270px] md:min-h-[295px] rounded-3xl bg-gradient-to-br from-[#141418] via-[#09090b] to-[#18181f] border border-neutral-700/60 p-6 md:p-8 flex flex-col justify-between overflow-hidden shadow-2xl">
-      {/* Resplandor holográfico y textura de grano ultra-fina */}
-      <div className="absolute -top-20 -left-20 w-64 h-64 bg-white/[0.05] rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-white/[0.04] rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(#ffffff0d_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
+    <CardBody className="relative w-full h-full min-h-[270px] md:min-h-[295px] rounded-3xl bg-gradient-to-br from-[#01033E]/90 via-[#01033E]/70 to-[#0033FF]/30 backdrop-blur-2xl backdrop-saturate-150 border border-[#807DFE]/30 p-6 md:p-8 flex flex-col justify-between overflow-hidden shadow-2xl">
+      {/* Resplandor holográfico y textura de grano */}
+      <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#0033FF]/[0.25] rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-[#807DFE]/[0.2] rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(#807DFE_1px,transparent_1px)] [background-size:20px_20px] opacity-10 pointer-events-none" />
 
       {/* Fila Superior: Marca y Contactless en 3D */}
       <CardItem translateZ="40" className="w-full flex items-center justify-between z-10">
@@ -55,44 +55,44 @@ export const DigitalCard = () => {
           <img 
             src="/parqu-logo-white.png" 
             alt="Parqu" 
-            className="h-6 w-auto object-contain opacity-75"
+            className="h-6 w-auto object-contain opacity-80"
           />
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-neutral-400 font-bold">
+          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#D4D6E6] font-bold">
             PARQU DIGITAL PASS
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Wifi className="w-5 h-5 text-white/60 rotate-90" />
+          <Wifi className="w-5 h-5 text-[#D4D6E6]/70 rotate-90" />
         </div>
       </CardItem>
 
       {/* Centro: Logotipo Oficial SSS.Solutions flotando en 3D */}
       <CardItem translateZ="75" className="w-full my-auto z-10 flex flex-col items-center justify-center text-center space-y-2.5 py-4">
         <div className="relative group/logo">
-          <div className="absolute -inset-4 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -inset-4 bg-[#0033FF]/30 rounded-full blur-2xl pointer-events-none" />
           <img
             src="/sss-solutions-logo.png"
             alt="SSS.Solutions"
-            className="h-14 md:h-16 w-auto object-contain drop-shadow-[0_0_35px_rgba(255,255,255,0.45)] hover:scale-105 transition-transform duration-500"
+            className="h-14 md:h-16 w-auto object-contain drop-shadow-[0_0_35px_rgba(0,51,255,0.5)] hover:scale-105 transition-transform duration-500"
           />
         </div>
-        <span className="text-[10px] uppercase font-mono tracking-[0.3em] text-neutral-400 font-semibold">
+        <span className="text-[10px] uppercase font-mono tracking-[0.3em] text-[#D4D6E6] font-semibold">
           TECNOLOGÍA SSS.SOLUTIONS
         </span>
       </CardItem>
 
       {/* Fila Inferior: Indicador minimalista en 3D para pasar el cursor */}
-      <CardItem translateZ="35" className="w-full flex items-center justify-between z-10 pt-3 border-t border-neutral-800/80 text-[11px] font-mono text-neutral-400">
+      <CardItem translateZ="35" className="w-full flex items-center justify-between z-10 pt-3 border-t border-white/10 text-[11px] font-mono text-[#D4D6E6]">
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${isParked ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`} />
-          <span className="text-neutral-300 font-medium">
-            {isParked ? 'Cajón Activo' : 'Saldo:'}{' '}
+          <span className="text-[#D4D6E6] font-medium">
+            {isParked ? 'Estacionamiento Activo' : 'Saldo:'}{' '}
             <AnimeCounter value={card.balance} prefix="$" decimals={2} suffix=" MXN" className="text-white font-bold" />
           </span>
         </div>
-        <div className="flex items-center gap-1 text-neutral-400 font-medium group-hover:text-white transition-colors">
+        <div className="flex items-center gap-1 text-[#D4D6E6] font-medium group-hover:text-white transition-colors">
           <span>Toca o pasa el mouse</span>
-          <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
+          <Sparkles className="w-3.5 h-3.5 text-[#807DFE] animate-pulse" />
         </div>
       </CardItem>
     </CardBody>
@@ -109,13 +109,13 @@ export const DigitalCard = () => {
           <div className={`absolute -inset-1 rounded-3xl blur-xl opacity-40 transition duration-1000 group-hover:opacity-85 ${
             isParked 
               ? 'bg-gradient-to-r from-amber-500/60 via-orange-500/60 to-red-500/60' 
-              : 'bg-gradient-to-r from-white/30 via-neutral-400/20 to-white/30'
+              : 'bg-gradient-to-r from-[#01033E]/80 via-[#0033FF]/50 to-[#807DFE]/60'
           }`} />
 
           {/* Componente Aceternity Direction Aware Hover */}
           <DirectionAwareHover frontContent={FrontCover}>
             {/* Tarjeta Física Virtual Obsidian con efectos 3D de profundidad */}
-            <CardBody className="relative card-hologram w-full h-full min-h-[270px] md:min-h-[295px] rounded-3xl border border-neutral-600/80 p-6 md:p-8 text-white shadow-2xl flex flex-col justify-between">
+            <CardBody className="relative card-hologram w-full h-full min-h-[270px] md:min-h-[295px] rounded-3xl border border-white/15 backdrop-blur-2xl p-6 md:p-8 text-[#D4D6E6] shadow-2xl flex flex-col justify-between">
               
               {/* Fila Superior: Marca, Contactless y Estatus */}
               <CardItem translateZ="45" className="w-full flex items-center justify-between z-10">
@@ -124,25 +124,25 @@ export const DigitalCard = () => {
                     <img 
                       src="/parqu-logo-white.png" 
                       alt="Parqu" 
-                      className="h-9 w-auto object-contain drop-shadow-[0_0_12px_rgba(255,255,255,0.3)]"
+                      className="h-9 w-auto object-contain drop-shadow-[0_0_12px_rgba(0,51,255,0.4)]"
                     />
                   </div>
                   <div>
                     <span className="font-black text-base tracking-wider uppercase text-white font-mono">
                       Parqu
                     </span>
-                    <span className="block text-[9px] text-neutral-400 tracking-widest font-mono">
+                    <span className="block text-[9px] text-[#D4D6E6]/80 tracking-widest font-mono">
                       TARJETA DIGITAL DE PARQUÍMETRO
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Wifi className="w-5 h-5 text-white/70 rotate-90" />
+                  <Wifi className="w-5 h-5 text-[#D4D6E6]/70 rotate-90" />
                   <div className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border flex items-center gap-1.5 ${
                     isParked
                       ? 'bg-amber-500/15 text-amber-300 border-amber-400/30'
-                      : 'bg-neutral-900/90 text-white border-neutral-700'
+                      : 'bg-white/10 backdrop-blur-sm text-white border border-white/10'
                   }`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${isParked ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`}></span>
                     {isParked ? 'EN ESTACIONAMIENTO' : 'TARJETA ACTIVA'}
@@ -165,10 +165,10 @@ export const DigitalCard = () => {
 
                   {/* Placas del Coche en Alto Relieve */}
                   <div>
-                    <span className="text-[10px] text-neutral-400 uppercase tracking-widest block font-medium font-mono">
+                    <span className="text-[10px] text-[#D4D6E6]/80 uppercase tracking-widest block font-medium font-mono">
                       Placas del Vehículo
                     </span>
-                    <div className="bg-black/90 px-3.5 py-1 rounded-lg border border-neutral-700 shadow-inner inline-block">
+                    <div className="bg-white/8 backdrop-blur-sm px-3.5 py-1 rounded-lg border border-white/10 shadow-inner inline-block">
                       <span className="font-mono text-xl sm:text-2xl font-black text-white license-plate-badge tracking-wider">
                         {formatPlate(vehicle.plates)}
                       </span>
@@ -178,29 +178,29 @@ export const DigitalCard = () => {
 
                 {/* Vehículo Modelo */}
                 <div className="text-right">
-                  <span className="text-[10px] text-neutral-400 uppercase tracking-widest block font-mono">
+                  <span className="text-[10px] text-[#D4D6E6]/80 uppercase tracking-widest block font-mono">
                     Vehículo Registrado
                   </span>
                   <span className="font-bold text-sm text-white block">
                     {vehicle.brand || 'Marca'} {vehicle.model || 'Modelo'}
                   </span>
-                  <span className="text-xs text-neutral-400 font-mono">
+                  <span className="text-xs text-[#D4D6E6]/80 font-mono">
                     {vehicle.color || 'Color'} • {vehicle.year || 'Año'}
                   </span>
                 </div>
               </CardItem>
 
               {/* Fila Inferior: Titular, Autocobro y Botón QR Flotante 3D */}
-              <CardItem translateZ="60" className="w-full flex items-end justify-between z-10 pt-3 border-t border-neutral-800 flex-wrap gap-3">
+              <CardItem translateZ="60" className="w-full flex items-end justify-between z-10 pt-3 border-t border-white/10 flex-wrap gap-3">
                 <div>
-                  <span className="text-[10px] text-neutral-400 uppercase tracking-wider block font-semibold font-mono">
+                  <span className="text-[10px] text-[#D4D6E6]/80 uppercase tracking-wider block font-semibold font-mono">
                     Titular / Propietario
                   </span>
                   <span className="font-mono-card font-bold text-base tracking-wide text-white uppercase flex items-center gap-1.5">
-                    <User className="w-4 h-4 text-neutral-300 inline" />
+                    <User className="w-4 h-4 text-[#807DFE] inline" />
                     {owner.fullName || 'NOMBRE DEL TITULAR'}
                   </span>
-                  <span className="text-[11px] text-neutral-400 block font-mono">
+                  <span className="text-[11px] text-[#D4D6E6]/80 block font-mono">
                     ID: {owner.idNumber || 'INE-0000000'}
                   </span>
                 </div>
@@ -208,11 +208,11 @@ export const DigitalCard = () => {
                 {/* Estado de Cobro y QR */}
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <span className="text-[10px] text-neutral-400 uppercase tracking-wider block font-semibold font-mono">
+                    <span className="text-[10px] text-[#D4D6E6]/80 uppercase tracking-wider block font-semibold font-mono">
                       Modalidad Autocobro
                     </span>
                     {autoPay.enabled ? (
-                      <span className="text-xs font-semibold text-neutral-200 flex items-center gap-1 justify-end font-mono">
+                      <span className="text-xs font-semibold text-white flex items-center gap-1 justify-end font-mono">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
                         {autoPay.fundingSource === 'CARD' ? 'Débito Bancario' : 'Saldo Monedero'}
                       </span>
@@ -222,7 +222,7 @@ export const DigitalCard = () => {
                         Desactivado
                       </span>
                     )}
-                    <div className="text-[11px] text-neutral-400 font-mono block">
+                    <div className="text-[11px] text-[#D4D6E6]/80 font-mono block">
                       {autoPay.fundingSource === 'WALLET_BALANCE' ? (
                         <span className="flex items-center gap-1 justify-end">
                           <span>Saldo:</span>
@@ -231,7 +231,7 @@ export const DigitalCard = () => {
                             prefix="$"
                             decimals={2}
                             suffix=" MXN"
-                            className="font-bold text-white text-xs drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]"
+                            className="font-bold text-white text-xs drop-shadow-[0_0_10px_rgba(0,51,255,0.5)]"
                           />
                         </span>
                       ) : (
@@ -248,9 +248,9 @@ export const DigitalCard = () => {
                         setShowQRModal(true);
                       }}
                       title="Mostrar Código QR para Agente"
-                      className="w-11 h-11 rounded-2xl bg-white text-black flex items-center justify-center shadow-[0_0_25px_rgba(255,255,255,0.3)] hover:bg-neutral-200 transition transform hover:scale-110 active:scale-95"
+                      className="w-11 h-11 rounded-2xl bg-[#0033FF] hover:bg-[#2250ff] text-white flex items-center justify-center shadow-[0_0_25px_rgba(0,51,255,0.5)] transition transform hover:scale-110 active:scale-95"
                     >
-                      <QrCode className="w-6 h-6 text-black" />
+                      <QrCode className="w-6 h-6 text-white" />
                     </button>
                   </CardItem>
                 </div>
@@ -266,24 +266,24 @@ export const DigitalCard = () => {
       {/* Botones de acción rápida debajo de la tarjeta */}
       <div className="mt-4 flex items-center justify-between text-xs text-neutral-400 px-1 font-mono">
         <div className="flex items-center gap-2">
-          <span className="text-neutral-500 text-[11px]">ID TAG: {card.rfidTag}</span>
+          <span className="text-[#D4D6E6]/60 text-[11px]">ID TAG: {card.rfidTag}</span>
         </div>
 
         <div className="flex items-center gap-3">
           {autoPay.fundingSource === 'WALLET_BALANCE' && (
             <button
               onClick={() => setShowRechargeModal(true)}
-              className="text-neutral-300 hover:text-white font-medium flex items-center gap-1.5 transition"
+              className="text-[#D4D6E6] hover:text-white font-medium flex items-center gap-1.5 transition"
             >
-              <CurrencyDollarIcon size={14} className="text-emerald-400" />
+              <CurrencyDollarIcon size={14} className="text-[#807DFE]" />
               Recargar Saldo
             </button>
           )}
           <button
             onClick={() => setShowQRModal(true)}
-            className="text-neutral-300 hover:text-white font-medium flex items-center gap-1 transition"
+            className="text-[#D4D6E6] hover:text-white font-medium flex items-center gap-1 transition"
           >
-            <QrCode className="w-3.5 h-3.5" />
+            <QrCode className="w-3.5 h-3.5 text-[#807DFE]" />
             Código QR Oficial
           </button>
         </div>
@@ -291,77 +291,77 @@ export const DigitalCard = () => {
 
       {/* Modal QR Oficial de Inspección */}
       {showQRModal && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-neutral-950 border border-neutral-800 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
+          <div className="bg-[#01033E]/95 backdrop-blur-2xl border border-[#807DFE]/30 rounded-3xl max-w-sm w-full p-6 text-center shadow-[0_0_50px_rgba(0,51,255,0.3)] relative animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-white mb-1 font-mono">Credencial QR de Inspección</h3>
-            <p className="text-xs text-neutral-400 mb-6">
+            <p className="text-xs text-[#D4D6E6]/80 mb-6 font-mono">
               Escaneable por agentes de tránsito y lectores automáticos de parquímetro
             </p>
 
             {/* Código QR Generado con SVG */}
             <div className="bg-white p-4 rounded-2xl inline-block shadow-inner mb-4">
               <svg className="w-48 h-48 mx-auto" viewBox="0 0 100 100">
-                <rect width="100" height="100" fill="white" />
-                <rect x="5" y="5" width="26" height="26" fill="black" />
-                <rect x="9" y="9" width="18" height="18" fill="white" />
-                <rect x="13" y="13" width="10" height="10" fill="black" />
+                <rect width="100" height="100" fill="#ffffff" />
+                <rect x="5" y="5" width="26" height="26" fill="#01033E" />
+                <rect x="9" y="9" width="18" height="18" fill="#ffffff" />
+                <rect x="13" y="13" width="10" height="10" fill="#01033E" />
 
-                <rect x="69" y="5" width="26" height="26" fill="black" />
-                <rect x="73" y="9" width="18" height="18" fill="white" />
-                <rect x="77" y="13" width="10" height="10" fill="black" />
+                <rect x="69" y="5" width="26" height="26" fill="#01033E" />
+                <rect x="73" y="9" width="18" height="18" fill="#ffffff" />
+                <rect x="77" y="13" width="10" height="10" fill="#01033E" />
 
-                <rect x="5" y="69" width="26" height="26" fill="black" />
-                <rect x="9" y="73" width="18" height="18" fill="white" />
-                <rect x="13" y="77" width="10" height="10" fill="black" />
+                <rect x="5" y="69" width="26" height="26" fill="#01033E" />
+                <rect x="9" y="73" width="18" height="18" fill="#ffffff" />
+                <rect x="13" y="77" width="10" height="10" fill="#01033E" />
 
-                <rect x="36" y="8" width="6" height="6" fill="black" />
-                <rect x="46" y="12" width="6" height="6" fill="black" />
-                <rect x="56" y="8" width="6" height="6" fill="black" />
-                <rect x="36" y="24" width="6" height="6" fill="black" />
-                <rect x="52" y="24" width="8" height="6" fill="black" />
+                <rect x="36" y="8" width="6" height="6" fill="#01033E" />
+                <rect x="46" y="12" width="6" height="6" fill="#01033E" />
+                <rect x="56" y="8" width="6" height="6" fill="#01033E" />
+                <rect x="36" y="24" width="6" height="6" fill="#01033E" />
+                <rect x="52" y="24" width="8" height="6" fill="#01033E" />
 
-                <rect x="10" y="38" width="80" height="4" fill="black" />
-                <rect x="15" y="46" width="12" height="8" fill="black" />
-                <rect x="32" y="46" width="16" height="8" fill="black" />
-                <rect x="54" y="46" width="14" height="8" fill="black" />
-                <rect x="74" y="46" width="12" height="8" fill="black" />
+                <rect x="10" y="38" width="80" height="4" fill="#01033E" />
+                <rect x="15" y="46" width="12" height="8" fill="#01033E" />
+                <rect x="32" y="46" width="16" height="8" fill="#01033E" />
+                <rect x="54" y="46" width="14" height="8" fill="#01033E" />
+                <rect x="74" y="46" width="12" height="8" fill="#01033E" />
 
-                <rect x="36" y="60" width="8" height="8" fill="black" />
-                <rect x="48" y="60" width="8" height="8" fill="black" />
-                <rect x="60" y="60" width="8" height="8" fill="black" />
-                <rect x="72" y="60" width="8" height="8" fill="black" />
+                <rect x="36" y="60" width="8" height="8" fill="#01033E" />
+                <rect x="48" y="60" width="8" height="8" fill="#01033E" />
+                <rect x="60" y="60" width="8" height="8" fill="#01033E" />
+                <rect x="72" y="60" width="8" height="8" fill="#01033E" />
 
-                <rect x="36" y="74" width="14" height="6" fill="black" />
-                <rect x="54" y="74" width="18" height="6" fill="black" />
-                <rect x="76" y="74" width="14" height="6" fill="black" />
+                <rect x="36" y="74" width="14" height="6" fill="#01033E" />
+                <rect x="54" y="74" width="18" height="6" fill="#01033E" />
+                <rect x="76" y="74" width="14" height="6" fill="#01033E" />
 
-                <rect x="36" y="86" width="24" height="6" fill="black" />
-                <rect x="66" y="86" width="24" height="6" fill="black" />
+                <rect x="36" y="86" width="24" height="6" fill="#01033E" />
+                <rect x="66" y="86" width="24" height="6" fill="#01033E" />
               </svg>
             </div>
 
-            <div className="bg-neutral-900/90 rounded-2xl p-3 text-left font-mono text-xs space-y-1 mb-6 border border-neutral-800">
+            <div className="bg-white/5 rounded-2xl p-3 text-left font-mono text-xs space-y-1 mb-6 border border-white/10">
               <div className="flex justify-between">
-                <span className="text-neutral-400">Placas:</span>
+                <span className="text-[#D4D6E6]/70">Placas:</span>
                 <span className="font-bold text-white">{vehicle.plates}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-neutral-400">Titular:</span>
+                <span className="text-[#D4D6E6]/70">Titular:</span>
                 <span className="font-bold text-white truncate max-w-[170px]">{owner.fullName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-neutral-400">Autocobro:</span>
+                <span className="text-[#D4D6E6]/70">Autocobro:</span>
                 <span className="font-bold text-emerald-400">{autoPay.enabled ? 'HABILITADO' : 'INACTIVO'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-neutral-400">Estatus:</span>
+                <span className="text-[#D4D6E6]/70">Estatus:</span>
                 <span className="font-bold text-amber-300">{isParked ? 'ESTACIONADO' : 'DISPONIBLE'}</span>
               </div>
             </div>
 
             <button
               onClick={() => setShowQRModal(false)}
-              className="w-full py-3 bg-white text-black font-bold font-mono text-xs uppercase tracking-wider rounded-xl hover:bg-neutral-200 transition shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+              className="w-full py-3 bg-[#0033FF] hover:bg-[#2250ff] text-white font-bold font-mono text-xs uppercase tracking-wider rounded-xl transition shadow-[0_0_20px_rgba(0,51,255,0.4)]"
             >
               Cerrar Visualizador
             </button>
@@ -371,19 +371,19 @@ export const DigitalCard = () => {
 
       {/* Modal de Recarga de Saldo */}
       {showRechargeModal && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-neutral-950 border border-neutral-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl relative">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(16,185,129,0.25)]">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
+          <div className="bg-[#01033E]/95 backdrop-blur-2xl border border-[#807DFE]/30 rounded-3xl max-w-sm w-full p-6 shadow-[0_0_50px_rgba(0,51,255,0.3)] relative">
+            <div className="w-12 h-12 rounded-2xl bg-[#0033FF]/20 backdrop-blur-sm border border-[#807DFE]/40 text-[#807DFE] flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(0,51,255,0.3)]">
               <CurrencyDollarIcon size={24} strokeWidth={2} />
             </div>
             <h3 className="text-lg font-bold text-white mb-1 font-mono text-center">Recargar Saldo de Parquímetro</h3>
-            <p className="text-xs text-neutral-400 mb-5 font-mono text-center">
+            <p className="text-xs text-[#D4D6E6]/80 mb-5 font-mono text-center">
               Agrega fondos inmediatos a tu Tarjeta Digital para autocobros
             </p>
 
             <form onSubmit={handleRecharge} className="space-y-4 font-mono">
               <div>
-                <label className="text-xs text-neutral-300 font-mono block mb-2">
+                <label className="text-xs text-[#D4D6E6]/80 font-mono block mb-2">
                   Selecciona o ingresa monto (MXN)
                 </label>
                 <div className="grid grid-cols-3 gap-2 mb-3">
@@ -394,8 +394,8 @@ export const DigitalCard = () => {
                       onClick={() => setRechargeAmount(amt)}
                       className={`py-2 rounded-xl font-bold font-mono text-sm border transition flex items-center justify-center gap-1 ${
                         rechargeAmount === amt
-                          ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.25)]'
-                          : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-800'
+                          ? 'bg-[#0033FF] text-white border-[#0033FF] shadow-[0_0_15px_rgba(0,51,255,0.4)]'
+                          : 'bg-white/5 border-white/10 text-[#D4D6E6] hover:bg-white/10'
                       }`}
                     >
                       <CurrencyDollarIcon size={13} strokeWidth={2.2} />
@@ -409,7 +409,7 @@ export const DigitalCard = () => {
                   max="1000"
                   value={rechargeAmount}
                   onChange={(e) => setRechargeAmount(Number(e.target.value))}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-white font-mono focus:outline-none focus:border-neutral-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-white font-mono focus:outline-none focus:border-[#807DFE]/70"
                 />
               </div>
 
@@ -417,13 +417,13 @@ export const DigitalCard = () => {
                 <button
                   type="button"
                   onClick={() => setShowRechargeModal(false)}
-                  className="flex-1 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 font-mono text-xs font-semibold rounded-xl border border-neutral-800 transition"
+                  className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-[#D4D6E6] font-mono text-xs font-semibold rounded-xl border border-white/10 transition"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-white hover:bg-neutral-200 text-black font-mono text-xs font-bold rounded-xl transition shadow-[0_0_15px_rgba(255,255,255,0.2)] flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 bg-[#0033FF] hover:bg-[#2250ff] text-white font-mono text-xs font-bold rounded-xl transition shadow-[0_0_15px_rgba(0,51,255,0.4)] flex items-center justify-center gap-1.5"
                 >
                   <CurrencyDollarIcon size={14} strokeWidth={2.2} />
                   <span>Confirmar ${rechargeAmount}</span>

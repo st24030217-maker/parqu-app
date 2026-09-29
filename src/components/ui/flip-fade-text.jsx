@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback, memo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../../lib/utils";
 
 // Componente de Letra individual con rotación 3D y desenfoque

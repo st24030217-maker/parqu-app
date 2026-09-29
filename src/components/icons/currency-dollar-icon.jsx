@@ -1,5 +1,5 @@
 import React, { forwardRef, useImperativeHandle } from "react";
-import { motion, useAnimate } from "framer-motion";
+import { motion, useAnimate } from "motion/react";
 import { cn } from "../../lib/utils";
 
 /**

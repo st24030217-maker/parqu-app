@@ -1,132 +1,114 @@
-import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { WebcamPixelGrid } from './ui/webcam-pixel-grid';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { RadialGlowButton } from './ui/radial-glow-button';
-import { FlipFadeText } from './ui/flip-fade-text';
-import { TextAnimation } from './ui/staggerText';
 import { ArrowRight } from 'lucide-react';
 
 export const LoadingScreen = ({ onComplete }) => {
-  // Atajo de teclado: Enter o Barra espaciadora para iniciar inmediatamente
+  const [isExiting, setIsExiting] = useState(false);
+  const hasExitedRef = useRef(false);
+
+  // Ejecuta la animación de revelado vertical escalonado al presionar "Empecemos"
+  const handleTriggerExit = useCallback(() => {
+    if (hasExitedRef.current) return;
+    hasExitedRef.current = true;
+    setIsExiting(true);
+
+    // Duración de la animación: retraso de la última columna (4 * 0.08s = 0.32s) + subida (0.85s) = ~1.17s
+    setTimeout(() => {
+      if (onComplete) onComplete();
+    }, 1150);
+  }, [onComplete]);
+
+  // Atajo de teclado: Enter o Barra espaciadora para activar la animación
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
-        if (onComplete) onComplete();
+        e.preventDefault();
+        handleTriggerExit();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onComplete]);
+  }, [handleTriggerExit]);
+
+  // Bloqueo de scroll en el body mientras se visualiza la pantalla de carga
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ 
-        opacity: 0, 
-        scale: 1.03, 
-        filter: 'blur(10px)', 
-        transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } 
-      }}
-      className="fixed inset-0 z-50 flex flex-col bg-black text-white overflow-hidden select-none"
-    >
-      {/* Fondo interactivo Aceternity Webcam Pixel Grid Monocromático Blanco y Negro */}
-      <WebcamPixelGrid
-        pixelSize={18}
-        gap={3}
-        monochrome={true}
-        autoStartCamera={false}
-        showControls={false}
-        className="h-full w-full"
+    <div className="fixed inset-0 z-50 overflow-hidden select-none pointer-events-auto bg-transparent font-azeret">
+      {/* 
+        ══════════════════════════════════════════════════════════════
+        FONDO TOTALMENTE LISO: 5 PERSIANAS UNIFORMES SIN LÍNEAS NI BORDES
+        (Al hacer clic en "Empecemos", se deslizan hacia arriba en cascada)
+        ══════════════════════════════════════════════════════════════
+      */}
+      <div className="absolute inset-0 grid grid-cols-5 pointer-events-none z-0">
+        {[0, 1, 2, 3, 4].map((idx) => (
+          <div
+            key={idx}
+            style={{
+              transform: isExiting ? 'translateY(-100%)' : 'translateY(0%)',
+              transition: isExiting
+                ? `transform 0.85s cubic-bezier(0.76, 0, 0.24, 1) ${idx * 0.08}s`
+                : 'none',
+              willChange: 'transform',
+            }}
+            className="relative h-full w-full bg-[#01033E]"
+          />
+        ))}
+      </div>
+
+      {/* 
+        ══════════════════════════════════════════════════════════════
+        CONTENIDO HERO MINIMALISTA: EXCLUSIVAMENTE LOGO, SLOGAN Y BOTÓN
+        ══════════════════════════════════════════════════════════════
+      */}
+      <div
+        style={{
+          opacity: isExiting ? 0 : 1,
+          transform: isExiting ? 'translateY(-30px)' : 'translateY(0)',
+          transition: 'opacity 0.35s ease, transform 0.35s ease',
+          pointerEvents: isExiting ? 'none' : 'auto',
+        }}
+        className="absolute inset-0 z-10 h-full w-full flex flex-col items-center justify-center px-4 sm:px-6"
       >
-        <div className="flex flex-col justify-between items-center h-full w-full px-4 sm:px-6 py-8 sm:py-12 relative z-10">
+        <div className="flex flex-col items-center justify-center text-center max-w-xl w-full space-y-6 sm:space-y-8">
           
-          {/* Hero Central: Logotipo Parqu, Animación Flip-Fade Text y Botón "Empecemos" */}
-          <main className="flex flex-col items-center justify-center text-center max-w-xl w-full my-auto space-y-8">
-            
-            {/* Logotipo Parqu 100% Transparente con resplandor */}
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0, y: -20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="relative flex items-center justify-center"
+          {/* Logotipo Oficial Parqu con Halo Sutil */}
+          <div className="relative flex items-center justify-center">
+            <div className="absolute -inset-8 bg-gradient-to-r from-[#0033FF]/30 via-[#807DFE]/20 to-[#0033FF]/30 rounded-full blur-3xl pointer-events-none" />
+            <img
+              src="/parqu-logo-white.png"
+              alt="Parqu Logo"
+              style={{ maxHeight: '130px' }}
+              className="h-24 sm:h-28 md:h-32 w-auto object-contain relative z-10 drop-shadow-[0_0_35px_rgba(128,125,254,0.45)]"
+            />
+          </div>
+
+          {/* Slogan en Tipografía Azeret Mono */}
+          <p className="font-azeret text-base sm:text-lg md:text-xl text-[#D4D6E6] font-medium tracking-wide leading-relaxed px-2">
+            Sistema Inteligente de <span className="text-white font-bold">Parquímetros</span> y Autocobro Digital
+          </p>
+
+          {/* Botón "Empecemos" para Iniciar la Animación de Revelado */}
+          <div className="pt-2">
+            <RadialGlowButton
+              onClick={handleTriggerExit}
+              className="font-azeret text-sm sm:text-base font-bold shadow-2xl px-10 py-4 cursor-pointer hover:scale-105 active:scale-95 transition-all duration-300"
             >
-              <div className="absolute -inset-6 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-              <img
-                src="/parqu-logo-white.png"
-                alt="Parqu Logo"
-                style={{ maxHeight: '144px' }}
-                className="h-28 sm:h-32 md:h-36 w-auto object-contain relative z-10 drop-shadow-[0_0_40px_rgba(255,255,255,0.45)]"
-              />
-            </motion.div>
-
-            {/* Animación Flip-Fade Text: PARQU -> MÁS FÁCIL -> SIN FILAS -> SIN MONEDAS -> EN UN TOQUE */}
-            <div className="w-full flex items-center justify-center py-2">
-              <FlipFadeText
-                words={[
-                  "PARQU",
-                  "MÁS FÁCIL",
-                  "SIN FILAS",
-                  "SIN MONEDAS",
-                  "EN UN TOQUE",
-                  "AUTOCOBRO"
-                ]}
-                interval={2600}
-                letterDuration={0.55}
-                staggerDelay={0.07}
-                textClassName="text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight drop-shadow-[0_0_35px_rgba(255,255,255,0.35)]"
-              />
-            </div>
-
-            {/* BOTÓN PRINCIPAL CON ANIMACIÓN RADIAL GLOW: Empecemos */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="pt-2 flex flex-col items-center justify-center"
-            >
-              <RadialGlowButton
-                onClick={onComplete}
-                className="text-base sm:text-lg font-bold shadow-2xl"
-              >
-                <span>Empecemos</span>
-                <ArrowRight className="w-5 h-5 text-white inline transition-transform duration-300 group-hover:translate-x-1.5" />
-              </RadialGlowButton>
-            </motion.div>
-
-          </main>
-
-          {/* Footer: Powered by SSS.Solutions con Logotipo Transparente */}
-          <footer className="w-full max-w-md flex flex-col items-center justify-center gap-2 pt-4">
-            <span className="text-[11px] uppercase tracking-[0.25em] text-neutral-400 font-mono">
-              Powered by
-            </span>
-
-            {/* Animación de texto que deletrea SSS.Solutions */}
-            <div className="text-base sm:text-lg font-bold tracking-wider text-white font-mono flex items-center justify-center">
-              <TextAnimation delay={0.5} divideBy="letter" className="text-white">
-                SSS.Solutions
-              </TextAnimation>
-            </div>
-
-            {/* Logotipo Oficial de SSS.Solutions (Totalmente transparente sin fondos) */}
-            <div className="flex items-center justify-center py-1">
-              <img
-                src="/sss-solutions-logo.png"
-                alt="SSS.Solutions Logo"
-                style={{ maxHeight: '36px' }}
-                className="h-8 sm:h-9 w-auto object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-
-            <span className="text-[10px] text-neutral-400 font-mono tracking-wider text-center">
-              Tecnología de Autocobro & Movilidad Urbana • Encriptación 256-bit
-            </span>
-          </footer>
+              <span>Empecemos</span>
+              <ArrowRight className="w-5 h-5 text-white inline transition-transform duration-300 group-hover:translate-x-1.5" />
+            </RadialGlowButton>
+          </div>
 
         </div>
-      </WebcamPixelGrid>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 
