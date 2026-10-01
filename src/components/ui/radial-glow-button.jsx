@@ -13,7 +13,7 @@ export function RadialGlowButton({
       type={type}
       onClick={onClick}
       className={cn(
-        "relative group inline-flex items-center justify-center px-8 py-3.5 sm:px-10 sm:py-4 rounded-full font-mono text-sm sm:text-base font-bold text-white transition-all duration-300 transform active:scale-95 overflow-hidden shadow-[0_0_30px_rgba(0,51,255,0.7)] hover:shadow-[0_0_45px_rgba(128,125,254,0.6)] cursor-pointer select-none",
+        "relative group inline-flex items-center justify-center px-8 py-3.5 sm:px-10 sm:py-4 rounded-full font-sans text-sm sm:text-base font-bold text-white transition-all duration-300 transform active:scale-95 overflow-hidden shadow-[0_0_30px_rgba(0,51,255,0.7)] hover:shadow-[0_0_45px_rgba(128,125,254,0.6)] cursor-pointer select-none",
         className
       )}
       {...props}

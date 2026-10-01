@@ -1,3 +1,4 @@
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,800,700,600,500,400,300&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Azeret+Mono:ital,wght@0,100..900;1,100..900&display=swap');
 
 @tailwind base;
@@ -6,12 +7,14 @@
 
 @layer base {
   html, body {
-    font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Satoshi', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
-}
-
-.font-azeret {
-  font-family: 'Azeret Mono', monospace !important;
+  h1, h2, h3, h4, h5, h6, p, button, input, textarea, select, label, a {
+    font-family: 'Satoshi', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  .font-mono, .font-azeret, [data-mono], .mono-data, code, kbd, samp, pre {
+    font-family: 'Azeret Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  }
 }
 
 :root {
@@ -27,17 +30,17 @@
 
 ::selection {
   background-color: #0033FF;
-  color: #D4D6E6;
+  color: #FFFFFF;
 }
 
 body {
-  font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #01033E;
-  color: #D4D6E6;
+  font-family: 'Satoshi', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #FFFFFF;
+  color: #0f172a;
 }
 
 .font-mono-card {
-  font-family: 'Space Grotesk', monospace;
+  font-family: 'Azeret Mono', monospace !important;
 }
 
 /* Efectos holográficos de alta gama para la tarjeta digital en Azul Eléctrico y Lavanda Hielo */
@@ -98,7 +101,7 @@ body {
 [data-sileo-title] {
   color: #D4D6E6 !important;
   font-weight: 800 !important;
-  font-family: 'Space Grotesk', monospace, sans-serif !important;
+  font-family: 'Satoshi', system-ui, sans-serif !important;
   letter-spacing: -0.01em !important;
 }
 
@@ -177,3 +180,95 @@ body {
     0 20px 60px rgba(0, 0, 0, 0.6),
     0 0 40px rgba(0, 51, 255, 0.2);
 }
+
+/* ══════════════════════════════════════════════════════════════
+   FX-67: EFECTO RESALTADOR / MARKER ANIMATION (SISTEMA PARQU)
+   ══════════════════════════════════════════════════════════════ */
+.btn-label {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+  transition: inherit;
+}
+
+.fx-67 {
+  --primary: #0033FF;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  cursor: pointer;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent;
+  transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fx-67::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0 !important;
+  height: 100% !important;
+  width: 100% !important;
+  background: color-mix(in srgb, var(--primary) 35%, transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s ease, opacity 0.3s ease;
+}
+
+.fx-67:hover::before {
+  transform: scaleX(1);
+  background: color-mix(in srgb, var(--primary) 45%, transparent);
+}
+
+.fx-67:active::before {
+  transform: scaleX(1);
+  background: color-mix(in srgb, var(--primary) 60%, transparent);
+}
+
+.fx-67.is-active::before,
+.fx-67[data-active="true"]::before {
+  transform: scaleX(1);
+  height: 100% !important;
+  background: color-mix(in srgb, var(--primary) 45%, transparent);
+}
+
+.fx-67 > * {
+  position: relative;
+  z-index: 2;
+  transition: inherit;
+}
+
+/* ═══ WITHBOBBIN BACKGROUND DESIGN SYSTEM ═══ */
+:root {
+  --color-spark-yellow: #fbf27e;
+  --color-spark-yellow-deep: #f0e367;
+  --color-spark-cream: #f7f4f0;
+  --color-spark-cream-dark: #e8e4de;
+  --color-spark-charcoal: #2a241d;
+  --color-spark-black: #1d1914;
+}
+
+.yellow-fade {
+  position: relative;
+}
+
+.yellow-fade::after {
+  content: "";
+  background: radial-gradient(147.57% 102.54% at 50% 100%, #fbf27e 26.92%, rgba(251, 242, 126, 0) 100%);
+  width: 100%;
+  height: 400px;
+  max-height: 40%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+

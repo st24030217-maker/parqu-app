@@ -91,7 +91,7 @@ export function StaggeredGrid({
         </div>
 
         {/* Subtítulo Hero */}
-        <p className="relative z-10 mt-3 sm:mt-4 text-xs sm:text-sm md:text-base text-[#D4D6E6] font-mono max-w-2xl mx-auto leading-relaxed px-3 sm:px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+        <p className="relative z-10 mt-3 sm:mt-4 text-xs sm:text-sm md:text-base text-[#D4D6E6] font-sans max-w-2xl mx-auto leading-relaxed px-3 sm:px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
           La plataforma metropolitana que elimina las filas, las monedas y las multas. Autocobro continuo segundo a segundo con tecnología de <strong className="text-white">SSS.Solutions</strong>.
         </p>
 
@@ -118,13 +118,13 @@ export function StaggeredGrid({
       </section>
 
       {/* ═══ 2. SECCIÓN BENTO EXPANDIBLE: PILARES DE LA PLATAFORMA ═══ */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-28 sm:pb-36 relative z-10">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-[0.2em] text-[#D4D6E6]">
             <Sparkles className="w-4 h-4 text-[#807DFE]" />
-            <span className="font-bold text-white">Pilares de la Plataforma Metropolitana</span>
+            <span className="font-bold text-white font-sans">Pilares de la Plataforma Metropolitana</span>
           </div>
-          <span className="text-[11px] font-mono text-[#D4D6E6]/70">
+          <span className="text-[11px] font-sans text-[#D4D6E6]/70">
             Pasa el cursor o haz clic en cualquier pilar para expandir
           </span>
         </div>
@@ -135,14 +135,26 @@ export function StaggeredGrid({
             return (
               <div
                 key={bento.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`${bento.title} - ${bento.subtitle}`}
                 onClick={() => {
                   setActiveBento(index);
                   if (onSelectFeature && bento.actionTab) {
                     onSelectFeature(bento.actionTab);
                   }
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setActiveBento(index);
+                    if (onSelectFeature && bento.actionTab) {
+                      onSelectFeature(bento.actionTab);
+                    }
+                  }
+                }}
                 onMouseEnter={() => setActiveBento(index)}
-                className={`relative overflow-hidden rounded-3xl p-6 sm:p-7 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer border flex flex-col justify-between backdrop-blur-xl ${
+                className={`relative overflow-hidden rounded-3xl p-6 sm:p-7 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer border flex flex-col justify-between backdrop-blur-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#01033E] ${
                   isActive
                     ? 'md:w-3/5 bg-gradient-to-br from-[#01033E]/90 via-[#0033FF]/20 to-[#01033E]/90 border-[#807DFE]/50 shadow-[0_0_40px_rgba(0,51,255,0.3)]'
                     : 'md:w-1/5 bg-[#01033E]/40 border-white/10 hover:border-white/20 hover:bg-[#01033E]/60'
@@ -173,7 +185,7 @@ export function StaggeredGrid({
                   </h3>
                   
                   {isActive && (
-                    <p className="text-xs sm:text-sm text-[#D4D6E6] font-mono leading-relaxed pt-2 animate-in fade-in duration-300">
+                    <p className="text-xs sm:text-sm text-[#D4D6E6] font-sans leading-relaxed pt-2 animate-in fade-in duration-300">
                       {bento.desc}
                     </p>
                   )}
@@ -181,7 +193,7 @@ export function StaggeredGrid({
 
                 {/* Botón de Acción en Activo */}
                 {isActive && (
-                  <div className="pt-6 relative z-10 flex items-center justify-between border-t border-white/10 text-xs font-mono text-white font-bold">
+                  <div className="pt-6 relative z-10 flex items-center justify-between border-t border-white/10 text-xs font-sans text-white font-bold">
                     <span className="flex items-center gap-1.5 text-emerald-400">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       Módulo Disponible

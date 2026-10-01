@@ -41,8 +41,10 @@ export const Tabs = ({
     <div className="w-full flex flex-col space-y-6">
       {/* Barra de pestañas Aceternity con perspectiva 3D y layoutId spring */}
       <div
+        role="tablist"
+        aria-label="Pestañas de control del sistema Parqu"
         className={cn(
-          "flex overflow-x-auto sm:flex-wrap items-center gap-1.5 sm:gap-2 p-1.5 rounded-2xl bg-[#01033E]/60 border border-white/10 backdrop-blur-xl [perspective:1000px] relative max-w-full shadow-xl scrollbar-none",
+          "flex overflow-x-auto sm:flex-wrap items-center gap-1.5 sm:gap-2 p-1.5 rounded-2xl bg-slate-100/90 border border-slate-200/90 backdrop-blur-xl [perspective:1000px] relative max-w-full shadow-sm scrollbar-none",
           containerClassName
         )}
       >
@@ -56,12 +58,16 @@ export const Tabs = ({
             <button
               key={tabVal}
               type="button"
+              role="tab"
+              id={`system-tab-${tabVal}`}
+              aria-selected={isActive}
+              aria-controls={`system-tabpanel-${tabVal}`}
               onClick={() => handleSelectTab(tab)}
               className={cn(
-                "relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-mono font-bold transition-colors select-none cursor-pointer z-10 shrink-0 whitespace-nowrap",
+                "relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-sans font-bold transition-colors select-none cursor-pointer z-10 shrink-0 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2",
                 isActive
-                  ? "text-white"
-                  : "text-[#D4D6E6]/70 hover:text-white hover:bg-white/5",
+                  ? "text-black font-extrabold"
+                  : "text-slate-700 hover:text-black hover:bg-white/60",
                 tabClassName
               )}
             >
@@ -70,22 +76,22 @@ export const Tabs = ({
                   layoutId="activeAceternityTabPill"
                   transition={{ type: "spring", bounce: 0.22, duration: 0.45 }}
                   className={cn(
-                    "absolute inset-0 bg-[#0033FF] rounded-xl shadow-[0_0_20px_rgba(0,51,255,0.5)] border border-[#807DFE]/50",
+                    "absolute inset-0 bg-white rounded-xl shadow-md border border-slate-200/90",
                     activeTabClassName
                   )}
                 />
               )}
 
               <span className="relative z-10 flex items-center gap-1.5 sm:gap-2">
-                {Icon && <Icon className="w-3.5 sm:w-4 h-3.5 sm:h-4 flex-shrink-0" />}
-                <span>{tabTitle}</span>
+                {Icon && <Icon className="w-3.5 sm:w-4 h-3.5 sm:h-4 flex-shrink-0 text-black" />}
+                <span className="text-black font-bold">{tabTitle}</span>
                 {tab.badge && (
                   <span
                     className={cn(
                       "text-[9px] px-2 py-0.5 rounded-full font-mono transition-colors font-bold",
                       isActive
-                        ? "bg-white/20 text-white border border-white/30"
-                        : "bg-white/5 text-[#D4D6E6] border border-white/10"
+                        ? "bg-slate-100 text-black border border-slate-200"
+                        : "bg-slate-200/70 text-slate-800 border border-slate-300/60"
                     )}
                   >
                     {tab.badge}
@@ -98,7 +104,12 @@ export const Tabs = ({
       </div>
 
       {/* Contenido dinámico con animación fluida Aceternity */}
-      <div className={cn("w-full relative", contentClassName)}>
+      <div 
+        id={`system-tabpanel-${activeTabObj.value || activeTabObj.id}`}
+        role="tabpanel"
+        aria-labelledby={`system-tab-${activeTabObj.value || activeTabObj.id}`}
+        className={cn("w-full relative", contentClassName)}
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTabObj.value || activeTabObj.id}

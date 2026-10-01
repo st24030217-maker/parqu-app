@@ -57,7 +57,7 @@ export const ParkingMeter = () => {
 
   return (
     <WobbleCard
-      containerClassName="w-full bg-gradient-to-br from-[#01033E]/70 via-[#01033E]/40 to-transparent border-white/10 hover:border-[#807DFE]/30 transition-colors shadow-2xl backdrop-blur-xl backdrop-saturate-150"
+      containerClassName="w-full bg-gradient-to-br from-[#01033E] via-[#01033E] to-[#02052b] border border-slate-200/80 shadow-2xl transition-colors"
       className="p-6 sm:p-8 flex flex-col justify-between"
     >
       {/* Encabezado Wobble Card */}
@@ -68,25 +68,25 @@ export const ParkingMeter = () => {
               TECNOLOGÍA SSS.SOLUTIONS
             </span>
             <span className="text-[#D4D6E6]/60 text-xs font-mono">•</span>
-            <span className="text-[11px] font-mono text-[#D4D6E6]">TELEMETRÍA EN VIVO</span>
+            <span className="text-[11px] font-mono text-[#D4D6E6]">SESIÓN EN VIVO</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-[#D4D6E6] tracking-tight flex items-center gap-2.5">
             <Clock className="w-6 h-6 text-[#807DFE]" />
             Parquímetro Metropolitano en Vivo
           </h2>
-          <p className="text-xs sm:text-sm text-[#D4D6E6] mt-1 font-mono max-w-2xl leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#D4D6E6] mt-1 font-sans max-w-2xl leading-relaxed">
             Control y cobro automático segundo a segundo en parquímetros metropolitanos.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 font-mono">
+        <div className="flex items-center gap-2">
           {activeSession ? (
-            <span className="flex items-center gap-2 text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/40 px-4 py-1.5 rounded-full animate-pulse shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+            <span className="flex items-center gap-2 text-xs font-bold font-mono text-amber-300 bg-amber-500/10 border border-amber-500/40 px-4 py-1.5 rounded-full animate-pulse shadow-[0_0_15px_rgba(245,158,11,0.2)]">
               <span className="w-2 h-2 rounded-full bg-amber-400"></span>
               Estacionamiento Activo
             </span>
           ) : (
-            <span className="text-xs font-medium text-neutral-300 bg-white/8 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10 flex items-center gap-1.5">
+            <span className="text-xs font-medium font-sans text-neutral-300 bg-white/8 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
               Listo para Estacionar
             </span>
@@ -103,23 +103,25 @@ export const ParkingMeter = () => {
                 <CheckCircle className="w-6 h-6 text-emerald-400" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-white flex items-center gap-2 font-mono">
+                <h4 className="text-sm font-bold text-white flex items-center gap-2 font-sans">
                   ¡Autocobro Liquidado con Éxito!
                   <span className="text-xs font-normal text-white bg-neutral-900 px-2.5 py-0.5 rounded-full border border-neutral-700 font-mono">
                     Folio: {justChargedNotice.folio}
                   </span>
                 </h4>
-                <p className="text-xs text-neutral-300 mt-1 font-mono">
-                  Se ha cobrado <strong className="text-white font-bold">{formatCurrency(justChargedNotice.amount)}</strong> a través de{' '}
+                <p className="text-xs text-neutral-300 mt-1 font-sans">
+                  Se ha cobrado <strong className="text-white font-bold font-mono">{formatCurrency(justChargedNotice.amount)}</strong> a través de{' '}
                   <strong className="text-neutral-100 underline decoration-neutral-500">{justChargedNotice.method}</strong> por un tiempo de{' '}
-                  <strong className="text-white font-bold">{justChargedNotice.durationMinutes} min</strong>.
+                  <strong className="text-white font-bold font-mono">{justChargedNotice.durationMinutes} min</strong>.
                 </p>
               </div>
             </div>
 
             <button
+              type="button"
+              aria-label="Cerrar notificación de autocobro"
               onClick={() => setJustChargedNotice(null)}
-              className="text-xs text-neutral-400 hover:text-white px-2 py-1 font-mono transition"
+              className="text-xs text-neutral-400 hover:text-white px-2 py-1 font-sans transition cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
               ✕
             </button>
@@ -198,16 +200,18 @@ export const ParkingMeter = () => {
                 <Car className="w-5 h-5 text-[#D4D6E6]" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-white font-mono">¿Listo para salir?</h4>
-                <p className="text-xs text-neutral-400 mt-0.5 font-mono">
+                <h4 className="text-sm font-bold text-white font-sans">¿Listo para salir?</h4>
+                <p className="text-xs text-neutral-400 mt-0.5 font-sans">
                   El sistema detectará la salida y liquidará el monto sin filas ni demoras.
                 </p>
               </div>
             </div>
 
             <button
+              type="button"
+              aria-label="Liberar estacionamiento y liquidar autocobro"
               onClick={handleStop}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[#0033FF] hover:bg-[#2250ff] text-white font-bold font-mono text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,51,255,0.6)] transition transform active:scale-95"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[#0033FF] hover:bg-[#2250ff] text-white font-bold font-sans text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,51,255,0.6)] transition transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#01033E]"
             >
               <Square className="w-4 h-4 fill-current text-rose-500" />
               Liberar Estacionamiento & Liquidar Autocobro
@@ -233,17 +237,19 @@ export const ParkingMeter = () => {
               <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 text-[#D4D6E6] flex items-center justify-center">
                 <ShieldCheck className="w-5 h-5 text-emerald-400" />
               </div>
-              <div className="text-left font-mono">
+              <div className="text-left font-sans">
                 <span className="text-xs text-[#D4D6E6]/80 block">Vehículo listo para autocobro:</span>
                 <span className="text-sm font-bold text-[#D4D6E6]">
-                  {vehicle.brand} {vehicle.model} ({formatPlate(vehicle.plates)}) • {owner.fullName}
+                  {vehicle.brand} {vehicle.model} (<span className="font-mono">{formatPlate(vehicle.plates)}</span>) • {owner.fullName}
                 </span>
               </div>
             </div>
 
             <button
+              type="button"
+              aria-label="Registrar estacionamiento y activar parquímetro"
               onClick={() => handleStart(selectedZone)}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[#0033FF] hover:bg-[#2250ff] text-white font-bold font-mono text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(0,51,255,0.6)] transition transform active:scale-95"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[#0033FF] hover:bg-[#2250ff] text-white font-bold font-sans text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(0,51,255,0.6)] transition transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#01033E]"
             >
               <Play className="w-4 h-4 fill-current text-white" />
               Registrar Estacionamiento

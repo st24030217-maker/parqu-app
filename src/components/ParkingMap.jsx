@@ -581,7 +581,7 @@ export const ParkingMap = ({
               <button
                 type="button"
                 onClick={() => setActiveTabMode('register')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-bold flex items-center gap-2 transition ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-sans font-bold flex items-center gap-2 transition ${
                   activeTabMode === 'register'
                     ? 'bg-white text-black shadow-md'
                     : 'bg-neutral-900 text-neutral-400 hover:text-white border border-neutral-800'
@@ -594,27 +594,27 @@ export const ParkingMap = ({
               <button
                 type="button"
                 onClick={() => setActiveTabMode('history')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-bold flex items-center gap-2 transition ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-sans font-bold flex items-center gap-2 transition ${
                   activeTabMode === 'history'
                     ? 'bg-amber-400 text-black shadow-md'
                     : 'bg-neutral-900 text-neutral-400 hover:text-white border border-neutral-800'
                 }`}
               >
                 <History className="w-3.5 h-3.5" />
-                <span>Historial ({pinnedLocations.length})</span>
+                <span>Historial (<span className="font-mono">{pinnedLocations.length}</span>)</span>
               </button>
             </div>
 
-            <span className="text-[11px] font-mono text-neutral-400 hidden sm:inline">
-              Vehículo: <strong className="text-white">{formatPlate(vehicle?.plates || 'XYZ-7842')}</strong>
+            <span className="text-[11px] font-sans text-neutral-400 hidden sm:inline">
+              Vehículo: <strong className="text-white font-mono">{formatPlate(vehicle?.plates || 'XYZ-7842')}</strong>
             </span>
           </div>
 
           {/* CONTENIDO SEGÚN LA PESTAÑA */}
           {activeTabMode === 'register' ? (
-            <div className="space-y-4 font-mono">
+            <div className="space-y-4 font-sans">
               {/* Notificación de cómo funciona */}
-              <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-2xl p-3 text-xs">
+              <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-2xl p-3 text-xs font-sans">
                 <div className="flex items-center gap-2.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
                   <span className="text-neutral-300">
@@ -625,7 +625,7 @@ export const ParkingMap = ({
                   <button
                     type="button"
                     onClick={() => handleCopyCoords(pinnedSpot.lat, pinnedSpot.lng)}
-                    className="hidden sm:flex items-center gap-1 text-[11px] text-amber-300 hover:text-white transition"
+                    className="hidden sm:flex items-center gap-1 text-[11px] font-mono text-amber-300 hover:text-white transition"
                     title="Copiar coordenadas"
                   >
                     <span>{pinnedSpot.lat.toFixed(4)}, {pinnedSpot.lng.toFixed(4)}</span>
@@ -639,7 +639,7 @@ export const ParkingMap = ({
                 
                 {/* Input del Número de Parquímetro / Espacio */}
                 <div className="md:col-span-6">
-                  <label className="text-[10px] uppercase font-bold text-neutral-400 mb-1 flex items-center gap-1">
+                  <label htmlFor="parking-spot-number" className="text-[10px] uppercase font-bold text-neutral-400 mb-1 flex items-center gap-1 font-sans">
                     <Hash className="w-3 h-3 text-amber-400" />
                     <span>Número de Parquímetro o Espacio</span>
                   </label>
@@ -648,11 +648,13 @@ export const ParkingMap = ({
                       #
                     </div>
                     <input
+                      id="parking-spot-number"
                       type="text"
+                      aria-label="Número de parquímetro o espacio"
                       value={spotNumber}
                       onChange={(e) => setSpotNumber(e.target.value)}
                       placeholder="1042"
-                      className="w-full h-11 px-4 rounded-xl bg-white/5 border border-white/15 focus:border-[#807DFE] focus:bg-white/10 focus:outline-none text-white font-mono text-base font-bold placeholder:text-neutral-500 transition"
+                      className="w-full h-11 px-4 rounded-xl bg-white/5 border border-white/15 focus:border-[#807DFE] focus:bg-white/10 focus:outline-none text-white font-mono text-base font-bold placeholder:text-neutral-500 transition focus-visible:ring-2 focus-visible:ring-[#807DFE]"
                     />
                   </div>
                 </div>
@@ -662,8 +664,9 @@ export const ParkingMap = ({
                   {!activeSession ? (
                     <button
                       type="button"
+                      aria-label="Registrar estacionamiento en el parquímetro"
                       onClick={handleRegisterParking}
-                      className="w-full h-11 px-6 rounded-xl bg-[#0033FF] hover:bg-[#2250ff] text-white font-mono font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(0,51,255,0.6)] hover:scale-[1.02] active:scale-95 transition-all"
+                      className="w-full h-11 px-6 rounded-xl bg-[#0033FF] hover:bg-[#2250ff] text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(0,51,255,0.6)] hover:scale-[1.02] active:scale-95 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
                     >
                       <CheckCircle2 className="w-4 h-4 text-emerald-300" />
                       <span>Registrar Estacionamiento</span>
@@ -672,13 +675,14 @@ export const ParkingMap = ({
                     <div className="w-full flex items-center gap-2">
                       <div className="flex-1 px-3 py-2 rounded-xl bg-amber-500/20 border border-amber-400/50 text-amber-300 text-xs font-bold flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                        <span>Activo en #{spotNumber}</span>
+                        <span className="font-mono">Activo en #{spotNumber}</span>
                       </div>
                       {onStopSession && (
                         <button
                           type="button"
+                          aria-label="Liberar estacionamiento"
                           onClick={onStopSession}
-                          className="h-11 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition"
+                          className="h-11 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                         >
                           <Square className="w-3.5 h-3.5 fill-current" />
                           <span>Liberar</span>
@@ -690,9 +694,10 @@ export const ParkingMap = ({
                   {/* Acceso a AniMaps 3D */}
                   <button
                     type="button"
+                    aria-label="Ver recorrido animado de ruta en 3D con animaps-react"
                     onClick={() => setViewMode('animaps')}
                     title="Ver recorrido animado con animaps-react"
-                    className="h-11 px-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-[#807DFE]/40 font-mono text-xs flex items-center justify-center gap-1.5 transition shrink-0"
+                    className="h-11 px-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-[#807DFE]/40 font-sans text-xs flex items-center justify-center gap-1.5 transition shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   >
                     <Sparkles className="w-4 h-4 text-[#807DFE] animate-pulse" />
                     <span className="hidden sm:inline">Ruta 3D</span>
@@ -702,13 +707,13 @@ export const ParkingMap = ({
               </div>
 
               {/* Barra de información complementaria */}
-              <div className="flex flex-wrap items-center justify-between text-[11px] text-neutral-400 pt-1 border-t border-neutral-900">
+              <div className="flex flex-wrap items-center justify-between text-[11px] text-neutral-400 pt-1 border-t border-neutral-900 font-sans">
                 <div className="flex items-center gap-3">
                   <span className="text-neutral-300">
-                    Punto Fijado: <strong className="text-white">Espacio #{spotNumber || '1042'}</strong>
+                    Punto Fijado: <strong className="text-white font-mono">Espacio #{spotNumber || '1042'}</strong>
                   </span>
                   <span>•</span>
-                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                  <span className="text-emerald-400 font-bold flex items-center gap-1 font-mono">
                     <CurrencyDollarIcon size={12} className="text-emerald-400" />
                     $18.00 / hora
                   </span>
@@ -719,7 +724,7 @@ export const ParkingMap = ({
                     href={`https://www.google.com/maps?q=${pinnedSpot.lat},${pinnedSpot.lng}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-neutral-400 hover:text-white flex items-center gap-1 transition"
+                    className="text-neutral-400 hover:text-white flex items-center gap-1 transition font-sans"
                   >
                     <span>Abrir en Google Maps</span>
                     <ExternalLink className="w-3 h-3" />
@@ -729,7 +734,7 @@ export const ParkingMap = ({
             </div>
           ) : (
             /* MODO HISTORIAL DE UBICACIONES */
-            <div className="space-y-3 font-mono">
+            <div className="space-y-3 font-sans">
               {pinnedLocations.length === 0 ? (
                 <div className="py-6 text-center border border-dashed border-neutral-800 rounded-2xl bg-neutral-900/40 space-y-2">
                   <Bookmark className="w-8 h-8 text-neutral-600 mx-auto" />
@@ -832,5 +837,4 @@ export const ParkingMap = ({
   );
 };
 
-export const DiDiParkingMap = ParkingMap;
 export default ParkingMap;
