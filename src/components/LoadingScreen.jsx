@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { Prism } from './ui/Prism';
+import { Threads } from './ui/Threads';
 
 export const LoadingScreen = ({ onComplete }) => {
   const [isExiting, setIsExiting] = useState(false);
@@ -46,30 +46,26 @@ export const LoadingScreen = ({ onComplete }) => {
         transition: 'transform 0.7s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.5s ease',
         willChange: 'transform, opacity',
       }}
-      className="fixed inset-0 z-50 overflow-hidden select-none pointer-events-auto bg-black/40 backdrop-blur-2xl font-sans flex flex-col items-center justify-center px-4 sm:px-6"
+      className="fixed inset-0 z-50 overflow-hidden select-none pointer-events-auto bg-[#01033E] font-sans flex flex-col items-center justify-center px-4 sm:px-6"
     >
       {/* 
         ══════════════════════════════════════════════════════════════
-        FONDO 3D PRISM (REACT BITS) 100% TRANSPARENTE Y ESTÉTICO
+        FONDO ANIMADO THREADS (REACT BITS) 100% FLUIDO E INTERACTIVO
         ══════════════════════════════════════════════════════════════
       */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden flex items-center justify-center">
-        <Prism
-          animationType="3drotate"
-          transparent={true}
-          glow={1.3}
-          noise={0.12}
-          scale={4.2}
-          timeScale={0.4}
-          colorFrequency={1.2}
-          bloom={1.15}
-          className="w-full h-full opacity-90"
+      <div className="absolute inset-0 z-0 pointer-events-auto overflow-hidden">
+        <Threads
+          color={[0.0, 0.35, 1.0]}
+          amplitude={1.2}
+          distance={0.25}
+          enableMouseInteraction={true}
+          style={{ width: '100%', height: '100%' }}
         />
-        {/* Sutil halo central para fundirse con el fondo */}
+        {/* Sutil halo ambiental y viñeta suave para contraste perfecto con el logo */}
         <div 
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'radial-gradient(circle at 50% 50%, rgba(0, 51, 255, 0.12) 0%, rgba(128, 125, 254, 0.05) 50%, transparent 80%)',
+            background: 'radial-gradient(circle at 50% 50%, rgba(0, 51, 255, 0.15) 0%, rgba(1, 3, 62, 0.4) 65%, rgba(1, 3, 62, 0.85) 100%)',
           }}
         />
       </div>
