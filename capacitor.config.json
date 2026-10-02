@@ -1,0 +1,20 @@
+{
+  "appId": "com.parqu.app",
+  "appName": "PARQU",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "launchAutoHide": true,
+      "backgroundColor": "#01033E",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#01033E"
+    }
+  }
+}

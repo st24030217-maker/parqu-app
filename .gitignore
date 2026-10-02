@@ -37,3 +37,13 @@ Thumbs.db
 .claude/
 agent/
 skills-lock.json
+
+# Mobile & Capacitor build artifacts
+.gradle/
+android/.gradle/
+android/app/build/
+android/build/
+ios/App/Pods/
+ios/App/build/
+ios/DerivedData/
+

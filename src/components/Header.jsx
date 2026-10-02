@@ -33,6 +33,7 @@ export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
 
   return (
     <header 
+      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       className={`sticky top-0 z-40 transition-all duration-300 ${
         isScrolled
           ? 'bg-white/90 backdrop-blur-2xl backdrop-saturate-150 border-b border-slate-200/90 shadow-[0_4px_25px_rgba(0,0,0,0.05)]'

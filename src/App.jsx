@@ -36,6 +36,10 @@ import {
   MapPin,
   Compass
 } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { SplashScreen } from '@capacitor/splash-screen';
+import { triggerHaptic } from './utils/haptics';
 
 const MainContent = () => {
   const { 
@@ -68,7 +72,20 @@ const MainContent = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showRechargeQuickModal, showQRQuickModal]);
 
+  // Configuración de ciclo de vida nativo para Capacitor (iOS & Android)
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+        SplashScreen.hide().catch(() => {});
+      } catch (err) {
+        // Safe fallback
+      }
+    }
+  }, []);
+
   const handleSelectFeature = (tabId) => {
+    triggerHaptic();
     setActiveTab(tabId);
     if (systemRef.current) {
       systemRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -78,6 +95,7 @@ const MainContent = () => {
   const handleQuickRechargeSubmit = (e) => {
     e.preventDefault();
     if (rechargeAmt > 0) {
+      triggerHaptic();
       addBalance(Number(rechargeAmt));
       sileo.success({
         title: '¡Recarga Exitosa!',
