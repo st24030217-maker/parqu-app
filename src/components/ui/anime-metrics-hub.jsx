@@ -76,7 +76,7 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
         </div>
 
         {/* Telemetría mini-bars */}
-        <div ref={barsRef} className="flex items-end gap-1 h-3.5 px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200">
+        <div ref={barsRef} className="flex items-end gap-1 h-3.5 px-2 py-0.5 rounded-full bg-white/30 border border-slate-200/40 backdrop-blur-sm">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
@@ -105,7 +105,7 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
           }}
           onMouseEnter={() => setHoveredCard(1)}
           onMouseLeave={() => setHoveredCard(null)}
-          className="metric-hub-card group relative p-5 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 transition-all cursor-pointer shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          className="metric-hub-card group relative p-5 rounded-2xl bg-white/40 hover:bg-white/60 backdrop-blur-2xl border border-slate-200/50 hover:border-slate-300/80 transition-all cursor-pointer shadow-none flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
         >
           {/* Aceternity Corner Cross Accents */}
           <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
@@ -201,7 +201,7 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
           }}
           onMouseEnter={() => setHoveredCard(2)}
           onMouseLeave={() => setHoveredCard(null)}
-          className="metric-hub-card group relative p-5 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 transition-all cursor-pointer shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          className="metric-hub-card group relative p-5 rounded-2xl bg-white/40 hover:bg-white/60 backdrop-blur-2xl border border-slate-200/50 hover:border-slate-300/80 transition-all cursor-pointer shadow-none flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
         >
           {/* Aceternity Corner Cross Accents */}
           <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
@@ -279,7 +279,7 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
           }}
           onMouseEnter={() => setHoveredCard(3)}
           onMouseLeave={() => setHoveredCard(null)}
-          className="metric-hub-card group relative p-5 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 transition-all cursor-pointer shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          className="metric-hub-card group relative p-5 rounded-2xl bg-white/40 hover:bg-white/60 backdrop-blur-2xl border border-slate-200/50 hover:border-slate-300/80 transition-all cursor-pointer shadow-none flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
         >
           {/* Aceternity Corner Cross Accents */}
           <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
@@ -350,7 +350,7 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
           }}
           onMouseEnter={() => setHoveredCard(4)}
           onMouseLeave={() => setHoveredCard(null)}
-          className="metric-hub-card group relative p-5 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 transition-all cursor-pointer shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          className="metric-hub-card group relative p-5 rounded-2xl bg-white/40 hover:bg-white/60 backdrop-blur-2xl border border-slate-200/50 hover:border-slate-300/80 transition-all cursor-pointer shadow-none flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
         >
           {/* Aceternity Corner Cross Accents */}
           <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />

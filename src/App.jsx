@@ -113,9 +113,9 @@ const MainContent = () => {
       title: 'Recargar Saldo',
       subtitle: 'Añadir saldo express',
       badge: `$${Number(card?.balance ?? 0).toFixed(2)}`,
-      badgeClassName: 'bg-slate-100 text-slate-800 border border-slate-200 font-mono font-bold',
-      iconBg: 'bg-slate-100 border border-slate-200 text-black',
-      borderClassName: 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 shadow-sm',
+      badgeClassName: 'bg-white/50 text-slate-800 border border-slate-200/50 font-mono font-bold',
+      iconBg: 'bg-white/50 border border-slate-200/50 text-black',
+      borderClassName: 'border-slate-200/50 hover:border-slate-300/80 bg-white/40 hover:bg-white/60 backdrop-blur-xl shadow-none',
       glowGradient: 'from-slate-100/50 via-transparent to-transparent',
       footerText: 'Monedero Parqu Activo',
       activeStatus: true,
@@ -127,9 +127,9 @@ const MainContent = () => {
       title: 'Credencial QR',
       subtitle: 'Inspección de tránsito',
       badge: 'AES-256',
-      badgeClassName: 'bg-slate-100 text-slate-800 border border-slate-200 font-mono font-bold',
-      iconBg: 'bg-slate-100 border border-slate-200 text-black',
-      borderClassName: 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 shadow-sm',
+      badgeClassName: 'bg-white/50 text-slate-800 border border-slate-200/50 font-mono font-bold',
+      iconBg: 'bg-white/50 border border-slate-200/50 text-black',
+      borderClassName: 'border-slate-200/50 hover:border-slate-300/80 bg-white/40 hover:bg-white/60 backdrop-blur-xl shadow-none',
       glowGradient: 'from-slate-100/50 via-transparent to-transparent',
       footerText: 'Pase Contactless Oficial',
       activeStatus: true,
@@ -142,8 +142,8 @@ const MainContent = () => {
       subtitle: activeSession ? activeSession.zoneName : 'Fijar Ubicación & Registro',
       badge: activeSession ? 'EN VIVO' : 'GPS & BITÁCORA',
       badgeClassName: activeSession ? 'bg-amber-100 text-amber-800 border-amber-300 font-mono font-bold' : 'bg-slate-100 text-slate-800 border border-slate-200 font-mono font-bold',
-      iconBg: 'bg-slate-100 border border-slate-200 text-black',
-      borderClassName: 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 shadow-sm',
+      iconBg: 'bg-white/50 border border-slate-200/50 text-black',
+      borderClassName: 'border-slate-200/50 hover:border-slate-300/80 bg-white/40 hover:bg-white/60 backdrop-blur-xl shadow-none',
       glowGradient: 'from-slate-100/50 via-transparent to-transparent',
       footerText: activeSession ? 'Debitando segundo a segundo' : 'Mapa Satelital + Rutas 3D',
       activeStatus: activeSession !== null,
@@ -162,8 +162,8 @@ const MainContent = () => {
       subtitle: 'Débito continuo sin filas',
       badge: autoPay?.enabled ? 'ACTIVO' : 'PAUSADO',
       badgeClassName: autoPay?.enabled ? 'bg-emerald-100 text-emerald-800 border-emerald-200 font-mono font-bold' : 'bg-rose-100 text-rose-800 border-rose-200 font-mono font-bold',
-      iconBg: 'bg-slate-100 border border-slate-200 text-black',
-      borderClassName: 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 shadow-sm',
+      iconBg: 'bg-white/50 border border-slate-200/50 text-black',
+      borderClassName: 'border-slate-200/50 hover:border-slate-300/80 bg-white/40 hover:bg-white/60 backdrop-blur-xl shadow-none',
       glowGradient: 'from-slate-100/50 via-transparent to-transparent',
       footerText: autoPay?.fundingSource === 'CARD' ? 'Débito Bancario' : 'Saldo Virtual',
       activeStatus: Boolean(autoPay?.enabled),
@@ -181,9 +181,9 @@ const MainContent = () => {
       title: vehicle?.plates || 'XYZ-7842',
       subtitle: `${vehicle?.brand || 'Volkswagen'} ${vehicle?.model || 'Jetta'}`,
       badge: 'PADRÓN',
-      badgeClassName: 'bg-slate-100 text-slate-800 border border-slate-200 font-mono font-bold',
-      iconBg: 'bg-slate-100 border border-slate-200 text-black',
-      borderClassName: 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 shadow-sm',
+      badgeClassName: 'bg-white/50 text-slate-800 border border-slate-200/50 font-mono font-bold',
+      iconBg: 'bg-white/50 border border-slate-200/50 text-black',
+      borderClassName: 'border-slate-200/50 hover:border-slate-300/80 bg-white/40 hover:bg-white/60 backdrop-blur-xl shadow-none',
       glowGradient: 'from-slate-100/50 via-transparent to-transparent',
       footerText: owner?.fullName || 'Sebastián Salinas',
       activeStatus: true,
@@ -201,9 +201,9 @@ const MainContent = () => {
       title: 'Diagnóstico en Vivo',
       subtitle: 'Multi-Step Loader',
       badge: 'ANIMACIÓN',
-      badgeClassName: 'bg-slate-100 text-slate-800 border border-slate-200 font-mono font-bold',
-      iconBg: 'bg-slate-100 border border-slate-200 text-black',
-      borderClassName: 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 shadow-sm',
+      badgeClassName: 'bg-white/50 text-slate-800 border border-slate-200/50 font-mono font-bold',
+      iconBg: 'bg-white/50 border border-slate-200/50 text-black',
+      borderClassName: 'border-slate-200/50 hover:border-slate-300/80 bg-white/40 hover:bg-white/60 backdrop-blur-xl shadow-none',
       glowGradient: 'from-slate-100/50 via-transparent to-transparent',
       activeStatus: true,
       onClick: () => {
@@ -224,8 +224,8 @@ const MainContent = () => {
       badge: 'CRAFTS',
       content: (
         <AnimeStaggerGroup triggerKey={activeTab} className="space-y-6">
-          <div className="anime-stagger-card p-6 sm:p-8 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200 shadow-sm space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="anime-stagger-card p-6 sm:p-8 rounded-3xl bg-white/40 backdrop-blur-2xl border border-slate-200/60 shadow-none space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100/60 pb-4">
               <div>
                 <div className="flex items-center gap-2 mb-1 text-xs font-mono text-slate-500">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -244,7 +244,7 @@ const MainContent = () => {
                 </p>
               </div>
 
-              <span className="text-[11px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm font-sans w-fit">
+              <span className="text-[11px] font-bold text-slate-700 bg-white/40 border border-slate-200/50 backdrop-blur-sm px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-none font-sans w-fit">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                 <span className="font-mono text-black font-black">6</span> Accesos Configurados
               </span>
@@ -253,7 +253,7 @@ const MainContent = () => {
             <InterfaceCraftsCards items={quickActionsItems} />
 
             {/* Accesos de 1 clic a montos rápidos de recarga y acciones instantáneas */}
-            <div className="pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-4 font-sans">
+            <div className="pt-4 border-t border-slate-100/60 grid grid-cols-1 md:grid-cols-3 gap-4 font-sans">
               <div 
                 role="button"
                 tabIndex={0}
@@ -265,14 +265,14 @@ const MainContent = () => {
                     setShowRechargeQuickModal(true);
                   }
                 }}
-                className="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 cursor-pointer transition group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                className="p-4 rounded-2xl bg-white/30 hover:bg-white/50 border border-slate-200/40 backdrop-blur-md cursor-pointer transition group shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-black font-sans flex items-center gap-1.5">
                     <CurrencyDollarIcon size={14} className="text-black" />
                     Recarga Inmediata
                   </span>
-                  <span className="text-[10px] font-mono text-black font-bold px-2 py-0.5 rounded-full bg-slate-200/80 border border-slate-300">
+                  <span className="text-[10px] font-mono text-black font-bold px-2 py-0.5 rounded-full bg-white/50 border border-slate-200/50">
                     EXPRESS
                   </span>
                 </div>
@@ -292,14 +292,14 @@ const MainContent = () => {
                     setShowQRQuickModal(true);
                   }
                 }}
-                className="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 cursor-pointer transition group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                className="p-4 rounded-2xl bg-white/30 hover:bg-white/50 border border-slate-200/40 backdrop-blur-md cursor-pointer transition group shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-black font-sans flex items-center gap-1.5">
                     <QrCode className="w-3.5 h-3.5 text-black" />
                     Credencial QR Oficial
                   </span>
-                  <span className="text-[10px] font-mono text-black font-bold px-2 py-0.5 rounded-full bg-slate-200/80 border border-slate-300">
+                  <span className="text-[10px] font-mono text-black font-bold px-2 py-0.5 rounded-full bg-white/50 border border-slate-200/50">
                     AES-256
                   </span>
                 </div>
@@ -319,14 +319,14 @@ const MainContent = () => {
                     handleSelectFeature('dashboard');
                   }
                 }}
-                className="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 cursor-pointer transition group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                className="p-4 rounded-2xl bg-white/30 hover:bg-white/50 border border-slate-200/40 backdrop-blur-md cursor-pointer transition group shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-black font-sans flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-black" />
                     Mapa & Rutas 3D
                   </span>
-                  <span className="text-[10px] font-mono text-black font-bold px-2 py-0.5 rounded-full bg-slate-200/80 border border-slate-300">
+                  <span className="text-[10px] font-mono text-black font-bold px-2 py-0.5 rounded-full bg-white/50 border border-slate-200/50">
                     EN VIVO
                   </span>
                 </div>
@@ -366,10 +366,10 @@ const MainContent = () => {
 
             {/* Panel de Ayuda y Estatus Rápido (Col 8 a 12) */}
             <div className="anime-stagger-card lg:col-span-5 h-full">
-              <div className="w-full h-full p-6 sm:p-7 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div className="w-full h-full p-6 sm:p-7 rounded-3xl bg-white/40 backdrop-blur-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-mono font-bold uppercase tracking-widest text-slate-800">
+                    <span className="px-3 py-1 rounded-full bg-white/40 border border-slate-200/50 backdrop-blur-sm text-[10px] font-mono font-bold uppercase tracking-widest text-slate-800">
                       GARANTÍA CERO MULTAS
                     </span>
                     <span className="text-[11px] font-mono text-emerald-600 flex items-center gap-1">
@@ -386,7 +386,7 @@ const MainContent = () => {
                   </p>
 
                   <div className="space-y-3 mt-4 text-xs font-sans">
-                    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <div className="flex items-start gap-3 p-3 rounded-xl bg-white/30 border border-slate-200/40 backdrop-blur-sm">
                       <Zap className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                       <div>
                         <span className="font-bold text-black block">Sin multas por expiración</span>
@@ -394,7 +394,7 @@ const MainContent = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <div className="flex items-start gap-3 p-3 rounded-xl bg-white/30 border border-slate-200/40 backdrop-blur-sm">
                       <Smartphone className="w-4 h-4 text-black flex-shrink-0 mt-0.5" />
                       <div>
                         <span className="font-bold text-black block">Credencial Oficial de Tránsito</span>
@@ -404,12 +404,12 @@ const MainContent = () => {
                   </div>
                 </div>
 
-                <div className="pt-4 mt-4 border-t border-slate-100">
+                <div className="pt-4 mt-4 border-t border-slate-100/60">
                   <button
                     type="button"
                     aria-label="Configurar reglas del autocobro"
                     onClick={() => setActiveTab('autopay')}
-                    className="w-full py-2.5 rounded-xl bg-black hover:bg-slate-800 text-white font-sans font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                    className="w-full py-2.5 rounded-xl bg-black/75 hover:bg-black/90 backdrop-blur-md text-white font-sans font-bold text-xs transition flex items-center justify-center gap-2 border border-black/10 shadow-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                   >
                     <Zap className="w-4 h-4 text-white" />
                     Configurar Reglas del Autocobro
@@ -501,7 +501,7 @@ const MainContent = () => {
                 handleSelectFeature('dashboard');
               }
             }}
-            className="bg-black/95 border-b border-neutral-800 px-4 py-2.5 text-center text-xs font-sans font-semibold text-white flex items-center justify-center gap-2 cursor-pointer hover:bg-neutral-950 transition backdrop-blur-md sticky top-20 z-30 shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            className="bg-black/60 border-b border-white/10 px-4 py-2.5 text-center text-xs font-sans font-semibold text-white flex items-center justify-center gap-2 cursor-pointer hover:bg-black/80 transition backdrop-blur-xl sticky top-20 z-30 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
           >
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
             <span>Vehículo <span className="font-mono">{vehicle.plates}</span> actualmente en parquímetro. Clic para ver contador o liberar estacionamiento.</span>
@@ -527,12 +527,15 @@ const MainContent = () => {
           />
         </div>
 
-        {/* 2. SECCIÓN DEL SISTEMA INTERACTIVO CON FONDO BLANCO (Cero cortes, se fusiona directamente desde la zona blanca pura) */}
-        <section className="w-full relative bg-white pb-10 sm:pb-16 -mt-px">
+        {/* 2. SECCIÓN DEL SISTEMA INTERACTIVO CON FONDO TRANSPARENTE Y LUMINOSO */}
+        <section className="w-full relative bg-slate-50/30 pb-10 sm:pb-16 -mt-px overflow-hidden">
+          {/* Resplandor ambiental para resaltar las tarjetas translúcidas */}
+          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-gradient-to-tr from-blue-100/30 via-indigo-50/20 to-purple-100/20 rounded-full blur-3xl pointer-events-none -z-0" />
+
           <main 
             ref={systemRef} 
             id="interactive-system"
-            className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-10 scroll-mt-24"
+            className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-10 scroll-mt-24"
           >
           
           {/* 1. PANEL DE CONTROL METROPOLITANO (ACCESO INMEDIATO Y CENTRAL) */}
@@ -543,7 +546,7 @@ const MainContent = () => {
           />
 
           {/* 2. ENCABEZADO DEL CENTRO DE OPERACIONES */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200 shadow-[0_4px_25px_rgba(0,0,0,0.04)] flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="p-6 sm:p-8 rounded-3xl bg-white/40 backdrop-blur-2xl border border-slate-200/60 shadow-none flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
               <div className="flex items-center gap-2 mb-1.5 text-xs font-mono text-slate-500">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -567,7 +570,7 @@ const MainContent = () => {
                   const el = document.getElementById('selector-orbital-metropolitano');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="px-4 py-2.5 rounded-2xl bg-black hover:bg-slate-800 text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                className="px-4 py-2.5 rounded-2xl bg-black/75 hover:bg-black/90 backdrop-blur-md text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center gap-2 border border-black/10 shadow-none transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                 title="Ir al Menú 3D OptionWheel"
               >
                 <Compass className="w-4 h-4 text-white" />
@@ -583,14 +586,14 @@ const MainContent = () => {
                     description: 'Enlace metropolitano y sensores de parquímetro activos al 100%.',
                   });
                 }}
-                className="px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-black font-sans font-bold text-xs uppercase tracking-wider flex items-center gap-2 border border-slate-200 transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                className="px-4 py-2.5 rounded-2xl bg-white/40 hover:bg-white/60 backdrop-blur-md text-black font-sans font-bold text-xs uppercase tracking-wider flex items-center gap-2 border border-slate-200/50 shadow-none transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                 title="Ejecutar diagnóstico de red"
               >
                 <Sparkles className="w-4 h-4 fill-current text-amber-500" />
                 <span>Diagnóstico de Red</span>
               </button>
 
-              <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 shrink-0">
+              <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/30 border border-slate-200/40 backdrop-blur-sm shrink-0">
                 <PlugConnectedIcon size={18} className="text-emerald-500" />
                 <div className="text-left font-sans">
                   <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold font-mono">Sistema Online</div>
@@ -608,8 +611,8 @@ const MainContent = () => {
               aria-labelledby="quick-recharge-dialog-title"
               className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex items-center justify-center p-4"
             >
-              <div className="bg-white border border-slate-200 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 text-black flex items-center justify-center mx-auto mb-3 shadow-sm">
+              <div className="bg-white/80 backdrop-blur-2xl border border-white/60 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+                <div className="w-12 h-12 rounded-2xl bg-white/50 border border-slate-200/50 text-black flex items-center justify-center mx-auto mb-3 backdrop-blur-sm">
                   <CurrencyDollarIcon size={24} strokeWidth={2} className="text-black" />
                 </div>
                 <h3 id="quick-recharge-dialog-title" className="text-lg font-black text-black mb-1 font-sans">Recarga Rápida de Saldo</h3>
@@ -629,8 +632,8 @@ const MainContent = () => {
                           onClick={() => setRechargeAmt(amt)}
                           className={`py-2 rounded-xl text-xs font-sans font-bold border transition flex items-center justify-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
                             rechargeAmt === amt
-                              ? 'bg-black text-white border-black shadow-sm'
-                              : 'bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-200'
+                              ? 'bg-black/80 text-white border-black shadow-sm backdrop-blur-sm'
+                              : 'bg-white/40 text-slate-800 border-slate-200/50 hover:bg-white/70 backdrop-blur-sm'
                           }`}
                         >
                           <CurrencyDollarIcon size={12} strokeWidth={2.2} />
@@ -644,13 +647,13 @@ const MainContent = () => {
                     <button
                       type="button"
                       onClick={() => setShowRechargeQuickModal(false)}
-                      className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-sans hover:bg-slate-50 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                      className="flex-1 py-2.5 rounded-xl border border-slate-200/50 bg-white/30 backdrop-blur-sm text-slate-700 text-xs font-sans hover:bg-white/50 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 py-2.5 rounded-xl bg-black hover:bg-slate-800 text-white text-xs font-sans font-bold transition shadow-sm flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                      className="flex-1 py-2.5 rounded-xl bg-black/75 hover:bg-black/90 backdrop-blur-md text-white text-xs font-sans font-bold transition border border-black/10 shadow-none flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                     >
                       <CurrencyDollarIcon size={14} strokeWidth={2.2} />
                       <span>Recargar <span className="font-mono">${rechargeAmt}</span></span>
@@ -669,13 +672,13 @@ const MainContent = () => {
               aria-labelledby="quick-qr-dialog-title"
               className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex items-center justify-center p-4"
             >
-              <div className="bg-white border border-slate-200 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+              <div className="bg-white/80 backdrop-blur-2xl border border-white/60 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
                 <h3 id="quick-qr-dialog-title" className="text-lg font-black text-black mb-1 font-sans">Credencial QR de Inspección</h3>
                 <p className="text-xs text-slate-600 mb-6 font-sans">
                   Lectura directa para agentes de tránsito vial
                 </p>
 
-                <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl inline-block shadow-inner mb-4">
+                <div className="bg-white/40 border border-slate-200/50 p-4 rounded-2xl inline-block backdrop-blur-sm mb-4">
                   <svg className="w-48 h-48 mx-auto" viewBox="0 0 100 100" role="img" aria-label={`Código QR para el vehículo con placas ${vehicle.plates}`}>
                     <rect width="100" height="100" fill="#F8FAFC" />
                     <rect x="5" y="5" width="26" height="26" fill="#000000" />
@@ -704,7 +707,7 @@ const MainContent = () => {
                   </svg>
                 </div>
 
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 mb-6 text-xs font-sans text-slate-800 flex items-center justify-between">
+                <div className="bg-white/40 border border-slate-200/50 rounded-xl p-2.5 mb-6 text-xs font-sans text-slate-800 flex items-center justify-between backdrop-blur-sm">
                   <span>Placas: <strong className="text-black font-mono">{vehicle.plates}</strong></span>
                   <span className="text-emerald-700 font-bold">● Validado</span>
                 </div>
@@ -712,7 +715,7 @@ const MainContent = () => {
                 <button
                   type="button"
                   onClick={() => setShowQRQuickModal(false)}
-                  className="w-full py-2.5 rounded-xl bg-black hover:bg-slate-800 text-white text-xs font-sans font-bold transition shadow-sm cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                  className="w-full py-2.5 rounded-xl bg-black/75 hover:bg-black/90 backdrop-blur-md text-white text-xs font-sans font-bold transition border border-black/10 shadow-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                 >
                   Cerrar Credencial
                 </button>
@@ -755,7 +758,7 @@ const MainContent = () => {
         </section>
 
         {/* Footer con Logos 100% Transparentes y Powered by SSS.Solutions */}
-        <footer className="border-t border-slate-200 bg-slate-50 py-10 text-center text-xs text-slate-600 mt-12">
+        <footer className="border-t border-slate-200/50 bg-transparent py-10 text-center text-xs text-slate-600 mt-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
             
             {/* Identidad Parqu - Logo Negro para fondo blanco */}
@@ -773,7 +776,7 @@ const MainContent = () => {
             </div>
 
             {/* Powered by SSS.Solutions - Logo Oficial */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 py-2 px-5 rounded-full bg-white border border-slate-200 font-sans shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center gap-3 py-2 px-5 rounded-full bg-white/40 backdrop-blur-md border border-slate-200/50 font-sans shadow-none">
               <span className="text-[11px] uppercase tracking-[0.2em] font-mono text-slate-500">
                 Powered by
               </span>

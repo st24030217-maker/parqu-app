@@ -286,7 +286,7 @@ export const OrbitalWheelMenu = ({
           
           {/* Categoría y Badge de Estado */}
           <div className="flex items-center gap-2.5">
-            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-[10px] font-mono font-bold tracking-widest uppercase text-slate-700">
+            <span className="px-2.5 py-0.5 rounded-full bg-white/40 border border-slate-200/50 backdrop-blur-sm text-[10px] font-mono font-bold tracking-widest uppercase text-slate-700">
               {currentItem.category}
             </span>
             <span className="text-[10px] font-mono font-bold text-slate-400">
@@ -297,7 +297,7 @@ export const OrbitalWheelMenu = ({
           {/* Icono y Título */}
           <div>
             <div className="flex items-center gap-3 mb-1.5">
-              <div className="w-10 h-10 rounded-2xl bg-black text-white flex items-center justify-center shadow-sm shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-black/80 backdrop-blur-md text-white flex items-center justify-center border border-black/10 shadow-none shrink-0">
                 {CurrentIcon && <CurrentIcon className="w-5 h-5 text-white" />}
               </div>
               <h4 className="text-2xl sm:text-3xl font-black text-slate-950 font-sans tracking-tight">
@@ -429,7 +429,7 @@ export const OrbitalWheelMenu = ({
               type="button"
               aria-label={`Abrir ${currentItem.label} y descender al sistema`}
               onClick={() => handleNavigateAndScroll(currentItem.actionTarget)}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-black hover:bg-slate-800 text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-black/80 hover:bg-black/95 backdrop-blur-md text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-black/10 shadow-none transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
             >
               <span>Abrir en el Sistema</span>
               <ArrowDown className="w-3.5 h-3.5 text-white animate-bounce" />
@@ -451,7 +451,7 @@ export const OrbitalWheelMenu = ({
                   <button
                     type="button"
                     onClick={handleStartParking}
-                    className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                    className="py-1.5 px-3.5 rounded-full bg-white/40 hover:bg-white/70 backdrop-blur-sm border border-slate-200/50 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <Play size={12} />
                     <span>Iniciar Estancia</span>
@@ -466,7 +466,7 @@ export const OrbitalWheelMenu = ({
                       key={amt}
                       type="button"
                       onClick={() => handleQuickRechargeAmt(amt)}
-                      className="py-1 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-black font-mono text-xs font-bold transition cursor-pointer"
+                      className="py-1 px-3 rounded-full bg-white/40 hover:bg-white/70 backdrop-blur-sm border border-slate-200/50 text-black font-mono text-xs font-bold transition cursor-pointer"
                     >
                       +${amt}
                     </button>
@@ -474,7 +474,7 @@ export const OrbitalWheelMenu = ({
                   <button
                     type="button"
                     onClick={onOpenRecharge}
-                    className="py-1 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition cursor-pointer"
+                    className="py-1 px-3 rounded-full bg-white/40 hover:bg-white/70 backdrop-blur-sm border border-slate-200/50 text-slate-800 text-xs font-bold transition cursor-pointer"
                   >
                     Otro
                   </button>
@@ -485,7 +485,7 @@ export const OrbitalWheelMenu = ({
                 <button
                   type="button"
                   onClick={handleToggleAutoPay}
-                  className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  className="py-1.5 px-3.5 rounded-full bg-white/40 hover:bg-white/70 backdrop-blur-sm border border-slate-200/50 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <Zap size={12} />
                   <span>{autoPay?.enabled ? 'Pausar Autocobro' : 'Activar Autocobro'}</span>
@@ -497,7 +497,7 @@ export const OrbitalWheelMenu = ({
                   <button
                     type="button"
                     onClick={handleCopyPlates}
-                    className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                    className="py-1.5 px-3.5 rounded-full bg-white/40 hover:bg-white/70 backdrop-blur-sm border border-slate-200/50 text-black text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
                     {copied ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
                     <span>{copied ? 'Copiado' : 'Copiar Placas'}</span>
@@ -505,7 +505,7 @@ export const OrbitalWheelMenu = ({
                   <button
                     type="button"
                     onClick={onOpenQR}
-                    className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                    className="py-1.5 px-3.5 rounded-full bg-white/40 hover:bg-white/70 backdrop-blur-sm border border-slate-200/50 text-black text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <QrCode size={12} />
                     <span>Ver QR</span>
@@ -517,7 +517,7 @@ export const OrbitalWheelMenu = ({
                 <button
                   type="button"
                   onClick={() => handleNavigateAndScroll('dashboard')}
-                  className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  className="py-1.5 px-3.5 rounded-full bg-white/40 hover:bg-white/70 backdrop-blur-sm border border-slate-200/50 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <MapPin size={12} />
                   <span>Ver Mapa en Panel</span>
@@ -528,7 +528,7 @@ export const OrbitalWheelMenu = ({
                 <button
                   type="button"
                   onClick={() => handleNavigateAndScroll('vehicle')}
-                  className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  className="py-1.5 px-3.5 rounded-full bg-white/40 hover:bg-white/70 backdrop-blur-sm border border-slate-200/50 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <Car size={12} />
                   <span>Editar Vehículo</span>
@@ -539,7 +539,7 @@ export const OrbitalWheelMenu = ({
                 <button
                   type="button"
                   onClick={() => handleNavigateAndScroll('history')}
-                  className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  className="py-1.5 px-3.5 rounded-full bg-white/40 hover:bg-white/70 backdrop-blur-sm border border-slate-200/50 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <History size={12} />
                   <span>Ver Todos los Recibos</span>

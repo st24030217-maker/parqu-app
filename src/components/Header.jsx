@@ -36,8 +36,8 @@ export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       className={`sticky top-0 z-40 transition-all duration-300 ${
         isScrolled
-          ? 'bg-white/90 backdrop-blur-2xl backdrop-saturate-150 border-b border-slate-200/90 shadow-[0_4px_25px_rgba(0,0,0,0.05)]'
-          : 'bg-[#01033E]/60 backdrop-blur-2xl backdrop-saturate-150 border-b border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]'
+          ? 'bg-white/40 backdrop-blur-2xl border-b border-slate-200/50 shadow-none'
+          : 'bg-slate-900/20 backdrop-blur-2xl border-b border-white/10 shadow-none'
       }`}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
@@ -168,9 +168,9 @@ export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }
             }}
-            className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-sans font-bold transition-all duration-300 active:scale-95 cursor-pointer shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-sans font-bold transition-all duration-300 active:scale-95 cursor-pointer shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
               isScrolled
-                ? 'bg-slate-100 hover:bg-slate-200 text-black border border-slate-200'
+                ? 'bg-white/40 hover:bg-white/60 text-black border border-slate-200/50'
                 : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
             }`}
             title="Ir al Selector Orbital 3D"
@@ -192,10 +192,10 @@ export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }
             }}
-            className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-sans font-bold transition-all duration-300 active:scale-95 cursor-pointer shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-sans font-bold transition-all duration-300 active:scale-95 cursor-pointer shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
               isScrolled
-                ? 'bg-black hover:bg-slate-800 text-white border border-black'
-                : 'bg-[#0033FF]/30 text-white hover:bg-[#0033FF]/50 border border-[#0033FF]/60 shadow-[0_0_20px_rgba(0,51,255,0.4)]'
+                ? 'bg-black/75 hover:bg-black/90 text-white border border-black/10 backdrop-blur-md'
+                : 'bg-[#0033FF]/30 text-white hover:bg-[#0033FF]/50 border border-[#0033FF]/40 backdrop-blur-md'
             }`}
             title="Ir directo al Panel de Control Metropolitano"
           >

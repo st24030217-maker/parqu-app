@@ -35,7 +35,7 @@ export const VehicleOwnerForm = () => {
 
   return (
     <WobbleCard
-      containerClassName="w-full bg-gradient-to-br from-[#01033E] via-[#01033E] to-[#02052b] border border-slate-200/80 shadow-2xl transition-colors"
+      containerClassName="w-full bg-slate-900/30 backdrop-blur-2xl border border-slate-300/30 shadow-none transition-colors"
       className="p-6 sm:p-8 flex flex-col justify-between"
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-white/10 mb-6 gap-3">

@@ -44,7 +44,7 @@ export const Tabs = ({
         role="tablist"
         aria-label="Pestañas de control del sistema Parqu"
         className={cn(
-          "flex overflow-x-auto sm:flex-wrap items-center gap-1.5 sm:gap-2 p-1.5 rounded-2xl bg-slate-100/90 border border-slate-200/90 backdrop-blur-xl [perspective:1000px] relative max-w-full shadow-sm scrollbar-none",
+          "flex overflow-x-auto sm:flex-wrap items-center gap-1.5 sm:gap-2 p-1.5 rounded-2xl bg-white/30 border border-slate-200/40 backdrop-blur-2xl [perspective:1000px] relative max-w-full shadow-none scrollbar-none",
           containerClassName
         )}
       >
@@ -76,7 +76,7 @@ export const Tabs = ({
                   layoutId="activeAceternityTabPill"
                   transition={{ type: "spring", bounce: 0.22, duration: 0.45 }}
                   className={cn(
-                    "absolute inset-0 bg-white rounded-xl shadow-md border border-slate-200/90",
+                    "absolute inset-0 bg-white/70 backdrop-blur-xl rounded-xl shadow-sm border border-slate-200/60",
                     activeTabClassName
                   )}
                 />
@@ -90,8 +90,8 @@ export const Tabs = ({
                     className={cn(
                       "text-[9px] px-2 py-0.5 rounded-full font-mono transition-colors font-bold",
                       isActive
-                        ? "bg-slate-100 text-black border border-slate-200"
-                        : "bg-slate-200/70 text-slate-800 border border-slate-300/60"
+                        ? "bg-white/50 text-black border border-slate-200/50"
+                        : "bg-slate-200/50 text-slate-800 border border-slate-300/40"
                     )}
                   >
                     {tab.badge}

@@ -35,16 +35,12 @@ export const WobbleCard = ({
         transition: "transform 0.15s ease-out",
       }}
       className={cn(
-        "mx-auto w-full bg-neutral-950 relative rounded-3xl overflow-hidden border border-neutral-800/80 shadow-2xl group",
+        "mx-auto w-full relative rounded-3xl overflow-hidden border border-slate-200/40 group",
         containerClassName
       )}
     >
       <div
         className="relative h-full [background-image:radial-gradient(88%_100%_at_top,rgba(255,255,255,0.08),rgba(255,255,255,0))] sm:rounded-3xl overflow-hidden"
-        style={{
-          boxShadow:
-            "0 10px 32px 0 rgba(0, 0, 0, 0.4), 0 1px 1px 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 24px 108px 0 rgba(0, 0, 0, 0.6)",
-        }}
       >
         <motion.div
           style={{

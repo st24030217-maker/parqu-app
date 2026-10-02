@@ -57,7 +57,7 @@ export const DigitalCard = () => {
 
   // Portada frontal con efecto 3D y el logo oficial de SSS.Solutions en paleta #01033E, #0033FF, #807DFE y #D4D6E6
   const FrontCover = (
-    <CardBody className="relative w-full h-full min-h-[270px] md:min-h-[295px] rounded-3xl bg-gradient-to-br from-[#01033E]/90 via-[#01033E]/70 to-[#0033FF]/30 backdrop-blur-2xl backdrop-saturate-150 border border-[#807DFE]/30 p-6 md:p-8 flex flex-col justify-between overflow-hidden shadow-2xl">
+    <CardBody className="relative w-full h-full min-h-[270px] md:min-h-[295px] rounded-3xl bg-gradient-to-br from-slate-900/35 via-blue-900/20 to-indigo-950/25 backdrop-blur-2xl border border-white/20 p-6 md:p-8 flex flex-col justify-between overflow-hidden shadow-none">
       {/* Resplandor holográfico y textura de grano */}
       <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#0033FF]/[0.25] rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-[#807DFE]/[0.2] rounded-full blur-3xl pointer-events-none" />

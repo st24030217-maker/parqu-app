@@ -57,7 +57,7 @@ export const ParkingMeter = () => {
 
   return (
     <WobbleCard
-      containerClassName="w-full bg-gradient-to-br from-[#01033E] via-[#01033E] to-[#02052b] border border-slate-200/80 shadow-2xl transition-colors"
+      containerClassName="w-full bg-slate-900/30 backdrop-blur-2xl border border-slate-300/30 shadow-none transition-colors"
       className="p-6 sm:p-8 flex flex-col justify-between"
     >
       {/* Encabezado Wobble Card */}
@@ -132,8 +132,8 @@ export const ParkingMeter = () => {
       {/* Cuando está ESTACIONADO */}
       {activeSession ? (
         <div className="space-y-6">
-          <div className="bg-[#01033E]/60 backdrop-blur-xl border border-white/15 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[#0033FF]/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-none">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#0033FF]/15 rounded-full blur-3xl pointer-events-none" />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
               {/* Cronómetro en Vivo */}

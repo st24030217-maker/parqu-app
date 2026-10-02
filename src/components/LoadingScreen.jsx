@@ -1,22 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { RadialGlowButton } from './ui/radial-glow-button';
-import { HaloHorizon } from './ui/halo-horizon';
 import { ArrowRight } from 'lucide-react';
 
 export const LoadingScreen = ({ onComplete }) => {
   const [isExiting, setIsExiting] = useState(false);
   const hasExitedRef = useRef(false);
 
-  // Ejecuta la animación de revelado vertical escalonado al presionar "Empecemos"
+  // Ejecuta la animación de salida suave en un solo plano continuo (sin columnas ni líneas divisorias)
   const handleTriggerExit = useCallback(() => {
     if (hasExitedRef.current) return;
     hasExitedRef.current = true;
     setIsExiting(true);
 
-    // Duración de la animación: retraso de la última columna (4 * 0.08s = 0.32s) + subida (0.85s) = ~1.17s
     setTimeout(() => {
       if (onComplete) onComplete();
-    }, 1150);
+    }, 700);
   }, [onComplete]);
 
   // Atajo de teclado: Enter o Barra espaciadora para activar la animación
@@ -41,84 +38,62 @@ export const LoadingScreen = ({ onComplete }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden select-none pointer-events-auto bg-transparent font-sans">
+    <div
+      style={{
+        transform: isExiting ? 'translateY(-100%)' : 'translateY(0%)',
+        opacity: isExiting ? 0 : 1,
+        transition: 'transform 0.7s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.5s ease',
+        willChange: 'transform, opacity',
+      }}
+      className="fixed inset-0 z-50 overflow-hidden select-none pointer-events-auto bg-slate-950/20 backdrop-blur-2xl font-sans flex flex-col items-center justify-center px-4 sm:px-6"
+    >
       {/* 
         ══════════════════════════════════════════════════════════════
-        FONDO HALOHORIZON BLANCO Y AZUL: 5 PERSIANAS UNIFORMES
-        (Al hacer clic en "Empecemos", se deslizan hacia arriba en cascada)
+        FONDO 100% TRANSPARENTE UNIFICADO (CERO LÍNEAS NI CORTES EN IPAD)
         ══════════════════════════════════════════════════════════════
       */}
-      <div className="absolute inset-0 grid grid-cols-5 pointer-events-none z-0">
-        {[0, 1, 2, 3, 4].map((idx) => (
-          <div
-            key={idx}
-            style={{
-              transform: isExiting ? 'translateY(-100%)' : 'translateY(0%)',
-              transition: isExiting
-                ? `transform 0.85s cubic-bezier(0.76, 0, 0.24, 1) ${idx * 0.08}s`
-                : 'none',
-              willChange: 'transform',
-            }}
-            className="relative h-full w-full overflow-hidden bg-[#01033E]"
-          >
-            {/* Slice continuo de HaloHorizon por columna */}
-            <div
-              className="absolute top-0 h-full pointer-events-none"
-              style={{
-                width: '500%',
-                left: `-${idx * 100}%`,
-              }}
-            >
-              <HaloHorizon variant="top" className="h-full w-full pointer-events-none" />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* 
-        ══════════════════════════════════════════════════════════════
-        CONTENIDO HERO MINIMALISTA: EXCLUSIVAMENTE LOGO, SLOGAN Y BOTÓN
-        ══════════════════════════════════════════════════════════════
-      */}
-      <div
+      <div 
+        className="absolute inset-0 pointer-events-none"
         style={{
-          opacity: isExiting ? 0 : 1,
-          transform: isExiting ? 'translateY(-30px)' : 'translateY(0)',
-          transition: 'opacity 0.35s ease, transform 0.35s ease',
-          pointerEvents: isExiting ? 'none' : 'auto',
+          background: 'radial-gradient(ellipse at 50% 45%, rgba(0, 51, 255, 0.15) 0%, rgba(128, 125, 254, 0.08) 40%, transparent 75%)',
         }}
-        className="absolute inset-0 z-10 h-full w-full flex flex-col items-center justify-center px-4 sm:px-6"
-      >
-        <div className="flex flex-col items-center justify-center text-center max-w-xl w-full space-y-6 sm:space-y-8">
-          
-          {/* Logotipo Oficial Parqu con Halo Sutil */}
-          <div className="relative flex items-center justify-center">
-            <div className="absolute -inset-8 bg-gradient-to-r from-[#0033FF]/30 via-[#807DFE]/20 to-[#0033FF]/30 rounded-full blur-3xl pointer-events-none" />
-            <img
-              src="./parqu-logo-white.png"
-              alt="Parqu Logo"
-              style={{ maxHeight: '130px' }}
-              className="h-24 sm:h-28 md:h-32 w-auto object-contain relative z-10 drop-shadow-[0_0_35px_rgba(128,125,254,0.45)]"
-            />
-          </div>
+      />
 
-          {/* Slogan en Tipografía Satoshi */}
-          <p className="font-sans text-base sm:text-lg md:text-xl text-[#D4D6E6] font-normal tracking-normal leading-relaxed px-2">
-            Sistema Inteligente de <span className="text-white font-bold">Parquímetros</span> y Autocobro Digital
-          </p>
-
-          {/* Botón "Empecemos" para Iniciar la Animación de Revelado */}
-          <div className="pt-2">
-            <RadialGlowButton
-              onClick={handleTriggerExit}
-              className="font-sans text-sm sm:text-base font-bold shadow-2xl px-10 py-4 cursor-pointer hover:scale-105 active:scale-95 transition-all duration-300"
-            >
-              <span>Empecemos</span>
-              <ArrowRight className="w-5 h-5 text-white inline transition-transform duration-300 group-hover:translate-x-1.5" />
-            </RadialGlowButton>
-          </div>
-
+      {/* 
+        ══════════════════════════════════════════════════════════════
+        CONTENIDO HERO MINIMALISTA, ESTÉTICO Y TRANSPARENTE
+        ══════════════════════════════════════════════════════════════
+      */}
+      <div className="relative z-10 flex flex-col items-center justify-center text-center max-w-lg w-full space-y-6 sm:space-y-8">
+        
+        {/* Logotipo Oficial Parqu con Resplandor Sutil */}
+        <div className="relative flex items-center justify-center">
+          <div className="absolute -inset-8 bg-gradient-to-r from-[#0033FF]/25 via-[#807DFE]/20 to-[#0033FF]/25 rounded-full blur-3xl pointer-events-none" />
+          <img
+            src="./parqu-logo-white.png"
+            alt="Parqu Logo"
+            style={{ maxHeight: '120px' }}
+            className="h-24 sm:h-28 md:h-32 w-auto object-contain relative z-10 drop-shadow-[0_0_35px_rgba(128,125,254,0.45)]"
+          />
         </div>
+
+        {/* Slogan en Tipografía Satoshi */}
+        <p className="font-sans text-base sm:text-lg md:text-xl text-[#D4D6E6] font-normal tracking-normal leading-relaxed px-2 drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
+          Sistema Inteligente de <span className="text-white font-bold">Parquímetros</span> y Autocobro Digital
+        </p>
+
+        {/* Botón "Empecemos" Totalmente Transparente y Glassmorphic */}
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={handleTriggerExit}
+            className="font-sans text-sm sm:text-base font-bold text-white px-10 py-3.5 sm:py-4 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 transition-all duration-300 backdrop-blur-xl border border-white/30 shadow-[0_0_35px_rgba(128,125,254,0.35)] flex items-center justify-center gap-2.5 mx-auto cursor-pointer group"
+          >
+            <span>Empecemos</span>
+            <ArrowRight className="w-5 h-5 text-white inline transition-transform duration-300 group-hover:translate-x-1.5" />
+          </button>
+        </div>
+
       </div>
     </div>
   );
