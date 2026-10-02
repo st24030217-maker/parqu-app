@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Clock, Zap, Sparkles, Activity, Compass, HeartHandshake } from 'lucide-react';
+import { ShieldCheck, Clock, Zap, Sparkles, Activity, Compass } from 'lucide-react';
 import { PlugConnectedIcon } from './icons';
 import { useParking } from '../context/ParkingContext';
-import { useAccessibility } from '../context/AccessibilityContext';
 
 export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
-  const { openAccessibilityModal } = useAccessibility();
   const { activeSession, vehicle } = useParking();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isScrolled, setIsScrolled] = useState(false);
@@ -157,22 +155,6 @@ export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
               </span>
             </div>
           )}
-
-          {/* Botón Acceso Rápido a Accesibilidad e Inclusión */}
-          <button
-            type="button"
-            aria-label="Abrir asistente de accesibilidad universal"
-            onClick={openAccessibilityModal}
-            className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-sans font-bold transition-all duration-300 active:scale-95 cursor-pointer shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
-              isScrolled
-                ? 'bg-slate-100 hover:bg-slate-200 text-black border border-slate-200'
-                : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
-            }`}
-            title="Opciones de Accesibilidad e Inclusión"
-          >
-            <HeartHandshake className={`w-3.5 h-3.5 shrink-0 transition-colors duration-300 ${isScrolled ? 'text-black' : 'text-amber-400'}`} />
-            <span className="hidden md:inline">Accesibilidad</span>
-          </button>
 
           {/* Botón Acceso Rápido al Selector Orbital 3D */}
           <button

@@ -34,18 +34,12 @@ import {
   QrCode,
   Activity,
   MapPin,
-  Compass,
-  HeartHandshake
+  Compass
 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { triggerHaptic } from './utils/haptics';
-import { AccessibilityProvider, useAccessibility } from './context/AccessibilityContext';
-import { AccessibilityOnboardingModal } from './components/AccessibilityOnboardingModal';
-import { AccessibilityFloatingButton } from './components/ui/AccessibilityFloatingButton';
-import { VisualSubtitleOverlay } from './components/ui/VisualSubtitleOverlay';
-import { AccessibilitySection } from './components/AccessibilitySection';
 
 const MainContent = () => {
   const { 
@@ -475,19 +469,6 @@ const MainContent = () => {
         </AnimeStaggerGroup>
       ),
     },
-    {
-      title: 'Inclusión & Accesibilidad',
-      value: 'accessibility',
-      icon: HeartHandshake,
-      badge: 'WCAG AAA',
-      content: (
-        <AnimeStaggerGroup triggerKey={activeTab} className="max-w-5xl mx-auto space-y-6">
-          <div className="anime-stagger-card">
-            <AccessibilitySection />
-          </div>
-        </AnimeStaggerGroup>
-      ),
-    },
   ];
 
   return (
@@ -834,23 +815,18 @@ export default function App() {
   };
 
   return (
-    <AccessibilityProvider>
-      <ParkingProvider>
-        <Toaster position="top-right" theme="light" options={{ fill: '#000000' }} />
-        <ErrorBoundary fallbackText="Centro de Operaciones Parqu">
-          <MainContent />
-        </ErrorBoundary>
-        <AccessibilityOnboardingModal />
-        <AccessibilityFloatingButton />
-        <VisualSubtitleOverlay />
-        <AnimatePresence>
-          {isLoading && (
-            <ErrorBoundary key="loading-screen" fallbackText="Iniciando Parqu...">
-              <LoadingScreen onComplete={handleStart} />
-            </ErrorBoundary>
-          )}
-        </AnimatePresence>
-      </ParkingProvider>
-    </AccessibilityProvider>
+    <ParkingProvider>
+      <Toaster position="top-right" theme="light" options={{ fill: '#000000' }} />
+      <ErrorBoundary fallbackText="Centro de Operaciones Parqu">
+        <MainContent />
+      </ErrorBoundary>
+      <AnimatePresence>
+        {isLoading && (
+          <ErrorBoundary key="loading-screen" fallbackText="Iniciando Parqu...">
+            <LoadingScreen onComplete={handleStart} />
+          </ErrorBoundary>
+        )}
+      </AnimatePresence>
+    </ParkingProvider>
   );
 }

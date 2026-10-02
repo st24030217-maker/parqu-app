@@ -26,7 +26,6 @@ import {
   Sparkles,
   Volume2,
   VolumeX,
-  HeartHandshake,
 } from 'lucide-react';
 import { PlugConnectedIcon } from '../icons';
 import { isAudioEnabled, setAudioEnabled, playMovementNote } from '../../utils/wheelAudio';
@@ -107,16 +106,6 @@ export const MENU_ITEMS = [
     actionTarget: 'history',
     badge: 'AUDITABLE',
     description: 'Registro histórico y recibos foliados con hora y costo exacto.'
-  },
-  {
-    id: 'accessibility',
-    label: 'Inclusión & Accesibilidad',
-    shortLabel: 'Accesibilidad',
-    category: 'UNIVERSAL WCAG',
-    icon: HeartHandshake,
-    actionTarget: 'accessibility',
-    badge: 'INCLUSIVO',
-    description: 'Alto contraste, lectores de pantalla, subtítulos y navegación adaptada.'
   },
 ];
 
@@ -554,17 +543,6 @@ export const OrbitalWheelMenu = ({
                 >
                   <History size={12} />
                   <span>Ver Todos los Recibos</span>
-                </button>
-              )}
-
-              {currentItem.id === 'accessibility' && (
-                <button
-                  type="button"
-                  onClick={() => handleNavigateAndScroll('accessibility')}
-                  className="py-1.5 px-3.5 rounded-full bg-black text-white hover:bg-slate-800 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm"
-                >
-                  <HeartHandshake size={12} />
-                  <span>Configurar Accesibilidad</span>
                 </button>
               )}
             </div>
