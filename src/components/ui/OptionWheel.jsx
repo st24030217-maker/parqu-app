@@ -51,13 +51,17 @@ export const OptionWheel = ({
   const selectedRef = useRef(initialIndex);
   const wheelTimerRef = useRef(null);
   const wheelAccumulatorRef = useRef(0);
+  
+  // Drag y Touch state para scroll táctil con el dedo
+  const isDraggingRef = useRef(false);
   const dragRef = useRef(null);
-  const dragMovedRef = useRef(false);
+  const velocityRef = useRef(0);
+  const [internalSelectedIndex, setInternalSelectedIndex] = useState(initialIndex);
+  const [isDragging, setIsDragging] = useState(false);
+
   const audioRef = useRef(null);
   const audioUrlRef = useRef('');
   const lastTickRef = useRef(0);
-  const [internalSelectedIndex, setInternalSelectedIndex] = useState(initialIndex);
-  const [isDragging, setIsDragging] = useState(false);
 
   const selectedIndex = controlledSelectedIndex !== undefined ? controlledSelectedIndex : internalSelectedIndex;
 
@@ -81,20 +85,28 @@ export const OptionWheel = ({
     soundVolume
   };
 
-  // rAF loop con amortiguación rápida ultra fluida y proyección en curva 3D
+  // Loop rAF para renderizar en 3D con aceleración por hardware
   const runFrame = useCallback(now => {
     const dt = Math.min((now - lastRef.current) / 1000, 0.05);
     lastRef.current = now;
     const cfg = cfgRef.current;
-    const tau = Math.max(cfg.smoothing, 1) / 1000;
-    const k = 1 - Math.exp(-dt / tau);
 
     const target = targetRef.current;
-    const cur = posRef.current;
-    let next = cur + (target - cur) * k;
-    const settled = Math.abs(target - next) < 0.001;
-    if (settled) next = target;
-    posRef.current = next;
+    let next;
+
+    // Si el usuario está arrastrando con el dedo o mouse, seguimiento 1:1 inmediato sin retraso
+    if (isDraggingRef.current) {
+      next = target;
+      posRef.current = next;
+    } else {
+      const tau = Math.max(cfg.smoothing, 1) / 1000;
+      const k = 1 - Math.exp(-dt / tau);
+      const cur = posRef.current;
+      next = cur + (target - cur) * k;
+      const settled = Math.abs(target - next) < 0.001;
+      if (settled) next = target;
+      posRef.current = next;
+    }
 
     const els = itemRefs.current;
     const n = cfg.count;
@@ -133,7 +145,11 @@ export const OptionWheel = ({
       el.style.setProperty('--ow-p', Math.max(0, 1 - Math.min(dist, 1)).toFixed(4));
     }
 
-    rafRef.current = settled ? null : requestAnimationFrame(runFrame);
+    if (isDraggingRef.current || Math.abs(targetRef.current - posRef.current) > 0.001) {
+      rafRef.current = requestAnimationFrame(runFrame);
+    } else {
+      rafRef.current = null;
+    }
   }, []);
 
   const startLoop = useCallback(() => {
@@ -149,7 +165,7 @@ export const OptionWheel = ({
     const { soundUrl, soundVolume } = cfgRef.current;
     if (!soundUrl) return;
     const now = performance.now();
-    if (now - lastTickRef.current < 50) return;
+    if (now - lastTickRef.current < 45) return;
     lastTickRef.current = now;
     if (!audioRef.current || audioUrlRef.current !== soundUrl) {
       audioRef.current = new Audio(soundUrl);
@@ -211,7 +227,7 @@ export const OptionWheel = ({
       const delta = e.deltaMode === 1 ? e.deltaY * 20 : e.deltaY;
       wheelAccumulatorRef.current += delta;
 
-      const threshold = 30; // Respuesta instantánea a cada tick de rueda
+      const threshold = 28; // Respuesta instantánea a cada tick de rueda
 
       if (Math.abs(wheelAccumulatorRef.current) >= threshold) {
         e.preventDefault();
@@ -228,7 +244,7 @@ export const OptionWheel = ({
           } else {
             wheelAccumulatorRef.current = 0;
           }
-        }, 35);
+        }, 30);
       }
     };
 
@@ -239,41 +255,140 @@ export const OptionWheel = ({
     };
   }, [applyTarget]);
 
+  // Soporte Touch nativo con scroll táctil de dedo e inercia (flick)
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+
+    let touchStartY = 0;
+    let touchLastY = 0;
+    let touchLastTime = 0;
+    let touchStartTarget = 0;
+    let isTouchActive = false;
+    let touchVelocity = 0;
+
+    const onTouchStart = e => {
+      if (!cfgRef.current.draggable) return;
+      if (e.touches.length !== 1) return;
+      const t = e.touches[0];
+      touchStartY = t.clientY;
+      touchLastY = t.clientY;
+      touchLastTime = performance.now();
+      touchStartTarget = targetRef.current;
+      isTouchActive = false;
+      touchVelocity = 0;
+    };
+
+    const onTouchMove = e => {
+      if (e.touches.length !== 1) return;
+      const t = e.touches[0];
+      const dy = t.clientY - touchStartY;
+      
+      if (!isTouchActive && Math.abs(dy) > 3) {
+        isTouchActive = true;
+        isDraggingRef.current = true;
+        setIsDragging(true);
+      }
+
+      if (isTouchActive) {
+        e.preventDefault(); // Evita que la pantalla rebote mientras el usuario desliza la ruleta
+        const now = performance.now();
+        const dt = now - touchLastTime;
+        if (dt > 8) {
+          touchVelocity = (t.clientY - touchLastY) / dt;
+          touchLastY = t.clientY;
+          touchLastTime = now;
+        }
+        applyTarget(touchStartTarget - dy / cfgRef.current.rowH, false);
+      }
+    };
+
+    const onTouchEnd = () => {
+      if (isTouchActive) {
+        isDraggingRef.current = false;
+        setIsDragging(false);
+        isTouchActive = false;
+        
+        // Inercia física: si deslizó rápido con el dedo, avanza proporcional a la velocidad
+        const rowH = cfgRef.current.rowH;
+        // Inversión: swipe hacia arriba (dy negativo) avanza en la lista
+        const momentumSteps = -touchVelocity * 170 / rowH;
+        const clampedMomentum = Math.max(-6, Math.min(6, Math.round(momentumSteps)));
+        applyTarget(Math.round(targetRef.current + clampedMomentum), true);
+      }
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
+    el.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, [applyTarget]);
+
+  // Arrastre con mouse en computadoras de escritorio (Pointer Events)
   const handlePointerDown = useCallback(e => {
+    if (e.pointerType === 'touch') return; // En móviles lo maneja el listener nativo touch
     if (!cfgRef.current.draggable) return;
-    dragRef.current = { y: e.clientY, start: targetRef.current, id: e.pointerId };
-    dragMovedRef.current = false;
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch (_) {}
+    dragRef.current = {
+      y: e.clientY,
+      start: targetRef.current,
+      id: e.pointerId,
+      lastY: e.clientY,
+      lastTime: performance.now()
+    };
+    velocityRef.current = 0;
+    isDraggingRef.current = true;
     setIsDragging(true);
   }, []);
 
   const handlePointerMove = useCallback(
     e => {
+      if (e.pointerType === 'touch') return;
       const drag = dragRef.current;
       if (!drag) return;
       const dy = e.clientY - drag.y;
-      if (!dragMovedRef.current && Math.abs(dy) > 3) {
-        dragMovedRef.current = true;
-        rootRef.current?.setPointerCapture(drag.id);
+      const now = performance.now();
+      const dt = now - drag.lastTime;
+      if (dt > 8) {
+        velocityRef.current = (e.clientY - drag.lastY) / dt;
+        drag.lastY = e.clientY;
+        drag.lastTime = now;
       }
-      if (dragMovedRef.current) {
-        applyTarget(drag.start - dy / cfgRef.current.rowH, false);
-      }
+      applyTarget(drag.start - dy / cfgRef.current.rowH, false);
     },
     [applyTarget]
   );
 
-  const handlePointerEnd = useCallback(() => {
-    if (!dragRef.current) return;
+  const handlePointerEnd = useCallback(e => {
+    if (e.pointerType === 'touch') return;
+    const drag = dragRef.current;
+    if (!drag) return;
+    try {
+      if (e?.pointerId) e.currentTarget?.releasePointerCapture(e.pointerId);
+    } catch (_) {}
     dragRef.current = null;
+    isDraggingRef.current = false;
     setIsDragging(false);
-    if (dragMovedRef.current) {
-      applyTarget(targetRef.current, true);
-    }
+
+    // Inercia con mouse
+    const rowH = cfgRef.current.rowH;
+    const momentumSteps = -velocityRef.current * 160 / rowH;
+    const clamped = Math.max(-5, Math.min(5, Math.round(momentumSteps)));
+    applyTarget(Math.round(targetRef.current + clamped), true);
   }, [applyTarget]);
 
   const handleItemClick = useCallback(
     index => {
-      if (dragMovedRef.current) return;
+      if (isDraggingRef.current) return;
       const cfg = cfgRef.current;
       const cur = targetRef.current;
       let d = index - (((cur % cfg.count) + cfg.count) % cfg.count);

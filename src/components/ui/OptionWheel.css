@@ -13,7 +13,10 @@
   overflow: hidden;
   cursor: grab;
   user-select: none;
-  touch-action: pan-y;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  touch-action: none !important;
   outline: none;
   /* Máscara de difuminado vertical 100% transparente para el efecto infinito en blanco */
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 12%, black 32%, black 68%, rgba(0,0,0,0.3) 88%, transparent 100%);
@@ -21,7 +24,7 @@
 }
 
 .option-wheel--dragging {
-  cursor: grabbing;
+  cursor: grabbing !important;
 }
 
 /* Cada opción centrada en el eje vertical y desplazada a lo largo del arco 3D */
@@ -39,6 +42,9 @@
   will-change: transform, opacity, filter;
   color: color-mix(in srgb, var(--ow-active-color) calc(var(--ow-p, 0) * 100%), var(--ow-text-color));
   transition: color 0.15s ease;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .option-wheel--right .option-wheel__item {
