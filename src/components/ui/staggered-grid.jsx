@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import HeroText from './hero-shutter-text';
-import CloudSky from './cloud-sky';
+import { Prism } from './Prism';
 
 export function StaggeredGrid({
   centerText = "BIENVENIDOS A PARQU",
@@ -12,26 +12,25 @@ export function StaggeredGrid({
   return (
     <div ref={containerRef} className={`relative w-full overflow-hidden text-white ${className}`}>
       
-      {/* ═══ 1. HERO SECTION CON ORIGINKIT CLOUD-SKY Y HERO SHUTTER TEXT ═══ */}
+      {/* ═══ 1. HERO SECTION CON PRISM 3D (REACT BITS) Y HERO SHUTTER TEXT ═══ */}
       <section className="relative z-10 min-h-[460px] sm:min-h-[520px] flex flex-col items-center justify-center text-center px-4 pt-12 pb-24 sm:pb-32 overflow-hidden">
         
-        {/* Fondo Animado WebGL Cloud-Sky de OriginKit */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-auto">
-          <CloudSky 
-            background="#01033E"
-            baseColor="#0033FF"
-            accentColor="#D4D6E6"
-            density={85}
-            speed={45}
-            size={125}
-            clouds={{ softness: 85, shadow: 80, cirrus: 40 }}
-            sun={{ x: 78, y: 90, glow: "rgba(128, 125, 254, 0.85)" }}
-            pointer={{ parallax: 130, wind: 100, damping: 25 }}
-            className="w-full h-full"
+        {/* Fondo Animado WebGL Prism 3D de React Bits - 100% Transparente y Fluido */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none flex items-center justify-center">
+          <Prism 
+            animationType="rotate"
+            transparent={true}
+            glow={1.2}
+            noise={0.12}
+            scale={4.0}
+            timeScale={0.4}
+            colorFrequency={1.1}
+            bloom={1.1}
+            suspendWhenOffscreen={true}
+            className="w-full h-full opacity-90"
           />
-          {/* Capas sutiles de sombreado y transición glassmorphism para contraste perfecto */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#01033E]/20 via-transparent to-[#01033E]/95 pointer-events-none" />
-          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#01033E] to-transparent pointer-events-none" />
+          {/* Capas sutiles de sombreado y transición glassmorphic */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-slate-950/80 pointer-events-none" />
         </div>
 
         {/* Badge Superior */}
