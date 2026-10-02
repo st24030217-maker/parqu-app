@@ -14,6 +14,7 @@ import {
   MapPin,
   Car,
   History,
+  CreditCard,
   ChevronDown,
   ArrowDown,
   Check,
@@ -23,7 +24,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react';
-import { CurrencyDollarIcon, PlugConnectedIcon } from '../icons';
+import { PlugConnectedIcon } from '../icons';
 
 function formatTimeFromSeconds(totalSecs = 0) {
   const mins = Math.floor(totalSecs / 60);
@@ -47,7 +48,7 @@ export const MENU_ITEMS = [
     label: 'Recarga Inmediata',
     shortLabel: 'Recarga Saldo',
     category: 'MONEDERO DIGITAL',
-    icon: CurrencyDollarIcon,
+    icon: CreditCard,
     actionTarget: 'recharge',
     badge: 'EXPRESS',
     description: 'Añade saldo instantáneo a tu tarjeta virtual sin comisiones.'
@@ -87,6 +88,7 @@ export const MENU_ITEMS = [
     label: 'Padrón Vehicular',
     shortLabel: 'Datos de Vehículo',
     category: 'REGISTRO MUNICIPAL',
+    icon: Car,
     actionTarget: 'vehicle',
     badge: 'OFICIAL',
     description: 'Consulta y actualiza placas, modelo y conductor registrado.'
@@ -150,7 +152,7 @@ export const OrbitalWheelMenu = ({
   }, [activeTab]);
 
   const currentItem = MENU_ITEMS[selectedIndex] || MENU_ITEMS[0];
-  const CurrentIcon = currentItem.icon;
+  const CurrentIcon = currentItem?.icon || Sparkles;
 
   // Acción principal: Abrir función y hacer scroll suave hacia abajo al sistema
   const handleNavigateAndScroll = useCallback((targetTab) => {
@@ -267,7 +269,7 @@ export const OrbitalWheelMenu = ({
             {/* Icono y Título */}
             <div className="flex items-center gap-3 mb-2.5">
               <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-slate-100 border border-slate-200 text-black flex items-center justify-center shrink-0">
-                <CurrentIcon className="w-5 h-5 text-black" />
+                {CurrentIcon && <CurrentIcon className="w-5 h-5 text-black" />}
               </div>
               <h4 className="text-lg sm:text-xl font-black text-slate-950 font-sans tracking-tight">
                 {currentItem.label}
@@ -560,7 +562,7 @@ export const OrbitalWheelMenu = ({
               loop={true}
               draggable={true}
               renderItem={(item, isSelected) => {
-                const ItemIcon = item.icon;
+                const ItemIcon = item?.icon || Sparkles;
                 return (
                   <span className="inline-flex items-center gap-2.5 sm:gap-3.5">
                     <span 
@@ -570,7 +572,7 @@ export const OrbitalWheelMenu = ({
                           : 'bg-slate-200/60 text-slate-700'
                       }`}
                     >
-                      <ItemIcon size={isMobile ? 14 : 16} />
+                      {ItemIcon && <ItemIcon size={isMobile ? 14 : 16} />}
                     </span>
                     <span className="tracking-tight">{item.label}</span>
                   </span>
