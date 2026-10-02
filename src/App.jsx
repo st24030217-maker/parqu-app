@@ -562,16 +562,16 @@ const MainContent = () => {
             <div className="flex flex-wrap items-center gap-3 font-sans">
               <button
                 type="button"
-                aria-label="Ir al Selector Orbital 3D"
+                aria-label="Ir al Menú 3D OptionWheel"
                 onClick={() => {
                   const el = document.getElementById('selector-orbital-metropolitano');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
                 className="px-4 py-2.5 rounded-2xl bg-black hover:bg-slate-800 text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
-                title="Ir al Selector Orbital 3D"
+                title="Ir al Menú 3D OptionWheel"
               >
                 <Compass className="w-4 h-4 text-white" />
-                <span>Selector Orbital 3D</span>
+                <span>Menú 3D OptionWheel</span>
               </button>
 
               <button
@@ -734,11 +734,13 @@ const MainContent = () => {
           </div>
 
           {/* COMPONENTE ACETERNITY UI TABS (Control centralizado de funciones con animación spring) */}
-          <Tabs 
-            tabs={systemTabs} 
-            activeTab={activeTab} 
-            onTabChange={setActiveTab} 
-          />
+          <div id="system-tabs-container" className="scroll-mt-24">
+            <Tabs 
+              tabs={systemTabs} 
+              activeTab={activeTab} 
+              onTabChange={setActiveTab} 
+            />
+          </div>
 
             </main>
         </section>
