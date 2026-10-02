@@ -3,6 +3,7 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import './OptionWheel.css';
 import { triggerHaptic } from '../../utils/haptics';
+import { playMovementNote, playSettleChime, resumeAudio } from '../../utils/wheelAudio';
 
 const DEFAULT_ITEMS = [
   'Tarjeta & Parquímetro',
@@ -34,7 +35,6 @@ export const OptionWheel = ({
   inset = 40,
   loop = true,
   draggable = true,
-  soundUrl = '',
   soundVolume = 0.4,
   className = '',
   renderItem,
@@ -56,11 +56,10 @@ export const OptionWheel = ({
   const isDraggingRef = useRef(false);
   const dragRef = useRef(null);
   const velocityRef = useRef(0);
+  const wasSettledRef = useRef(true);
   const [internalSelectedIndex, setInternalSelectedIndex] = useState(initialIndex);
   const [isDragging, setIsDragging] = useState(false);
 
-  const audioRef = useRef(null);
-  const audioUrlRef = useRef('');
   const lastTickRef = useRef(0);
 
   const selectedIndex = controlledSelectedIndex !== undefined ? controlledSelectedIndex : internalSelectedIndex;
@@ -81,11 +80,10 @@ export const OptionWheel = ({
     loop,
     smoothing: Math.max(smoothing, 25),
     draggable,
-    soundUrl,
     soundVolume
   };
 
-  // Loop rAF para renderizar en 3D con aceleración por hardware
+  // Loop rAF para renderizar en 3D con aceleración por hardware y música de movimiento
   const runFrame = useCallback(now => {
     const dt = Math.min((now - lastRef.current) / 1000, 0.05);
     lastRef.current = now;
@@ -98,13 +96,22 @@ export const OptionWheel = ({
     if (isDraggingRef.current) {
       next = target;
       posRef.current = next;
+      wasSettledRef.current = false;
     } else {
       const tau = Math.max(cfg.smoothing, 1) / 1000;
       const k = 1 - Math.exp(-dt / tau);
       const cur = posRef.current;
       next = cur + (target - cur) * k;
       const settled = Math.abs(target - next) < 0.001;
-      if (settled) next = target;
+      if (settled) {
+        next = target;
+        if (!wasSettledRef.current) {
+          wasSettledRef.current = true;
+          playSettleChime(selectedRef.current);
+        }
+      } else {
+        wasSettledRef.current = false;
+      }
       posRef.current = next;
     }
 
@@ -160,22 +167,14 @@ export const OptionWheel = ({
     rafRef.current = requestAnimationFrame(runFrame);
   }, [runFrame]);
 
-  const playTick = useCallback(() => {
+  // Reproduce una nota musical pentatónica y un micro-click háptico en cada movimiento
+  const playTick = useCallback((idx = selectedRef.current, velocity = 1.0) => {
     triggerHaptic();
-    const { soundUrl, soundVolume } = cfgRef.current;
-    if (!soundUrl) return;
+    resumeAudio();
     const now = performance.now();
-    if (now - lastTickRef.current < 45) return;
+    if (now - lastTickRef.current < 40) return;
     lastTickRef.current = now;
-    if (!audioRef.current || audioUrlRef.current !== soundUrl) {
-      audioRef.current = new Audio(soundUrl);
-      audioRef.current.preload = 'auto';
-      audioUrlRef.current = soundUrl;
-    }
-    const audio = audioRef.current;
-    audio.volume = Math.min(Math.max(soundVolume, 0), 1);
-    audio.currentTime = 0;
-    audio.play()?.catch(() => {});
+    playMovementNote(idx, velocity);
   }, []);
 
   const applyTarget = useCallback(
@@ -191,7 +190,7 @@ export const OptionWheel = ({
         selectedRef.current = idx;
         setInternalSelectedIndex(idx);
         onChangeRef.current?.(idx, cfg.items[idx]);
-        playTick();
+        playTick(idx, 1.0);
       }
       startLoop();
     },
@@ -215,12 +214,13 @@ export const OptionWheel = ({
     }
   }, [controlledSelectedIndex, startLoop]);
 
-  // Manejo de rueda de mouse ultra fluido con acumulador sensible
+  // Manejo de rueda de mouse ultra fluido con acumulador sensible y notas musicales
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
 
     const onWheel = e => {
+      resumeAudio();
       const cfg = cfgRef.current;
       if (!cfg.count) return;
 
@@ -255,7 +255,7 @@ export const OptionWheel = ({
     };
   }, [applyTarget]);
 
-  // Soporte Touch nativo con scroll táctil de dedo e inercia (flick)
+  // Soporte Touch nativo con scroll táctil de dedo, notas musicales e inercia (flick)
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
@@ -268,6 +268,7 @@ export const OptionWheel = ({
     let touchVelocity = 0;
 
     const onTouchStart = e => {
+      resumeAudio();
       if (!cfgRef.current.draggable) return;
       if (e.touches.length !== 1) return;
       const t = e.touches[0];
@@ -309,7 +310,7 @@ export const OptionWheel = ({
         setIsDragging(false);
         isTouchActive = false;
         
-        // Inercia física: si deslizó rápido con el dedo, avanza proporcional a la velocidad
+        // Inercia física: si deslizó rápido con el dedo, avanza con melodía proporcional
         const rowH = cfgRef.current.rowH;
         // Inversión: swipe hacia arriba (dy negativo) avanza en la lista
         const momentumSteps = -touchVelocity * 170 / rowH;
@@ -333,6 +334,7 @@ export const OptionWheel = ({
 
   // Arrastre con mouse en computadoras de escritorio (Pointer Events)
   const handlePointerDown = useCallback(e => {
+    resumeAudio();
     if (e.pointerType === 'touch') return; // En móviles lo maneja el listener nativo touch
     if (!cfgRef.current.draggable) return;
     try {
@@ -388,6 +390,7 @@ export const OptionWheel = ({
 
   const handleItemClick = useCallback(
     index => {
+      resumeAudio();
       if (isDraggingRef.current) return;
       const cfg = cfgRef.current;
       const cur = targetRef.current;
@@ -404,6 +407,7 @@ export const OptionWheel = ({
 
   const handleKeyDown = useCallback(
     e => {
+      resumeAudio();
       let delta = null;
       if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') delta = -1;
       else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') delta = 1;
@@ -428,7 +432,6 @@ export const OptionWheel = ({
     () => () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
-      audioRef.current?.pause();
     },
     []
   );
@@ -438,7 +441,7 @@ export const OptionWheel = ({
       ref={rootRef}
       role="listbox"
       tabIndex={0}
-      aria-label="Selector 3D de opciones"
+      aria-label="Selector 3D de opciones con música interactiva"
       className={`option-wheel${side === 'right' ? ' option-wheel--right' : ''}${side === 'center' ? ' option-wheel--center' : ''}${isDragging ? ' option-wheel--dragging' : ''}${className ? ` ${className}` : ''}`}
       style={{
         '--ow-text-color': textColor,

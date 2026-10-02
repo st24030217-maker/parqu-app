@@ -24,8 +24,11 @@ import {
   Sliders,
   ShieldCheck,
   Sparkles,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { PlugConnectedIcon } from '../icons';
+import { isAudioEnabled, setAudioEnabled, playMovementNote } from '../../utils/wheelAudio';
 
 function formatTimeFromSeconds(totalSecs = 0) {
   const mins = Math.floor(totalSecs / 60);
@@ -220,13 +223,54 @@ export const OrbitalWheelMenu = ({
     });
   }, [addBalance]);
 
+  const [soundActive, setSoundActive] = useState(() => isAudioEnabled());
+
+  const handleToggleSound = useCallback(() => {
+    const next = !soundActive;
+    setSoundActive(next);
+    setAudioEnabled(next);
+    if (next) {
+      playMovementNote(selectedIndex, 1.0);
+      sileo.success({
+        title: 'Música interactiva activada',
+        description: 'Notas melódicas y acústicas en cada giro de la ruleta.'
+      });
+    } else {
+      sileo.info({
+        title: 'Modo silencioso',
+        description: 'Sonidos de movimiento desactivados.'
+      });
+    }
+  }, [soundActive, selectedIndex]);
+
   return (
     <section 
       aria-label="Menú 3D de navegación y acceso al sistema"
       className={`w-full bg-transparent border-0 shadow-none relative py-3 sm:py-6 font-sans ${className}`}
     >
       {/* ═══ ENCABEZADO MINIMALISTA TOTALMENTE TRANSPARENTE ═══ */}
-      <div className="flex items-center justify-end gap-4 mb-2 sm:mb-4">
+      <div className="flex items-center justify-between gap-4 mb-2 sm:mb-4">
+        {/* Toggle de música y efectos sonoros interactivos */}
+        <button
+          type="button"
+          aria-label={soundActive ? 'Silenciar música de giros' : 'Activar música de giros'}
+          onClick={handleToggleSound}
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 hover:bg-slate-200 text-slate-700 hover:text-black transition-all text-[11px] font-sans font-semibold cursor-pointer shadow-sm active:scale-95"
+          title={soundActive ? 'Música interactiva activa al girar' : 'Activar música en movimientos'}
+        >
+          {soundActive ? (
+            <>
+              <Volume2 size={13} className="text-black" />
+              <span>Música Activa</span>
+            </>
+          ) : (
+            <>
+              <VolumeX size={13} className="text-slate-400" />
+              <span className="text-slate-500">Silenciado</span>
+            </>
+          )}
+        </button>
+
         <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400">
           <span className="font-bold text-slate-900">0{selectedIndex + 1}</span>
           <span>/</span>
