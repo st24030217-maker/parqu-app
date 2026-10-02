@@ -13,6 +13,7 @@ const SCALE_NOTES = [
   440.00, // A4 (La) - Mapa Satelital GPS
   523.25, // C5 (Do alto) - Padrón Vehicular
   587.33, // D5 (Re alto) - Historial de Cobros
+  659.25, // E5 (Mi alto) - Inclusión & Accesibilidad
 ];
 
 function getContext() {
