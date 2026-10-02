@@ -546,7 +546,7 @@ const MainContent = () => {
           />
 
           {/* 2. ENCABEZADO DEL CENTRO DE OPERACIONES */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-white/40 backdrop-blur-2xl border border-slate-200/60 shadow-none flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="p-6 sm:p-8 rounded-3xl bg-white shadow-xl shadow-slate-200/50 border-0 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
               <div className="flex items-center gap-2 mb-1.5 text-xs font-mono text-slate-500">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -570,7 +570,7 @@ const MainContent = () => {
                   const el = document.getElementById('selector-orbital-metropolitano');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="px-4 py-2.5 rounded-2xl bg-black/75 hover:bg-black/90 backdrop-blur-md text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center gap-2 border border-black/10 shadow-none transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                className="px-4 py-2.5 rounded-2xl bg-black hover:bg-neutral-800 text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center gap-2 border-0 shadow-md shadow-black/20 transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                 title="Ir al Menú 3D OptionWheel"
               >
                 <Compass className="w-4 h-4 text-white" />
@@ -586,14 +586,14 @@ const MainContent = () => {
                     description: 'Enlace metropolitano y sensores de parquímetro activos al 100%.',
                   });
                 }}
-                className="px-4 py-2.5 rounded-2xl bg-white/40 hover:bg-white/60 backdrop-blur-md text-black font-sans font-bold text-xs uppercase tracking-wider flex items-center gap-2 border border-slate-200/50 shadow-none transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                className="px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-black font-sans font-bold text-xs uppercase tracking-wider flex items-center gap-2 border-0 shadow-sm transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                 title="Ejecutar diagnóstico de red"
               >
                 <Sparkles className="w-4 h-4 fill-current text-amber-500" />
                 <span>Diagnóstico de Red</span>
               </button>
 
-              <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/30 border border-slate-200/40 backdrop-blur-sm shrink-0">
+              <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-slate-100 shadow-sm border-0 shrink-0">
                 <PlugConnectedIcon size={18} className="text-emerald-500" />
                 <div className="text-left font-sans">
                   <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold font-mono">Sistema Online</div>
@@ -609,10 +609,10 @@ const MainContent = () => {
               role="dialog"
               aria-modal="true"
               aria-labelledby="quick-recharge-dialog-title"
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex items-center justify-center p-4"
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
             >
-              <div className="bg-white/80 backdrop-blur-2xl border border-white/60 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
-                <div className="w-12 h-12 rounded-2xl bg-white/50 border border-slate-200/50 text-black flex items-center justify-center mx-auto mb-3 backdrop-blur-sm">
+              <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative border-0 animate-in fade-in zoom-in-95 duration-200">
+                <div className="w-12 h-12 rounded-2xl bg-slate-100 text-black flex items-center justify-center mx-auto mb-3 shadow-sm border-0">
                   <CurrencyDollarIcon size={24} strokeWidth={2} className="text-black" />
                 </div>
                 <h3 id="quick-recharge-dialog-title" className="text-lg font-black text-black mb-1 font-sans">Recarga Rápida de Saldo</h3>
@@ -630,10 +630,10 @@ const MainContent = () => {
                           type="button"
                           aria-label={`Seleccionar recarga de ${amt} pesos`}
                           onClick={() => setRechargeAmt(amt)}
-                          className={`py-2 rounded-xl text-xs font-sans font-bold border transition flex items-center justify-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
+                          className={`py-2 rounded-xl text-xs font-sans font-bold transition flex items-center justify-center gap-1 border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
                             rechargeAmt === amt
-                              ? 'bg-black/80 text-white border-black shadow-sm backdrop-blur-sm'
-                              : 'bg-white/40 text-slate-800 border-slate-200/50 hover:bg-white/70 backdrop-blur-sm'
+                              ? 'bg-black text-white shadow-md'
+                              : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
                           }`}
                         >
                           <CurrencyDollarIcon size={12} strokeWidth={2.2} />
@@ -647,13 +647,13 @@ const MainContent = () => {
                     <button
                       type="button"
                       onClick={() => setShowRechargeQuickModal(false)}
-                      className="flex-1 py-2.5 rounded-xl border border-slate-200/50 bg-white/30 backdrop-blur-sm text-slate-700 text-xs font-sans hover:bg-white/50 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                      className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-sans hover:bg-slate-200 transition cursor-pointer border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 py-2.5 rounded-xl bg-black/75 hover:bg-black/90 backdrop-blur-md text-white text-xs font-sans font-bold transition border border-black/10 shadow-none flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                      className="flex-1 py-2.5 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-sans font-bold transition shadow-md border-0 flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                     >
                       <CurrencyDollarIcon size={14} strokeWidth={2.2} />
                       <span>Recargar <span className="font-mono">${rechargeAmt}</span></span>
@@ -670,15 +670,15 @@ const MainContent = () => {
               role="dialog"
               aria-modal="true"
               aria-labelledby="quick-qr-dialog-title"
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex items-center justify-center p-4"
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
             >
-              <div className="bg-white/80 backdrop-blur-2xl border border-white/60 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+              <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative border-0 animate-in fade-in zoom-in-95 duration-200">
                 <h3 id="quick-qr-dialog-title" className="text-lg font-black text-black mb-1 font-sans">Credencial QR de Inspección</h3>
                 <p className="text-xs text-slate-600 mb-6 font-sans">
                   Lectura directa para agentes de tránsito vial
                 </p>
 
-                <div className="bg-white/40 border border-slate-200/50 p-4 rounded-2xl inline-block backdrop-blur-sm mb-4">
+                <div className="bg-slate-50 p-4 rounded-2xl inline-block shadow-inner mb-4 border-0">
                   <svg className="w-48 h-48 mx-auto" viewBox="0 0 100 100" role="img" aria-label={`Código QR para el vehículo con placas ${vehicle.plates}`}>
                     <rect width="100" height="100" fill="#F8FAFC" />
                     <rect x="5" y="5" width="26" height="26" fill="#000000" />
@@ -707,7 +707,7 @@ const MainContent = () => {
                   </svg>
                 </div>
 
-                <div className="bg-white/40 border border-slate-200/50 rounded-xl p-2.5 mb-6 text-xs font-sans text-slate-800 flex items-center justify-between backdrop-blur-sm">
+                <div className="bg-slate-100 rounded-xl p-2.5 mb-6 text-xs font-sans text-slate-800 flex items-center justify-between border-0 shadow-sm">
                   <span>Placas: <strong className="text-black font-mono">{vehicle.plates}</strong></span>
                   <span className="text-emerald-700 font-bold">● Validado</span>
                 </div>
@@ -715,7 +715,7 @@ const MainContent = () => {
                 <button
                   type="button"
                   onClick={() => setShowQRQuickModal(false)}
-                  className="w-full py-2.5 rounded-xl bg-black/75 hover:bg-black/90 backdrop-blur-md text-white text-xs font-sans font-bold transition border border-black/10 shadow-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                  className="w-full py-2.5 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-sans font-bold transition shadow-md border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                 >
                   Cerrar Credencial
                 </button>

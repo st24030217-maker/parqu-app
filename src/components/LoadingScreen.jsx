@@ -97,12 +97,12 @@ export const LoadingScreen = ({ onComplete }) => {
           Sistema Inteligente de <span className="text-white font-bold">Parquímetros</span> y Autocobro Digital
         </p>
 
-        {/* Botón "Empecemos" Totalmente Transparente y Glassmorphic */}
+        {/* Botón "Empecemos" Elegante y Sin Bordes */}
         <div className="pt-2">
           <button
             type="button"
             onClick={handleTriggerExit}
-            className="font-sans text-sm sm:text-base font-bold text-white px-10 py-3.5 sm:py-4 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 transition-all duration-300 backdrop-blur-xl border border-white/30 shadow-[0_0_35px_rgba(128,125,254,0.35)] flex items-center justify-center gap-2.5 mx-auto cursor-pointer group"
+            className="font-sans text-sm sm:text-base font-bold text-white px-10 py-3.5 sm:py-4 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 transition-all duration-300 backdrop-blur-xl border-0 shadow-[0_0_35px_rgba(128,125,254,0.45)] flex items-center justify-center gap-2.5 mx-auto cursor-pointer group"
           >
             <span>Empecemos</span>
             <ArrowRight className="w-5 h-5 text-white inline transition-transform duration-300 group-hover:translate-x-1.5" />

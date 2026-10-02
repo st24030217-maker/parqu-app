@@ -44,30 +44,30 @@ export const TransactionHistory = () => {
 
   return (
     <WobbleCard
-      containerClassName="w-full bg-slate-900/30 backdrop-blur-2xl border border-slate-300/30 shadow-none transition-colors"
+      containerClassName="w-full bg-slate-950 text-white border-0 shadow-2xl shadow-slate-950/50 transition-colors"
       className="p-6 sm:p-8 flex flex-col justify-between"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-white/10 mb-6 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-0 mb-6 gap-3">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="px-3 py-1 rounded-full bg-[#0033FF]/20 border border-[#807DFE]/40 text-[10px] font-mono font-bold uppercase tracking-widest text-[#D4D6E6]">
+            <span className="px-3 py-1 rounded-full bg-[#0033FF]/20 border-0 text-[10px] font-mono font-bold uppercase tracking-widest text-[#D4D6E6]">
               BITÁCORA OFICIAL CFDI & REGISTRO GPS
             </span>
             <span className="text-[#D4D6E6]/60 text-xs font-mono">•</span>
             <span className="text-[11px] font-mono text-[#D4D6E6]">TECNOLOGÍA SSS.SOLUTIONS</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-[#D4D6E6] tracking-tight flex items-center gap-2.5">
-            <History className="w-6 h-6 text-[#D4D6E6]" />
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
+            <History className="w-6 h-6 text-white" />
             Historial de Autocobros & Ubicaciones Fijadas
           </h2>
-          <p className="text-xs sm:text-sm text-[#D4D6E6] mt-1 font-sans max-w-2xl leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-300 mt-1 font-sans max-w-2xl leading-relaxed">
             Registro inmutable de cargos de parquímetro y bitácora satelital de ubicaciones donde has fijado tu vehículo.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="text-right font-sans">
-            <span className="text-[10px] uppercase tracking-wider text-[#D4D6E6] block">Total Acumulado</span>
+            <span className="text-[10px] uppercase tracking-wider text-slate-400 block">Total Acumulado</span>
             <span className="text-lg font-black text-emerald-400 flex items-center justify-end gap-1 font-mono">
               <CurrencyDollarIcon size={16} className="text-emerald-400" />
               <AnimeCounter
@@ -79,7 +79,7 @@ export const TransactionHistory = () => {
               />
             </span>
           </div>
-          <span className="text-xs font-mono text-[#D4D6E6] bg-white/8 backdrop-blur-sm border border-white/10 px-3.5 py-1.5 rounded-full">
+          <span className="text-xs font-mono text-slate-300 bg-white/10 px-3.5 py-1.5 rounded-full border-0 shadow-sm">
             {transactions.length} Cobros • {pinnedLocations.length} Ubicaciones
           </span>
         </div>
@@ -93,10 +93,10 @@ export const TransactionHistory = () => {
           aria-selected={activeSubTab === 'payments'}
           aria-controls="subtab-payments-panel"
           onClick={() => setActiveSubTab('payments')}
-          className={`px-4 py-2 rounded-xl text-xs font-sans font-bold transition flex items-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#01033E] ${
+          className={`px-4 py-2 rounded-xl text-xs font-sans font-bold transition flex items-center gap-2 cursor-pointer border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#01033E] ${
             activeSubTab === 'payments'
-              ? 'bg-[#0033FF] text-white shadow-[0_0_15px_rgba(0,51,255,0.4)]'
-              : 'bg-white/5 text-[#D4D6E6]/70 hover:text-white border border-white/10 hover:bg-white/8'
+              ? 'bg-[#0033FF] text-white shadow-lg shadow-blue-600/30'
+              : 'bg-white/10 text-slate-300 hover:text-white hover:bg-white/15'
           }`}
         >
           <Receipt className="w-3.5 h-3.5" />
@@ -109,10 +109,10 @@ export const TransactionHistory = () => {
           aria-selected={activeSubTab === 'locations'}
           aria-controls="subtab-locations-panel"
           onClick={() => setActiveSubTab('locations')}
-          className={`px-4 py-2 rounded-xl text-xs font-sans font-bold transition flex items-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#01033E] ${
+          className={`px-4 py-2 rounded-xl text-xs font-sans font-bold transition flex items-center gap-2 cursor-pointer border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#01033E] ${
             activeSubTab === 'locations'
-              ? 'bg-[#0033FF] text-white shadow-[0_0_15px_rgba(0,51,255,0.4)]'
-              : 'bg-white/5 text-[#D4D6E6]/70 hover:text-white border border-white/10 hover:bg-white/8'
+              ? 'bg-[#0033FF] text-white shadow-lg shadow-blue-600/30'
+              : 'bg-white/10 text-slate-300 hover:text-white hover:bg-white/15'
           }`}
         >
           <MapPin className="w-3.5 h-3.5" />
@@ -123,7 +123,7 @@ export const TransactionHistory = () => {
       {/* CONTENIDO SEGÚN LA SUB-PESTAÑA SELECCIONADA */}
       {activeSubTab === 'payments' ? (
         transactions.length === 0 ? (
-          <div id="subtab-payments-panel" role="tabpanel" className="text-center py-12 border border-dashed border-white/10 rounded-3xl bg-white/5 backdrop-blur-sm font-sans">
+          <div id="subtab-payments-panel" role="tabpanel" className="text-center py-12 rounded-3xl bg-white/5 border-0 font-sans shadow-lg">
             <Receipt className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
             <h4 className="text-sm font-semibold text-neutral-300 font-sans">No hay cobros registrados aún</h4>
             <p className="text-xs text-neutral-500 max-w-sm mx-auto mt-1 font-sans">
@@ -131,10 +131,10 @@ export const TransactionHistory = () => {
             </p>
           </div>
         ) : (
-          <div id="subtab-payments-panel" role="tabpanel" className="overflow-x-auto rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md">
+          <div id="subtab-payments-panel" role="tabpanel" className="overflow-x-auto rounded-2xl bg-white/5 border-0 shadow-lg">
             <table className="w-full text-left text-xs font-sans">
               <thead>
-                <tr className="border-b border-white/10 text-neutral-400 uppercase font-sans font-semibold bg-white/5">
+                <tr className="text-neutral-400 uppercase font-sans font-semibold bg-white/5 border-0">
                   <th className="py-3.5 px-4">Folio / Fecha</th>
                   <th className="py-3.5 px-4">Zona / Ubicación</th>
                   <th className="py-3.5 px-4">Duración</th>
@@ -160,7 +160,7 @@ export const TransactionHistory = () => {
                       </div>
                     </td>
                     <td className="py-3.5 px-4 font-sans">
-                      <span className="text-[11px] text-neutral-300 bg-neutral-900 px-2.5 py-1 rounded-lg border border-neutral-800 font-sans">
+                      <span className="text-[11px] text-neutral-300 bg-neutral-900 px-2.5 py-1 rounded-lg border-0 font-sans shadow-sm">
                         {txn.method}
                       </span>
                     </td>
@@ -175,7 +175,7 @@ export const TransactionHistory = () => {
                         type="button"
                         aria-label={`Ver comprobante digital para folio ${txn.folio}`}
                         onClick={() => setSelectedTicket(txn)}
-                        className="px-3.5 py-1.5 rounded-xl bg-white/8 backdrop-blur-sm hover:bg-[#0033FF] hover:text-white text-[#D4D6E6] border border-white/10 transition text-[11px] font-sans font-semibold inline-flex items-center gap-1.5 shadow-sm cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-1"
+                        className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-[#0033FF] hover:text-white text-slate-200 border-0 transition text-[11px] font-sans font-semibold inline-flex items-center gap-1.5 shadow-sm cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-1"
                       >
                         <Receipt className="w-3.5 h-3.5" />
                         Ver Comprobante
@@ -190,7 +190,7 @@ export const TransactionHistory = () => {
       ) : (
         /* BITÁCORA DE UBICACIONES GPS FIJADAS */
         pinnedLocations.length === 0 ? (
-          <div className="text-center py-12 border border-dashed border-white/10 rounded-3xl bg-white/5 backdrop-blur-sm space-y-2 font-sans">
+          <div className="text-center py-12 rounded-3xl bg-white/5 space-y-2 font-sans border-0 shadow-lg">
             <MapPin className="w-12 h-12 text-neutral-600 mx-auto" />
             <h4 className="text-sm font-semibold text-neutral-300">No hay ubicaciones registradas en la bitácora</h4>
             <p className="text-xs text-neutral-500 max-w-sm mx-auto">
@@ -204,14 +204,14 @@ export const TransactionHistory = () => {
               return (
                 <div
                   key={item.id}
-                  className="p-5 rounded-3xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-amber-400/30 transition-all flex flex-col justify-between space-y-4 shadow-xl"
+                  className="p-5 rounded-3xl bg-white/5 border-0 transition-all flex flex-col justify-between space-y-4 shadow-xl"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border-0 ${
                         isItemActive
-                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-600/50 animate-pulse'
-                          : 'bg-white/8 text-neutral-400 border border-neutral-800'
+                          ? 'bg-emerald-950 text-emerald-300 animate-pulse'
+                          : 'bg-white/10 text-neutral-300'
                       }`}>
                         {isItemActive ? '● AUTO ESTACIONADO AQUÍ' : 'HISTÓRICO'}
                       </span>
@@ -235,20 +235,20 @@ export const TransactionHistory = () => {
                         <span className="text-white font-bold">{formatPlate(item.plates || vehicle.plates)}</span>
                       </div>
                       {item.notes && (
-                        <div className="text-[11px] text-neutral-500 italic pt-1 border-t border-white/8">
+                        <div className="text-[11px] text-neutral-400 italic pt-1 border-0">
                           {item.notes}
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-white/8">
+                  <div className="flex items-center justify-between pt-3 border-0">
                     <a
                       href={`https://www.google.com/maps?q=${item.lat},${item.lng}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`Cómo llegar a mi auto en ${item.name} (se abre en nueva pestaña)`}
-                      className="px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-xs text-neutral-200 border border-neutral-700 flex items-center gap-1.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                      className="px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-xs text-neutral-200 border-0 shadow-sm flex items-center gap-1.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                     >
                       <Navigation className="w-3.5 h-3.5 text-blue-400" />
                       <span>Cómo Llegar a mi Auto</span>
@@ -265,7 +265,7 @@ export const TransactionHistory = () => {
                           description: 'Ubicación removida de tu bitácora.',
                         });
                       }}
-                      className="p-2 rounded-xl bg-neutral-900 hover:bg-rose-950/60 text-neutral-400 hover:text-rose-400 border border-neutral-800 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+                      className="p-2 rounded-xl bg-neutral-900 hover:bg-rose-950/60 text-neutral-400 hover:text-rose-400 border-0 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
                       title="Eliminar de la bitácora"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -286,7 +286,7 @@ export const TransactionHistory = () => {
           aria-labelledby="ticket-modal-title"
           className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
         >
-          <div className="bg-[#01033E]/90 backdrop-blur-2xl border border-[#807DFE]/30 rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-[0_0_50px_rgba(0,51,255,0.3)] relative animate-in fade-in zoom-in-95">
+          <div className="bg-slate-950 rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-2xl shadow-black/80 relative border-0 animate-in fade-in zoom-in-95">
             {/* Header del Ticket */}
             <div className="text-center pb-4 border-b border-dashed border-white/10">
               <div className="w-10 h-10 rounded-2xl bg-[#0033FF] text-white flex items-center justify-center mx-auto mb-2 shadow-[0_0_15px_rgba(0,51,255,0.5)]">

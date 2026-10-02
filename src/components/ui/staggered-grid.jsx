@@ -34,7 +34,7 @@ export function StaggeredGrid({
         </div>
 
         {/* Badge Superior */}
-        <div className="relative z-10 mb-4 inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-xs font-mono text-[#D4D6E6] shadow-none">
+        <div className="relative z-10 mb-4 inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-xl border-0 text-xs font-mono text-[#D4D6E6] shadow-md">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
           <span className="tracking-[0.1em] sm:tracking-[0.2em] uppercase font-bold text-[9px] sm:text-[11px]">SISTEMA INTELIGENTE DE PARQUÍMETROS</span>
           <span className="text-[#807DFE] hidden xs:inline">•</span>
@@ -56,19 +56,19 @@ export function StaggeredGrid({
 
         {/* Barra de Estadísticas Clave */}
         <div className="relative z-10 mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 max-w-4xl w-full mx-auto px-2 sm:px-4">
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-white/10 hover:bg-white/15 backdrop-blur-xl border border-white/20 text-center transition">
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-white/10 hover:bg-white/15 backdrop-blur-xl border-0 shadow-lg text-center transition">
             <div className="text-base sm:text-xl font-black text-white font-mono">$0.25</div>
             <div className="text-[9px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">MXN por Minuto</div>
           </div>
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-white/10 hover:bg-white/15 backdrop-blur-xl border border-white/20 text-center transition">
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-white/10 hover:bg-white/15 backdrop-blur-xl border-0 shadow-lg text-center transition">
             <div className="text-base sm:text-xl font-black text-emerald-400 font-mono">0 Multas</div>
             <div className="text-[9px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">Garantía Activa</div>
           </div>
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-white/10 hover:bg-white/15 backdrop-blur-xl border border-white/20 text-center transition">
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-white/10 hover:bg-white/15 backdrop-blur-xl border-0 shadow-lg text-center transition">
             <div className="text-base sm:text-xl font-black text-[#807DFE] font-mono">AES-256</div>
             <div className="text-[9px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">Cifrado Bancario</div>
           </div>
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-white/10 hover:bg-white/15 backdrop-blur-xl border border-white/20 text-center transition">
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-white/10 hover:bg-white/15 backdrop-blur-xl border-0 shadow-lg text-center transition">
             <div className="text-base sm:text-xl font-black text-white font-mono">100% Digital</div>
             <div className="text-[9px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">Cero Monedas</div>
           </div>

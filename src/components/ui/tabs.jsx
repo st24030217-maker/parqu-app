@@ -44,7 +44,7 @@ export const Tabs = ({
         role="tablist"
         aria-label="Pestañas de control del sistema Parqu"
         className={cn(
-          "flex overflow-x-auto sm:flex-wrap items-center gap-1.5 sm:gap-2 p-1.5 rounded-2xl bg-white/30 border border-slate-200/40 backdrop-blur-2xl [perspective:1000px] relative max-w-full shadow-none scrollbar-none",
+          "flex overflow-x-auto sm:flex-wrap items-center gap-1.5 sm:gap-2 p-1.5 rounded-2xl bg-slate-100/90 [perspective:1000px] relative max-w-full shadow-sm border-0 scrollbar-none",
           containerClassName
         )}
       >
@@ -67,7 +67,7 @@ export const Tabs = ({
                 "relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-sans font-bold transition-colors select-none cursor-pointer z-10 shrink-0 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2",
                 isActive
                   ? "text-black font-extrabold"
-                  : "text-slate-700 hover:text-black hover:bg-white/60",
+                  : "text-slate-600 hover:text-black hover:bg-slate-200/60",
                 tabClassName
               )}
             >
@@ -76,7 +76,7 @@ export const Tabs = ({
                   layoutId="activeAceternityTabPill"
                   transition={{ type: "spring", bounce: 0.22, duration: 0.45 }}
                   className={cn(
-                    "absolute inset-0 bg-white/70 backdrop-blur-xl rounded-xl shadow-sm border border-slate-200/60",
+                    "absolute inset-0 bg-white rounded-xl shadow-md border-0",
                     activeTabClassName
                   )}
                 />
@@ -88,10 +88,10 @@ export const Tabs = ({
                 {tab.badge && (
                   <span
                     className={cn(
-                      "text-[9px] px-2 py-0.5 rounded-full font-mono transition-colors font-bold",
+                      "text-[9px] px-2 py-0.5 rounded-full font-mono transition-colors font-bold border-0",
                       isActive
-                        ? "bg-white/50 text-black border border-slate-200/50"
-                        : "bg-slate-200/50 text-slate-800 border border-slate-300/40"
+                        ? "bg-slate-100 text-black"
+                        : "bg-slate-200 text-slate-800"
                     )}
                   >
                     {tab.badge}

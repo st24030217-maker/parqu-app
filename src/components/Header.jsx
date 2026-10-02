@@ -34,10 +34,10 @@ export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
   return (
     <header 
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-      className={`sticky top-0 z-40 transition-all duration-300 ${
+      className={`sticky top-0 z-40 transition-all duration-300 border-0 ${
         isScrolled
-          ? 'bg-white/40 backdrop-blur-2xl border-b border-slate-200/50 shadow-none'
-          : 'bg-slate-900/20 backdrop-blur-2xl border-b border-white/10 shadow-none'
+          ? 'bg-white/95 backdrop-blur-2xl shadow-sm'
+          : 'bg-slate-950/80 backdrop-blur-2xl shadow-none'
       }`}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
@@ -98,10 +98,10 @@ export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
                 Parqu
               </span>
               <span 
-                className={`hidden sm:inline-flex text-[10px] uppercase font-mono tracking-widest px-2 py-0.5 rounded-full transition-colors duration-300 font-bold ${
+                className={`hidden sm:inline-flex text-[10px] uppercase font-mono tracking-widest px-2.5 py-0.5 rounded-full transition-colors duration-300 font-bold border-0 ${
                   isScrolled 
-                    ? 'bg-slate-100 text-slate-800 border border-slate-200' 
-                    : 'bg-[#0033FF]/20 text-[#D4D6E6] border border-[#807DFE]/40'
+                    ? 'bg-slate-100 text-slate-800' 
+                    : 'bg-[#0033FF]/30 text-[#D4D6E6]'
                 }`}
               >
                 Digital Pass
@@ -120,10 +120,10 @@ export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
         {/* Estatus Central, Hora y Acciones en Header */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <div 
-            className={`hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono transition-colors duration-300 ${
+            className={`hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono transition-colors duration-300 border-0 ${
               isScrolled 
-                ? 'bg-slate-100 border border-slate-200 text-slate-800 shadow-sm' 
-                : 'bg-white/8 backdrop-blur-sm border border-white/10 text-[#D4D6E6]'
+                ? 'bg-slate-100 text-slate-800 shadow-sm' 
+                : 'bg-white/10 backdrop-blur-sm text-[#D4D6E6]'
             }`}
           >
             <Clock className={`w-3.5 h-3.5 transition-colors duration-300 ${isScrolled ? 'text-black' : 'text-[#807DFE]'}`} />
@@ -134,7 +134,7 @@ export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
 
           {/* Badge de Estado de Estacionamiento */}
           {activeSession ? (
-            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 text-xs font-semibold animate-pulse">
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-amber-500/15 border-0 text-amber-700 text-xs font-semibold animate-pulse shadow-sm">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
               <span className="font-mono text-[11px] sm:text-xs">
                 <span className="hidden sm:inline font-sans">En Parquímetro: </span>
@@ -143,10 +143,10 @@ export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
             </div>
           ) : (
             <div 
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-medium transition-colors duration-300 ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-medium transition-colors duration-300 border-0 ${
                 isScrolled 
-                  ? 'bg-slate-100 border border-slate-200 text-slate-800 shadow-sm' 
-                  : 'bg-white/8 backdrop-blur-sm border border-white/10 text-[#D4D6E6]'
+                  ? 'bg-slate-100 text-slate-800 shadow-sm' 
+                  : 'bg-white/10 backdrop-blur-sm text-[#D4D6E6]'
               }`}
             >
               <PlugConnectedIcon size={14} className="text-emerald-500 shrink-0" />
@@ -168,10 +168,10 @@ export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }
             }}
-            className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-sans font-bold transition-all duration-300 active:scale-95 cursor-pointer shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-sans font-bold transition-all duration-300 active:scale-95 cursor-pointer border-0 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
               isScrolled
-                ? 'bg-white/40 hover:bg-white/60 text-black border border-slate-200/50'
-                : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
+                ? 'bg-slate-100 hover:bg-slate-200 text-black'
+                : 'bg-white/15 hover:bg-white/25 text-white'
             }`}
             title="Ir al Selector Orbital 3D"
           >
@@ -192,10 +192,10 @@ export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }
             }}
-            className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-sans font-bold transition-all duration-300 active:scale-95 cursor-pointer shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-sans font-bold transition-all duration-300 active:scale-95 cursor-pointer border-0 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
               isScrolled
-                ? 'bg-black/75 hover:bg-black/90 text-white border border-black/10 backdrop-blur-md'
-                : 'bg-[#0033FF]/30 text-white hover:bg-[#0033FF]/50 border border-[#0033FF]/40 backdrop-blur-md'
+                ? 'bg-black hover:bg-neutral-800 text-white'
+                : 'bg-[#0033FF] text-white hover:bg-[#2250ff]'
             }`}
             title="Ir directo al Panel de Control Metropolitano"
           >

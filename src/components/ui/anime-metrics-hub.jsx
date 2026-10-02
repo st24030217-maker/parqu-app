@@ -76,7 +76,7 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
         </div>
 
         {/* Telemetría mini-bars */}
-        <div ref={barsRef} className="flex items-end gap-1 h-3.5 px-2 py-0.5 rounded-full bg-white/30 border border-slate-200/40 backdrop-blur-sm">
+        <div ref={barsRef} className="flex items-end gap-1 h-3.5 px-2.5 py-0.5 rounded-full bg-slate-100 shadow-sm border-0">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
@@ -105,7 +105,7 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
           }}
           onMouseEnter={() => setHoveredCard(1)}
           onMouseLeave={() => setHoveredCard(null)}
-          className="metric-hub-card group relative p-5 rounded-2xl bg-white/40 hover:bg-white/60 backdrop-blur-2xl border border-slate-200/50 hover:border-slate-300/80 transition-all cursor-pointer shadow-none flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          className="metric-hub-card group relative p-5 rounded-2xl bg-white hover:bg-slate-50/95 transition-all cursor-pointer shadow-xl shadow-slate-200/50 flex flex-col justify-between overflow-hidden border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
         >
           {/* Aceternity Corner Cross Accents */}
           <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
@@ -139,13 +139,13 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
 
           <div className="relative z-10 font-sans">
             <div className="flex items-center justify-between mb-3">
-              <span className="p-2 rounded-xl bg-slate-100 border border-slate-200 text-black shadow-sm">
+              <span className="p-2 rounded-xl bg-slate-100 text-black shadow-sm border-0">
                 <Clock className="w-4 h-4 text-black" />
               </span>
-              <span className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border ${
+              <span className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border-0 ${
                 activeSession 
-                  ? 'bg-amber-100 text-amber-900 border-amber-300 animate-pulse' 
-                  : 'bg-slate-100 text-slate-700 border-slate-200'
+                  ? 'bg-amber-100 text-amber-900 animate-pulse' 
+                  : 'bg-slate-100 text-slate-700'
               }`}>
                 {activeSession ? 'OCUPADO' : 'LIBRE'}
               </span>
@@ -179,7 +179,7 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
             </div>
           </div>
 
-          <div className="relative z-10 pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600 group-hover:text-black transition">
+          <div className="relative z-10 pt-3 mt-3 border-0 flex items-center justify-between text-[11px] text-slate-600 group-hover:text-black transition">
             <span className="truncate max-w-[140px]">
               {activeSession ? activeSession.zoneName : '4 Zonas Disponibles'}
             </span>
@@ -201,7 +201,7 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
           }}
           onMouseEnter={() => setHoveredCard(2)}
           onMouseLeave={() => setHoveredCard(null)}
-          className="metric-hub-card group relative p-5 rounded-2xl bg-white/40 hover:bg-white/60 backdrop-blur-2xl border border-slate-200/50 hover:border-slate-300/80 transition-all cursor-pointer shadow-none flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          className="metric-hub-card group relative p-5 rounded-2xl bg-white hover:bg-slate-50/95 transition-all cursor-pointer shadow-xl shadow-slate-200/50 flex flex-col justify-between overflow-hidden border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
         >
           {/* Aceternity Corner Cross Accents */}
           <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
@@ -235,10 +235,10 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
 
           <div className="relative z-10 font-sans">
             <div className="flex items-center justify-between mb-3">
-              <span className="p-2 rounded-xl bg-slate-100 border border-slate-200 text-black shadow-sm">
+              <span className="p-2 rounded-xl bg-slate-100 text-black shadow-sm border-0">
                 <CurrencyDollarIcon size={16} strokeWidth={2.2} className="text-black" />
               </span>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-black border border-slate-200">
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-black border-0">
                 + RECARGAR
               </span>
             </div>
@@ -259,7 +259,7 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
             </div>
           </div>
 
-          <div className="relative z-10 pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600 group-hover:text-black transition font-sans">
+          <div className="relative z-10 pt-3 mt-3 border-0 flex items-center justify-between text-[11px] text-slate-600 group-hover:text-black transition font-sans">
             <span>Pase Contactless Activo</span>
             <ArrowUpRight className="w-3.5 h-3.5 text-black group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition" />
           </div>
@@ -279,7 +279,7 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
           }}
           onMouseEnter={() => setHoveredCard(3)}
           onMouseLeave={() => setHoveredCard(null)}
-          className="metric-hub-card group relative p-5 rounded-2xl bg-white/40 hover:bg-white/60 backdrop-blur-2xl border border-slate-200/50 hover:border-slate-300/80 transition-all cursor-pointer shadow-none flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          className="metric-hub-card group relative p-5 rounded-2xl bg-white hover:bg-slate-50/95 transition-all cursor-pointer shadow-xl shadow-slate-200/50 flex flex-col justify-between overflow-hidden border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
         >
           {/* Aceternity Corner Cross Accents */}
           <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
@@ -313,10 +313,10 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
 
           <div className="relative z-10 font-sans">
             <div className="flex items-center justify-between mb-3">
-              <span className="p-2 rounded-xl bg-slate-100 border border-slate-200 text-black shadow-sm">
+              <span className="p-2 rounded-xl bg-slate-100 text-black shadow-sm border-0">
                 <Car className="w-4 h-4 text-black" />
               </span>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border-0">
                 VINCULADO
               </span>
             </div>
@@ -330,7 +330,7 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
             </div>
           </div>
 
-          <div className="relative z-10 pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600 group-hover:text-black transition font-sans">
+          <div className="relative z-10 pt-3 mt-3 border-0 flex items-center justify-between text-[11px] text-slate-600 group-hover:text-black transition font-sans">
             <span className="truncate max-w-[140px]">{vehicle.brand} {vehicle.model}</span>
             <ArrowUpRight className="w-3.5 h-3.5 text-black group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition" />
           </div>
@@ -350,7 +350,7 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
           }}
           onMouseEnter={() => setHoveredCard(4)}
           onMouseLeave={() => setHoveredCard(null)}
-          className="metric-hub-card group relative p-5 rounded-2xl bg-white/40 hover:bg-white/60 backdrop-blur-2xl border border-slate-200/50 hover:border-slate-300/80 transition-all cursor-pointer shadow-none flex flex-col justify-between overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          className="metric-hub-card group relative p-5 rounded-2xl bg-white hover:bg-slate-50/95 transition-all cursor-pointer shadow-xl shadow-slate-200/50 flex flex-col justify-between overflow-hidden border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
         >
           {/* Aceternity Corner Cross Accents */}
           <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
@@ -384,10 +384,10 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
 
           <div className="relative z-10 font-sans">
             <div className="flex items-center justify-between mb-3">
-              <span className="p-2 rounded-xl bg-slate-100 border border-slate-200 text-black shadow-sm">
+              <span className="p-2 rounded-xl bg-slate-100 text-black shadow-sm border-0">
                 <MapPin className="w-4 h-4 text-black" />
               </span>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border-0">
                 GPS ACTIVO
               </span>
             </div>
@@ -402,7 +402,7 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
             </div>
           </div>
 
-          <div className="relative z-10 pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600 group-hover:text-black transition font-sans">
+          <div className="relative z-10 pt-3 mt-3 border-0 flex items-center justify-between text-[11px] text-slate-600 group-hover:text-black transition font-sans">
             <span>Autocobro: {autoPay?.enabled ? 'Activo' : 'Pausado'}</span>
             <ArrowUpRight className="w-3.5 h-3.5 text-black group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition" />
           </div>
