@@ -509,8 +509,8 @@ const MainContent = () => {
           </div>
         )}
 
-        {/* 1. SECCIÓN DE BIENVENIDA & HERO CON PRISM 3D (REACT BITS) */}
-        <div className="w-full bg-slate-950 relative overflow-hidden">
+        {/* 1. SECCIÓN DE BIENVENIDA & HERO CON FONDO DE NUBES OFICIAL */}
+        <div className="w-full bg-[#01033E] relative overflow-hidden">
           <ErrorBoundary fallbackText="Bienvenido a Parqu - Cargando Funciones...">
             <StaggeredGrid 
               centerText="BIENVENIDOS A PARQU"
@@ -522,7 +522,7 @@ const MainContent = () => {
           <div 
             className="absolute inset-x-0 bottom-0 h-40 sm:h-56 pointer-events-none z-20"
             style={{
-              background: 'linear-gradient(to bottom, rgba(2, 6, 23, 0) 0%, rgba(2, 6, 23, 0.2) 20%, rgba(255, 255, 255, 0.4) 60%, rgba(255, 255, 255, 0.85) 85%, #ffffff 100%)',
+              background: 'linear-gradient(to bottom, rgba(1, 3, 62, 0) 0%, rgba(1, 3, 62, 0.25) 20%, rgba(255, 255, 255, 0.4) 60%, rgba(255, 255, 255, 0.85) 85%, #ffffff 100%)',
             }}
           />
         </div>
