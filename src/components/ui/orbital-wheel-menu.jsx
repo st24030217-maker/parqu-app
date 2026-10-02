@@ -114,7 +114,6 @@ export const OrbitalWheelMenu = ({
 }) => {
   const {
     vehicle = {},
-    updateVehicle,
     card = {},
     autoPay = {},
     updateAutoPay,
@@ -122,7 +121,6 @@ export const OrbitalWheelMenu = ({
     startParking,
     stopParkingAndAutoCharge,
     transactions = [],
-    registerPinnedLocation,
     addBalance,
   } = useParking();
 
@@ -130,7 +128,7 @@ export const OrbitalWheelMenu = ({
   const [copied, setCopied] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Detección reactiva de dispositivo para calibrar tamaño y fluidez
+  // Detección reactiva de tamaño de pantalla
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -168,12 +166,10 @@ export const OrbitalWheelMenu = ({
     }, 50);
   }, [onSelectTab]);
 
-  // Manejo de cambio en la rueda
   const handleWheelChange = useCallback((idx) => {
     setSelectedIndex(idx);
   }, []);
 
-  // Acciones rápidas contextuales
   const handleStartParking = useCallback(() => {
     triggerHaptic();
     startParking('Centro Histórico (Zona A)', '34-B');
@@ -226,196 +222,188 @@ export const OrbitalWheelMenu = ({
   return (
     <section 
       aria-label="Menú 3D de navegación y acceso al sistema"
-      className={`w-full rounded-3xl bg-slate-50/70 border border-slate-200/90 shadow-[0_4px_30px_rgba(0,0,0,0.03)] backdrop-blur-xl p-5 sm:p-7 lg:p-9 relative overflow-hidden font-sans ${className}`}
+      className={`w-full bg-transparent border-0 shadow-none relative py-3 sm:py-6 font-sans ${className}`}
     >
-      {/* Resplandor minimalista ambiental difuminado en azul eléctrico muy sutil */}
-      <div 
-        className="absolute top-1/2 right-1/4 -translate-y-1/2 w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-blue-500/5 blur-[100px] pointer-events-none"
-      />
-
-      {/* ═══ ENCABEZADO SUPERIOR MINIMALISTA ═══ */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-200/80">
-        <div className="flex items-center gap-2.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-black animate-pulse" />
-          <h3 className="text-sm sm:text-base font-bold uppercase tracking-wider text-slate-900 font-sans">
-            Menú de Navegación 3D
-          </h3>
-          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-700">
-            DIFUMINADO • 7 MÓDULOS
+      {/* ═══ ENCABEZADO MINIMALISTA TOTALMENTE TRANSPARENTE ═══ */}
+      <div className="flex items-center justify-between gap-4 mb-3 sm:mb-5">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-black animate-pulse" />
+          <span className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-slate-500">
+            SELECTOR 3D DIFUMINADO
           </span>
         </div>
-
-        <p className="text-xs text-slate-500 font-sans hidden sm:block">
-          Gira la rueda o arrastra para explorar • Clic para descender al sistema
-        </p>
+        <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400">
+          <span className="font-bold text-slate-900">0{selectedIndex + 1}</span>
+          <span>/</span>
+          <span>0{MENU_ITEMS.length}</span>
+        </div>
       </div>
 
-      {/* ═══ CUERPO PRINCIPAL: PANEL DE DETALLES + OPTIONWHEEL 3D ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center min-h-[320px] sm:min-h-[360px]">
+      {/* ═══ ESCENARIO PRINCIPAL: CONTENIDO TRANSPARENTE + OPTIONWHEEL 3D ═══ */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-14 items-center">
         
-        {/* ═══ COLUMNA IZQUIERDA: TARJETA DE ESTADO CONTEXTUAL MINIMALISTA (5/12) ═══ */}
-        <div className="lg:col-span-5 flex flex-col justify-between h-full bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-sm relative z-10">
-          <div>
-            {/* Categoría y Badge de Estado */}
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-slate-500">
-                {currentItem.category}
-              </span>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-900 border border-slate-200">
-                {currentItem.badge}
-              </span>
-            </div>
+        {/* ═══ COLUMNA IZQUIERDA: DETALLES DE LA FUNCIÓN (TOTALMENTE TRANSPARENTE, SIN BORDES) ═══ */}
+        <div className="lg:col-span-5 flex flex-col justify-center space-y-4 sm:space-y-5">
+          
+          {/* Categoría y Badge de Estado */}
+          <div className="flex items-center gap-2.5">
+            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-[10px] font-mono font-bold tracking-widest uppercase text-slate-700">
+              {currentItem.category}
+            </span>
+            <span className="text-[10px] font-mono font-bold text-slate-400">
+              • {currentItem.badge}
+            </span>
+          </div>
 
-            {/* Icono y Título */}
-            <div className="flex items-center gap-3 mb-2.5">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-slate-100 border border-slate-200 text-black flex items-center justify-center shrink-0">
-                {CurrentIcon && <CurrentIcon className="w-5 h-5 text-black" />}
+          {/* Icono y Título */}
+          <div>
+            <div className="flex items-center gap-3 mb-1.5">
+              <div className="w-10 h-10 rounded-2xl bg-black text-white flex items-center justify-center shadow-sm shrink-0">
+                {CurrentIcon && <CurrentIcon className="w-5 h-5 text-white" />}
               </div>
-              <h4 className="text-lg sm:text-xl font-black text-slate-950 font-sans tracking-tight">
+              <h4 className="text-2xl sm:text-3xl font-black text-slate-950 font-sans tracking-tight">
                 {currentItem.label}
               </h4>
             </div>
-
-            {/* Descripción minimalista */}
-            <p className="text-xs text-slate-600 mb-4 leading-relaxed font-sans">
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed font-sans max-w-md">
               {currentItem.description}
             </p>
-
-            {/* Módulo de Datos en Vivo Contextual */}
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 mb-4 font-sans text-xs">
-              {currentItem.id === 'dashboard' && (
-                activeSession ? (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-[10px] text-slate-500 font-mono uppercase">Tiempo de Estancia</div>
-                      <div className="font-mono font-black text-slate-950 text-base">
-                        {formatTimeFromSeconds(activeSession.secondsElapsed)}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[10px] text-slate-500 font-mono uppercase">Costo Acumulado</div>
-                      <div className="font-mono font-black text-emerald-700 text-base">
-                        ${activeSession.currentCost.toFixed(2)} MXN
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-[10px] text-slate-500 font-mono uppercase">Estatus Parquímetro</div>
-                      <div className="font-bold text-slate-900">Listo para Estacionar</div>
-                    </div>
-                    <span className="font-mono text-[11px] font-bold text-slate-600">$0.25/min</span>
-                  </div>
-                )
-              )}
-
-              {currentItem.id === 'recharge' && (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] text-slate-500 font-mono uppercase">Saldo Disponible</div>
-                    <div className="font-mono font-black text-slate-950 text-base">
-                      ${Number(card?.balance ?? 0).toFixed(2)} MXN
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold">
-                    ACTIVO
-                  </span>
-                </div>
-              )}
-
-              {currentItem.id === 'autopay' && (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] text-slate-500 font-mono uppercase">Estado Autocobro</div>
-                    <div className="font-bold text-slate-900">
-                      {autoPay?.enabled ? 'Débito Activo' : 'Modalidad Pausada'}
-                    </div>
-                  </div>
-                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
-                    autoPay?.enabled ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
-                  }`}>
-                    {autoPay?.enabled ? 'VIGENTE' : 'PAUSADO'}
-                  </span>
-                </div>
-              )}
-
-              {currentItem.id === 'qr-credential' && (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] text-slate-500 font-mono uppercase">Placas Asignadas</div>
-                    <div className="font-mono font-bold text-slate-900">{vehicle?.plates || 'JNZ-4821'}</div>
-                  </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-200 text-slate-800 font-bold">
-                    AES-256
-                  </span>
-                </div>
-              )}
-
-              {currentItem.id === 'parking-map' && (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] text-slate-500 font-mono uppercase">Ubicación GPS</div>
-                    <div className="font-bold text-slate-900">Centro Histórico • Zona A</div>
-                  </div>
-                  <span className="text-[10px] font-mono text-emerald-700 font-bold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    EN VIVO
-                  </span>
-                </div>
-              )}
-
-              {currentItem.id === 'vehicle' && (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] text-slate-500 font-mono uppercase">Vehículo Registrado</div>
-                    <div className="font-bold text-slate-900">
-                      {vehicle?.model || 'Nissan Versa'} ({vehicle?.plates || 'JNZ-4821'})
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-bold">
-                    VALIDADO
-                  </span>
-                </div>
-              )}
-
-              {currentItem.id === 'history' && (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] text-slate-500 font-mono uppercase">Último Movimiento</div>
-                    <div className="font-bold text-slate-900">
-                      {transactions?.[0]?.description || 'Recarga en Oxxo Pay'}
-                    </div>
-                  </div>
-                  <span className="font-mono font-bold text-slate-950">
-                    {transactions?.[0] ? `-$${transactions[0].amount.toFixed(2)}` : '$0.00'}
-                  </span>
-                </div>
-              )}
-            </div>
           </div>
 
-          {/* Acciones de la Tarjeta */}
-          <div className="space-y-2 pt-2 border-t border-slate-100">
-            {/* Botón Principal: Ir y Desplazar hacia abajo al sistema */}
+          {/* Fila de Datos en Vivo (Limpia, con divisores sutiles) */}
+          <div className="py-3 border-y border-slate-100 font-sans text-xs">
+            {currentItem.id === 'dashboard' && (
+              activeSession ? (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] text-slate-400 font-mono uppercase">Tiempo de Estancia</div>
+                    <div className="font-mono font-black text-slate-950 text-base">
+                      {formatTimeFromSeconds(activeSession.secondsElapsed)}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] text-slate-400 font-mono uppercase">Costo Acumulado</div>
+                    <div className="font-mono font-black text-emerald-600 text-base">
+                      ${activeSession.currentCost.toFixed(2)} MXN
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[10px] text-slate-400 font-mono uppercase">Estatus Parquímetro</div>
+                    <div className="font-bold text-slate-900">Listo para Estacionar</div>
+                  </div>
+                  <span className="font-mono text-[11px] font-bold text-slate-500">$0.25/min</span>
+                </div>
+              )
+            )}
+
+            {currentItem.id === 'recharge' && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] text-slate-400 font-mono uppercase">Saldo Disponible</div>
+                  <div className="font-mono font-black text-slate-950 text-base">
+                    ${Number(card?.balance ?? 0).toFixed(2)} MXN
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold">
+                  ACTIVO
+                </span>
+              </div>
+            )}
+
+            {currentItem.id === 'autopay' && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] text-slate-400 font-mono uppercase">Estado Autocobro</div>
+                  <div className="font-bold text-slate-900">
+                    {autoPay?.enabled ? 'Débito Activo' : 'Modalidad Pausada'}
+                  </div>
+                </div>
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${
+                  autoPay?.enabled ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                }`}>
+                  {autoPay?.enabled ? 'VIGENTE' : 'PAUSADO'}
+                </span>
+              </div>
+            )}
+
+            {currentItem.id === 'qr-credential' && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] text-slate-400 font-mono uppercase">Placas Asignadas</div>
+                  <div className="font-mono font-bold text-slate-900">{vehicle?.plates || 'JNZ-4821'}</div>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 font-bold">
+                  AES-256
+                </span>
+              </div>
+            )}
+
+            {currentItem.id === 'parking-map' && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] text-slate-400 font-mono uppercase">Ubicación GPS</div>
+                  <div className="font-bold text-slate-900">Centro Histórico • Zona A</div>
+                </div>
+                <span className="text-[10px] font-mono text-emerald-600 font-bold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  EN VIVO
+                </span>
+              </div>
+            )}
+
+            {currentItem.id === 'vehicle' && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] text-slate-400 font-mono uppercase">Vehículo Registrado</div>
+                  <div className="font-bold text-slate-900">
+                    {vehicle?.model || 'Nissan Versa'} ({vehicle?.plates || 'JNZ-4821'})
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 font-bold">
+                  VALIDADO
+                </span>
+              </div>
+            )}
+
+            {currentItem.id === 'history' && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] text-slate-400 font-mono uppercase">Último Movimiento</div>
+                  <div className="font-bold text-slate-900">
+                    {transactions?.[0]?.description || 'Recarga en Oxxo Pay'}
+                  </div>
+                </div>
+                <span className="font-mono font-bold text-slate-950">
+                  {transactions?.[0] ? `-$${transactions[0].amount.toFixed(2)}` : '$0.00'}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Acciones principales y contextuales */}
+          <div className="space-y-2.5 pt-1">
+            {/* Botón Principal: Abrir en el Sistema con Scroll */}
             <button
               type="button"
-              aria-label={`Desplazar hacia abajo y abrir ${currentItem.label} en el sistema`}
+              aria-label={`Abrir ${currentItem.label} y descender al sistema`}
               onClick={() => handleNavigateAndScroll(currentItem.actionTarget)}
-              className="w-full py-2.5 px-4 rounded-xl bg-black hover:bg-slate-800 text-white font-sans font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-black hover:bg-slate-800 text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
             >
-              <span>Abrir Función & Desplazar</span>
+              <span>Abrir en el Sistema</span>
               <ArrowDown className="w-3.5 h-3.5 text-white animate-bounce" />
             </button>
 
-            {/* Acciones secundarias contextuales */}
-            <div className="flex items-center gap-2">
+            {/* Acciones secundarias transparentes / pills sutiles */}
+            <div className="flex items-center gap-2 pt-1">
               {currentItem.id === 'dashboard' && (
                 activeSession ? (
                   <button
                     type="button"
                     onClick={handleStopParking}
-                    className="flex-1 py-1.5 px-3 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                    className="py-1.5 px-3.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <Square size={12} />
                     <span>Liberar Lugar</span>
@@ -424,7 +412,7 @@ export const OrbitalWheelMenu = ({
                   <button
                     type="button"
                     onClick={handleStartParking}
-                    className="flex-1 py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200 text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                    className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <Play size={12} />
                     <span>Iniciar Estancia</span>
@@ -433,13 +421,13 @@ export const OrbitalWheelMenu = ({
               )}
 
               {currentItem.id === 'recharge' && (
-                <div className="flex gap-1.5 w-full">
+                <div className="flex items-center gap-1.5">
                   {[100, 200, 500].map(amt => (
                     <button
                       key={amt}
                       type="button"
                       onClick={() => handleQuickRechargeAmt(amt)}
-                      className="flex-1 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-black border border-slate-200 font-mono text-[11px] font-bold transition cursor-pointer"
+                      className="py-1 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-black font-mono text-xs font-bold transition cursor-pointer"
                     >
                       +${amt}
                     </button>
@@ -447,7 +435,7 @@ export const OrbitalWheelMenu = ({
                   <button
                     type="button"
                     onClick={onOpenRecharge}
-                    className="py-1.5 px-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200 text-[11px] font-bold transition cursor-pointer"
+                    className="py-1 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition cursor-pointer"
                   >
                     Otro
                   </button>
@@ -458,7 +446,7 @@ export const OrbitalWheelMenu = ({
                 <button
                   type="button"
                   onClick={handleToggleAutoPay}
-                  className="w-full py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200 text-[11px] font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <Zap size={12} />
                   <span>{autoPay?.enabled ? 'Pausar Autocobro' : 'Activar Autocobro'}</span>
@@ -466,11 +454,11 @@ export const OrbitalWheelMenu = ({
               )}
 
               {currentItem.id === 'qr-credential' && (
-                <div className="flex gap-2 w-full">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={handleCopyPlates}
-                    className="flex-1 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-black border border-slate-200 text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                    className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
                     {copied ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
                     <span>{copied ? 'Copiado' : 'Copiar Placas'}</span>
@@ -478,7 +466,7 @@ export const OrbitalWheelMenu = ({
                   <button
                     type="button"
                     onClick={onOpenQR}
-                    className="flex-1 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-black border border-slate-200 text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                    className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <QrCode size={12} />
                     <span>Ver QR</span>
@@ -490,7 +478,7 @@ export const OrbitalWheelMenu = ({
                 <button
                   type="button"
                   onClick={() => handleNavigateAndScroll('dashboard')}
-                  className="w-full py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200 text-[11px] font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <MapPin size={12} />
                   <span>Ver Mapa en Panel</span>
@@ -501,10 +489,10 @@ export const OrbitalWheelMenu = ({
                 <button
                   type="button"
                   onClick={() => handleNavigateAndScroll('vehicle')}
-                  className="w-full py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200 text-[11px] font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <Car size={12} />
-                  <span>Editar Datos del Vehículo</span>
+                  <span>Editar Vehículo</span>
                 </button>
               )}
 
@@ -512,7 +500,7 @@ export const OrbitalWheelMenu = ({
                 <button
                   type="button"
                   onClick={() => handleNavigateAndScroll('history')}
-                  className="w-full py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200 text-[11px] font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <History size={12} />
                   <span>Ver Todos los Recibos</span>
@@ -520,79 +508,70 @@ export const OrbitalWheelMenu = ({
               )}
             </div>
           </div>
+
         </div>
 
-        {/* ═══ COLUMNA DERECHA: OPTIONWHEEL 3D DIFUMINADO (7/12) ═══ */}
+        {/* ═══ COLUMNA DERECHA: OPTIONWHEEL 3D TOTALMENTE TRANSPARENTE (SIN CAJAS NI BORDES) ═══ */}
         <div className="lg:col-span-7 flex flex-col items-center justify-center relative">
           
-          {/* Contenedor del OptionWheel con altura calibrada para teléfono y computadora */}
+          {/* Contenedor del OptionWheel 100% transparente sin bordes ni sombras de caja */}
           <div 
-            className="w-full h-[280px] sm:h-[340px] md:h-[380px] relative rounded-2xl bg-white/40 border border-slate-200/60 shadow-inner overflow-hidden"
+            className="w-full h-[300px] sm:h-[360px] md:h-[400px] relative bg-transparent border-0 shadow-none overflow-hidden"
           >
-            {/* Guía visual central con borde sutil para enmarcar la opción activa */}
-            <div 
-              className="absolute top-1/2 left-0 right-0 -translate-y-1/2 h-14 sm:h-16 border-y border-slate-300/40 bg-slate-900/[0.02] pointer-events-none z-10 flex items-center justify-between px-3 sm:px-6"
-            >
-              <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest hidden sm:inline">
-                SELECCIONADO
-              </span>
-              <span className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest">
-                0{selectedIndex + 1} / 0{MENU_ITEMS.length}
-              </span>
-            </div>
-
-            {/* Componente OptionWheel de React Bits con difuminado y suavizado 3D */}
+            {/* Componente OptionWheel de React Bits con difuminado infinito sobre blanco */}
             <OptionWheel
               items={MENU_ITEMS}
               selectedIndex={selectedIndex}
               onChange={handleWheelChange}
               onSelect={(idx, item) => handleNavigateAndScroll(item.actionTarget)}
-              textColor="#64748b"
-              activeColor="#000000"
+              textColor="#94a3b8"
+              activeColor="#020617"
               side={isMobile ? 'left' : 'left'}
-              fontSize={isMobile ? 1.45 : 2.1}
+              fontSize={isMobile ? 1.35 : 2.0}
               spacing={isMobile ? 1.45 : 1.6}
-              curve={isMobile ? 0.75 : 0.9}
-              tilt={isMobile ? 4.5 : 5.8}
-              blur={2.6}
+              curve={isMobile ? 0.75 : 0.88}
+              tilt={isMobile ? 4.5 : 5.6}
+              blur={2.8}
               fade={0.38}
               minOpacity={0.06}
               smoothing={170}
-              inset={isMobile ? 24 : 44}
+              inset={isMobile ? 16 : 32}
               loop={true}
               draggable={true}
               renderItem={(item, isSelected) => {
                 const ItemIcon = item?.icon || Sparkles;
                 return (
-                  <span className="inline-flex items-center gap-2.5 sm:gap-3.5">
+                  <span className="inline-flex items-center gap-3 sm:gap-4 transition-all duration-200">
                     <span 
-                      className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg transition-all ${
+                      className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-all duration-200 ${
                         isSelected 
-                          ? 'bg-black text-white shadow-sm' 
-                          : 'bg-slate-200/60 text-slate-700'
+                          ? 'bg-black text-white shadow-sm scale-110' 
+                          : 'bg-transparent text-slate-400'
                       }`}
                     >
                       {ItemIcon && <ItemIcon size={isMobile ? 14 : 16} />}
                     </span>
-                    <span className="tracking-tight">{item.label}</span>
+                    <span className={`tracking-tight ${isSelected ? 'font-black text-slate-950' : 'font-medium'}`}>
+                      {item.label}
+                    </span>
                   </span>
                 );
               }}
             />
           </div>
 
-          {/* Indicador de ayuda y scroll para móviles y desktop */}
-          <div className="flex items-center justify-between w-full px-2 pt-2.5 text-[11px] text-slate-500 font-sans">
+          {/* Guía inferior estética y limpia */}
+          <div className="flex items-center justify-between w-full px-2 pt-2 text-[11px] text-slate-400 font-sans">
             <span className="flex items-center gap-1.5 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              Arrastra o usa la rueda del ratón
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+              Gira o arrastra la ruleta
             </span>
             <button
               type="button"
               onClick={() => handleNavigateAndScroll(currentItem.actionTarget)}
-              className="text-black font-bold flex items-center gap-1 hover:underline cursor-pointer"
+              className="text-slate-700 hover:text-black font-bold flex items-center gap-1 cursor-pointer transition-colors"
             >
-              <span>Ir al sistema</span>
+              <span>Descender al sistema</span>
               <ChevronDown size={14} />
             </button>
           </div>
