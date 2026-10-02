@@ -16,6 +16,7 @@ import {
   History,
   CreditCard,
   ChevronDown,
+  ChevronUp,
   ArrowDown,
   Check,
   Copy,
@@ -225,13 +226,7 @@ export const OrbitalWheelMenu = ({
       className={`w-full bg-transparent border-0 shadow-none relative py-3 sm:py-6 font-sans ${className}`}
     >
       {/* ═══ ENCABEZADO MINIMALISTA TOTALMENTE TRANSPARENTE ═══ */}
-      <div className="flex items-center justify-between gap-4 mb-3 sm:mb-5">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-black animate-pulse" />
-          <span className="text-xs font-mono font-bold uppercase tracking-[0.2em] text-slate-500">
-            SELECTOR 3D DIFUMINADO
-          </span>
-        </div>
+      <div className="flex items-center justify-end gap-4 mb-2 sm:mb-4">
         <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400">
           <span className="font-bold text-slate-900">0{selectedIndex + 1}</span>
           <span>/</span>
@@ -534,7 +529,7 @@ export const OrbitalWheelMenu = ({
               blur={2.8}
               fade={0.38}
               minOpacity={0.06}
-              smoothing={170}
+              smoothing={45}
               inset={isMobile ? 16 : 32}
               loop={true}
               draggable={true}
@@ -560,16 +555,39 @@ export const OrbitalWheelMenu = ({
             />
           </div>
 
-          {/* Guía inferior estética y limpia */}
-          <div className="flex items-center justify-between w-full px-2 pt-2 text-[11px] text-slate-400 font-sans">
-            <span className="flex items-center gap-1.5 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-              Gira o arrastra la ruleta
-            </span>
+          {/* Controles de navegación y acceso al sistema (sin textos invasivos) */}
+          <div className="flex items-center justify-between w-full px-2 pt-2 text-[11px] font-sans">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                aria-label="Opción anterior"
+                onClick={() => {
+                  const newIdx = (selectedIndex - 1 + MENU_ITEMS.length) % MENU_ITEMS.length;
+                  handleWheelChange(newIdx, MENU_ITEMS[newIdx]);
+                }}
+                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+                title="Opción anterior"
+              >
+                <ChevronUp size={14} />
+              </button>
+              <button
+                type="button"
+                aria-label="Opción siguiente"
+                onClick={() => {
+                  const newIdx = (selectedIndex + 1) % MENU_ITEMS.length;
+                  handleWheelChange(newIdx, MENU_ITEMS[newIdx]);
+                }}
+                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+                title="Opción siguiente"
+              >
+                <ChevronDown size={14} />
+              </button>
+            </div>
+
             <button
               type="button"
               onClick={() => handleNavigateAndScroll(currentItem.actionTarget)}
-              className="text-slate-700 hover:text-black font-bold flex items-center gap-1 cursor-pointer transition-colors"
+              className="text-slate-600 hover:text-black font-bold flex items-center gap-1 cursor-pointer transition-colors"
             >
               <span>Descender al sistema</span>
               <ChevronDown size={14} />

@@ -13,7 +13,7 @@
   overflow: hidden;
   cursor: grab;
   user-select: none;
-  touch-action: none;
+  touch-action: pan-y;
   outline: none;
   /* Máscara de difuminado vertical 100% transparente para el efecto infinito en blanco */
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 12%, black 32%, black 68%, rgba(0,0,0,0.3) 88%, transparent 100%);

@@ -30,7 +30,7 @@ export const OptionWheel = ({
   blur = 2.8,
   fade = 0.35,
   minOpacity = 0.08,
-  smoothing = 180,
+  smoothing = 45,
   inset = 40,
   loop = true,
   draggable = true,
@@ -50,6 +50,7 @@ export const OptionWheel = ({
   const onChangeRef = useRef(onChange);
   const selectedRef = useRef(initialIndex);
   const wheelTimerRef = useRef(null);
+  const wheelAccumulatorRef = useRef(0);
   const dragRef = useRef(null);
   const dragMovedRef = useRef(false);
   const audioRef = useRef(null);
@@ -74,13 +75,13 @@ export const OptionWheel = ({
     minOpacity,
     side,
     loop,
-    smoothing,
+    smoothing: Math.max(smoothing, 25),
     draggable,
     soundUrl,
     soundVolume
   };
 
-  // rAF loop con amortiguación exponencial y proyección en curva 3D con difuminado
+  // rAF loop con amortiguación rápida ultra fluida y proyección en curva 3D
   const runFrame = useCallback(now => {
     const dt = Math.min((now - lastRef.current) / 1000, 0.05);
     lastRef.current = now;
@@ -148,7 +149,7 @@ export const OptionWheel = ({
     const { soundUrl, soundVolume } = cfgRef.current;
     if (!soundUrl) return;
     const now = performance.now();
-    if (now - lastTickRef.current < 70) return;
+    if (now - lastTickRef.current < 50) return;
     lastTickRef.current = now;
     if (!audioRef.current || audioUrlRef.current !== soundUrl) {
       audioRef.current = new Audio(soundUrl);
@@ -198,19 +199,39 @@ export const OptionWheel = ({
     }
   }, [controlledSelectedIndex, startLoop]);
 
-  // Manejo de rueda de mouse y scroll táctil
+  // Manejo de rueda de mouse ultra fluido con acumulador sensible
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
+
     const onWheel = e => {
-      e.preventDefault();
       const cfg = cfgRef.current;
-      const delta = e.deltaMode === 1 ? e.deltaY * 24 : e.deltaY;
-      const step = Math.max(-1, Math.min(1, delta / cfg.rowH));
-      applyTarget(targetRef.current + step, false);
-      if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current);
-      wheelTimerRef.current = setTimeout(() => applyTarget(targetRef.current, true), 140);
+      if (!cfg.count) return;
+
+      const delta = e.deltaMode === 1 ? e.deltaY * 20 : e.deltaY;
+      wheelAccumulatorRef.current += delta;
+
+      const threshold = 30; // Respuesta instantánea a cada tick de rueda
+
+      if (Math.abs(wheelAccumulatorRef.current) >= threshold) {
+        e.preventDefault();
+        const direction = Math.sign(wheelAccumulatorRef.current);
+        wheelAccumulatorRef.current = 0;
+        applyTarget(Math.round(targetRef.current) + direction, true);
+      } else {
+        if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current);
+        wheelTimerRef.current = setTimeout(() => {
+          if (Math.abs(wheelAccumulatorRef.current) >= 12) {
+            const direction = Math.sign(wheelAccumulatorRef.current);
+            wheelAccumulatorRef.current = 0;
+            applyTarget(Math.round(targetRef.current) + direction, true);
+          } else {
+            wheelAccumulatorRef.current = 0;
+          }
+        }, 35);
+      }
     };
+
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => {
       el.removeEventListener('wheel', onWheel);
@@ -230,11 +251,13 @@ export const OptionWheel = ({
       const drag = dragRef.current;
       if (!drag) return;
       const dy = e.clientY - drag.y;
-      if (!dragMovedRef.current && Math.abs(dy) > 4) {
+      if (!dragMovedRef.current && Math.abs(dy) > 3) {
         dragMovedRef.current = true;
         rootRef.current?.setPointerCapture(drag.id);
       }
-      if (dragMovedRef.current) applyTarget(drag.start - dy / cfgRef.current.rowH, false);
+      if (dragMovedRef.current) {
+        applyTarget(drag.start - dy / cfgRef.current.rowH, false);
+      }
     },
     [applyTarget]
   );
@@ -243,7 +266,9 @@ export const OptionWheel = ({
     if (!dragRef.current) return;
     dragRef.current = null;
     setIsDragging(false);
-    if (dragMovedRef.current) applyTarget(targetRef.current, true);
+    if (dragMovedRef.current) {
+      applyTarget(targetRef.current, true);
+    }
   }, [applyTarget]);
 
   const handleItemClick = useCallback(
