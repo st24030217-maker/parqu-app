@@ -5,7 +5,6 @@ import {
   Car,
   Clock,
   User,
-  Wifi,
   X,
   CheckCircle2,
   Play,
@@ -15,6 +14,7 @@ import {
   ChevronDown,
   ChevronUp,
   Activity,
+  ExternalLink,
 } from 'lucide-react';
 import { animate, stagger } from 'animejs';
 import { sileo } from 'sileo';
@@ -61,8 +61,9 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
   const clockDigitsRef = useRef(null);
   const costDigitsRef = useRef(null);
   const timerCardRef = useRef(null);
+  const uberProgressNodeRef = useRef(null);
 
-  // Mantener referencia síncrona actualizada para visibilitychange / pagehide en teléfono
+  // Mantener referencia síncrona actualizada para visibilitychange en teléfono
   const latestContextRef = useRef({
     owner,
     vehicle,
@@ -78,7 +79,7 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     syncParquStateToServiceWorker(ctx);
   }, [owner, vehicle, card, autoPay, activeSession, transactions, liveTick]);
 
-  // Reloj en vivo de alta precisión para que la notificación interactiva lata cada segundo
+  // Reloj en vivo de alta precisión segundo a segundo
   useEffect(() => {
     if (!bannerOpen && !activeSession) return undefined;
     const interval = setInterval(() => {
@@ -130,7 +131,7 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     transactions,
   });
 
-  // 1. Animación Anime.js tipo Dynamic Island al expandir o contraer la Consola en Vivo
+  // 1. Animación Anime.js tipo Uber / Dynamic Island al expandir o contraer la Consola en Vivo
   useEffect(() => {
     if (!bannerOpen) return;
 
@@ -171,11 +172,12 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     }
   }, [bannerOpen, isMinimizedPill]);
 
-  // 2. Osciloscopio / Ondas de Telemetría en Vivo con Anime.js (Modo Expandido y Modo Píldora)
+  // 2. Osciloscopio / Ondas de Telemetría y Nodo de Ruta estilo Uber/DiDi con Anime.js
   useEffect(() => {
     if (!bannerOpen) return undefined;
 
     let waveAnim;
+    let nodeAnim;
     const targetContainer = isMinimizedPill ? minimizedWaveRef.current : telemetryWaveRef.current;
 
     if (targetContainer) {
@@ -193,10 +195,18 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
       }
     }
 
+    if (!isMinimizedPill && uberProgressNodeRef.current) {
+      nodeAnim = animate(uberProgressNodeRef.current, {
+        scale: info.isActive ? [1, 1.35, 1] : [1, 1.12, 1],
+        duration: info.isActive ? 900 : 1800,
+        loop: true,
+        ease: 'inOutSine',
+      });
+    }
+
     return () => {
-      if (waveAnim && typeof waveAnim.pause === 'function') {
-        waveAnim.pause();
-      }
+      if (waveAnim && typeof waveAnim.pause === 'function') waveAnim.pause();
+      if (nodeAnim && typeof nodeAnim.pause === 'function') nodeAnim.pause();
     };
   }, [bannerOpen, isMinimizedPill, info.isActive]);
 
@@ -222,19 +232,21 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     });
   }, [info.cost, info.balance, info.isActive, bannerOpen, isMinimizedPill]);
 
-  // Escuchar acciones interactivas disparadas desde los botones de la notificación del teléfono (Service Worker)
+  // 5. Escuchar TODAS las acciones ejecutadas desde la notificación estilo Uber/DiDi en 2º plano
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return undefined;
 
     const handleSwMessage = (event) => {
       if (!event.data || event.data.type !== 'PARQU_SW_ACTION') return;
-      if (event.data.action === 'START_PARKING' && !latestContextRef.current.activeSession) {
+      const { action, amount, enabled } = event.data;
+
+      if (action === 'START_PARKING' && !latestContextRef.current.activeSession) {
         startParking('Espacio #1042 • Centro Histórico', 6.0);
         sileo.success({
           title: 'Parquímetro Iniciado desde Notificación',
           description: 'Tarifa activa a $6.00/hr en Espacio #1042.',
         });
-      } else if (event.data.action === 'STOP_PARKING' && latestContextRef.current.activeSession) {
+      } else if (action === 'STOP_PARKING' && latestContextRef.current.activeSession) {
         const txn = stopParkingAndAutoCharge();
         if (txn) {
           sileo.success({
@@ -242,12 +254,52 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
             description: `Folio ${txn.folio} • Total cobrado: $${txn.amount.toFixed(2)} MXN`,
           });
         }
+      } else if (action === 'ADD_BALANCE') {
+        const addAmt = Number(amount) || 50;
+        addBalance(addAmt);
+        sileo.success({
+          title: `Recarga +$${addAmt}.00 desde Notificación`,
+          description: 'Tu saldo NFC se actualizó desde el control en segundo plano.',
+        });
+      } else if (action === 'TOGGLE_AUTOPAY') {
+        const nextEnabled =
+          typeof enabled === 'boolean' ? enabled : !latestContextRef.current.autoPay?.enabled;
+        updateAutoPay({ enabled: nextEnabled });
+        sileo.info({
+          title: nextEnabled ? 'Autocobro Activado' : 'Autocobro Pausado',
+          description: 'Cambio aplicado desde la notificación en segundo plano.',
+        });
       }
     };
 
     navigator.serviceWorker.addEventListener('message', handleSwMessage);
     return () => navigator.serviceWorker.removeEventListener('message', handleSwMessage);
-  }, [startParking, stopParkingAndAutoCharge]);
+  }, [startParking, stopParkingAndAutoCharge, addBalance, updateAutoPay]);
+
+  // 6. Controles de Hardware / Pantalla de Bloqueo (MediaSession Action Handlers)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
+    try {
+      navigator.mediaSession.setActionHandler('play', () => {
+        if (!latestContextRef.current.activeSession) {
+          startParking('Espacio #1042 • Centro Histórico', 6.0);
+        }
+      });
+      navigator.mediaSession.setActionHandler('pause', () => {
+        if (latestContextRef.current.activeSession) {
+          stopParkingAndAutoCharge();
+        }
+      });
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        addBalance(50);
+      });
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        updateAutoPay({ enabled: !latestContextRef.current.autoPay?.enabled });
+      });
+    } catch {
+      // ignore unsupported handlers
+    }
+  }, [startParking, stopParkingAndAutoCharge, addBalance, updateAutoPay]);
 
   // Registrar Service Worker y solicitar permiso en el primer click/tap en móvil
   useEffect(() => {
@@ -272,7 +324,7 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     };
   }, []);
 
-  // Disparo síncrono único cuando el usuario sale de la app en su teléfono (solo 1 notificación en la barra)
+  // Disparo síncrono único cuando el usuario sale de la app en su teléfono
   const triggerExitNotificationSync = useCallback((source = 'exit') => {
     if (!autoNotifyRef.current && source !== 'manual') return null;
 
@@ -340,8 +392,8 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
 
     if (sent) {
       sileo.success({
-        title: 'Notificación en Vivo Enviada',
-        description: 'Revisa la barra superior de tu teléfono. Se actualizará automáticamente al salir.',
+        title: 'Control Tipo Uber/DiDi Enviado a tu Barra',
+        description: 'Desliza la barra de tu teléfono: puedes Iniciar/Finalizar, Recargar +$50 o cambiar Autocobro desde ahí.',
       });
     } else if (currentPerm === 'denied') {
       sileo.info({
@@ -350,7 +402,7 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
       });
     } else {
       sileo.success({
-        title: 'Telemetría en Vivo Activa',
+        title: 'Control en Vivo Activo',
         description: `${payload.fullName} • Placas ${payload.plates} • ${payload.clockStr}`,
       });
     }
@@ -371,7 +423,7 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
       startParking('Espacio #1042 • Centro Histórico', 6.0);
       sileo.success({
         title: 'Parquímetro Iniciado en Vivo',
-        description: 'Tarifa activa a $6.00/hr • Monitoreo en segundo plano habilitado.',
+        description: 'Tarifa activa a $6.00/hr • Control en segundo plano habilitado.',
       });
     }
   };
@@ -399,10 +451,10 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     });
   };
 
-  // Barra de progreso de la hora en curso (0 a 100%)
+  // Barra de progreso tipo viaje Uber/DiDi (0 a 100%)
   const hourProgressPct = info.isActive
-    ? Math.min(100, Math.max(4, Math.round(((info.elapsedSeconds % 3600) / 3600) * 100)))
-    : 0;
+    ? Math.min(96, Math.max(8, Math.round(((info.elapsedSeconds % 3600) / 3600) * 100)))
+    : 12;
 
   return (
     <>
@@ -416,10 +468,10 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
               </div>
               <div className="min-w-0">
                 <p className="text-[11px] font-bold leading-tight truncate text-slate-900">
-                  Activar telemetría en vivo en tu teléfono
+                  Activar Notificación con Control Tipo Uber / DiDi
                 </p>
                 <p className="text-[10px] text-slate-500 truncate">
-                  Muestra tiempo y cobro en segundo plano al salir de Parqu
+                  Controla tu parquímetro y saldo desde la barra al salir de la app
                 </p>
               </div>
             </div>
@@ -445,44 +497,43 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
         </div>
       )}
 
-      {/* Consola de Notificación Interactiva en Vivo animada con Anime.js v4 */}
+      {/* Consola de Control en Vivo Estilo Uber / DiDi animada con Anime.js v4 */}
       {bannerOpen && (
         <div
           role="region"
-          aria-label="Notificación interactiva en vivo de Parquímetro"
+          aria-label="Consola de control en vivo tipo Uber y DiDi"
           className="fixed top-[68px] sm:top-[76px] inset-x-0 z-50 px-3 sm:px-6 pointer-events-none flex justify-center"
         >
           {isMinimizedPill ? (
-            /* MODO PÍLDORA DYNAMIC ISLAND COMPACTA (ANIMADA CON ANIME.JS) */
+            /* MODO PÍLDORA FLOTANTE COMPACTA TIPO UBER / DYNAMIC ISLAND */
             <div
               ref={minimizedPillRef}
-              className="pointer-events-auto max-w-[450px] w-full rounded-full bg-white/95 backdrop-blur-2xl border border-slate-200/90 shadow-[0_14px_36px_rgba(15,23,42,0.16)] px-3.5 py-2 flex items-center justify-between gap-2 text-slate-900 origin-top"
+              className="pointer-events-auto max-w-[460px] w-full rounded-full bg-[#090d16]/95 backdrop-blur-2xl border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.35)] px-3.5 py-2 flex items-center justify-between gap-2 text-white origin-top"
             >
               <button
                 type="button"
                 onClick={() => setIsMinimizedPill(false)}
                 className="flex items-center gap-2 min-w-0 text-left cursor-pointer"
               >
-                {/* Mini ondas de telemetría Anime.js */}
                 <div ref={minimizedWaveRef} className="flex items-center gap-0.5 h-3.5 px-1">
                   {[0, 1, 2, 3, 4].map((idx) => (
                     <span
                       key={idx}
                       className={`anime-telemetry-bar w-0.5 h-3.5 rounded-full origin-center ${
-                        info.isActive ? 'bg-amber-500' : 'bg-[#0033FF]'
+                        info.isActive ? 'bg-[#38bdf8]' : 'bg-emerald-400'
                       }`}
                     />
                   ))}
                 </div>
 
-                <span className="font-mono font-black text-xs text-slate-900 tracking-tight">
+                <span className="font-mono font-black text-xs text-white tracking-tight">
                   {info.clockStr}
                 </span>
-                <span className="text-slate-300">•</span>
-                <span className="font-mono font-bold text-xs text-[#0033FF]">
+                <span className="text-slate-500">•</span>
+                <span className="font-mono font-bold text-xs text-[#38bdf8]">
                   ${info.cost} MXN
                 </span>
-                <span className="text-[11px] font-sans font-semibold text-slate-500 truncate">
+                <span className="text-[11px] font-mono font-semibold text-slate-300 truncate">
                   {info.plates}
                 </span>
               </button>
@@ -497,67 +548,78 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                       : 'bg-[#0033FF] hover:bg-[#1e4bff] text-white'
                   }`}
                 >
-                  {info.isActive ? 'Detener' : 'Iniciar'}
+                  {info.isActive ? 'Finalizar' : 'Iniciar'}
                 </button>
                 <button
                   type="button"
-                  aria-label="Expandir notificación en vivo"
+                  onClick={(e) => handleQuickAddBalance(50, e)}
+                  className="px-2 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white font-mono font-bold text-[10px] cursor-pointer"
+                >
+                  +$50
+                </button>
+                <button
+                  type="button"
+                  aria-label="Expandir control en vivo"
                   onClick={() => setIsMinimizedPill(false)}
-                  className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer"
+                  className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center cursor-pointer"
                 >
                   <ChevronDown className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="button"
-                  aria-label="Cerrar notificación"
+                  aria-label="Cerrar"
                   onClick={handleCloseBanner}
-                  className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer"
+                  className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           ) : (
-            /* MODO CONSOLA EXPANDIDA EN VIVO (SIN EMOJIS, ANIMADA CON ANIME.JS V4) */
+            /* TARJETA DE CONTROL EN VIVO ESTILO UBER / DIDI */
             <div
               ref={consoleCardRef}
-              className="w-full max-w-[475px] pointer-events-auto rounded-[24px] bg-white/95 backdrop-blur-2xl border border-slate-200/90 shadow-[0_22px_55px_rgba(15,23,42,0.20)] p-3.5 sm:p-4 text-slate-900 origin-top"
+              className="w-full max-w-[480px] pointer-events-auto rounded-[24px] bg-[#090d16]/95 backdrop-blur-2xl border border-white/15 shadow-[0_24px_60px_rgba(0,0,0,0.45)] p-4 text-white origin-top"
             >
-              {/* Cabecera con osciloscopio de telemetría Anime.js y controles de ventana */}
-              <div className="anime-console-item flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+              {/* Cabecera estilo Uber Live Activity */}
+              <div className="anime-console-item flex items-center justify-between gap-2 pb-3 border-b border-white/10">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-7 h-7 rounded-xl bg-[#0033FF] text-white flex items-center justify-center shadow-sm shrink-0">
-                    <Activity className="w-3.5 h-3.5" />
+                  <div
+                    className={`w-8 h-8 rounded-xl flex items-center justify-center shadow-sm shrink-0 ${
+                      info.isActive ? 'bg-[#0033FF] text-white' : 'bg-emerald-500 text-slate-950'
+                    }`}
+                  >
+                    <Activity className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono font-black text-[10px] uppercase tracking-widest text-[#0033FF]">
-                        PARQU TELEMETRIA EN VIVO
+                      <span className="font-mono font-black text-[10px] uppercase tracking-widest text-[#38bdf8]">
+                        PARQU LIVE CONTROL
                       </span>
-                      <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-bold">
-                        {info.isActive ? 'ACTIVO' : 'EN ESPERA'}
+                      <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded-md bg-white/10 text-white font-bold">
+                        {info.isActive ? 'EN PARQUIMETRO' : 'LISTO PARA SALIR'}
                       </span>
                     </div>
-                    <p className="text-[10px] text-slate-500 font-mono truncate">
+                    <p className="text-[10px] text-slate-400 font-mono truncate">
                       {lastExitTime
-                        ? `Sincronizado al salir: ${lastExitTime}`
-                        : 'Actualización continua en segundo plano • $6.00/hr'}
+                        ? `Control activo en barra desde: ${lastExitTime}`
+                        : 'Controla Parqu desde tu barra de notificaciones al salir'}
                     </p>
                   </div>
                 </div>
 
-                {/* Ecualizador de Ondas de Telemetría en Tiempo Real (Anime.js) */}
-                <div className="flex items-center gap-2 shrink-0">
+                {/* Ondas Anime.js y botones de ventana */}
+                <div className="flex items-center gap-1.5 shrink-0">
                   <div
                     ref={telemetryWaveRef}
                     aria-hidden="true"
-                    className="hidden sm:flex items-center gap-[3px] h-5 px-2 py-1 rounded-lg bg-slate-100/80 border border-slate-200/60"
+                    className="hidden sm:flex items-center gap-[3px] h-5 px-2 py-1 rounded-lg bg-white/5 border border-white/10"
                   >
-                    {Array.from({ length: 12 }).map((_, idx) => (
+                    {Array.from({ length: 10 }).map((_, idx) => (
                       <span
                         key={idx}
                         className={`anime-telemetry-bar w-[2.5px] h-3.5 rounded-full origin-center ${
-                          info.isActive ? 'bg-amber-500' : 'bg-[#0033FF]'
+                          info.isActive ? 'bg-[#38bdf8]' : 'bg-emerald-400'
                         }`}
                       />
                     ))}
@@ -566,9 +628,9 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                   <button
                     type="button"
                     onClick={() => setIsMinimizedPill(true)}
-                    title="Minimizar a píldora en vivo"
+                    title="Minimizar a píldora flotante"
                     aria-label="Minimizar notificación"
-                    className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer"
+                    className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center transition cursor-pointer"
                   >
                     <ChevronUp className="w-3.5 h-3.5" />
                   </button>
@@ -576,117 +638,99 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                     type="button"
                     onClick={handleCloseBanner}
                     aria-label="Cerrar notificación"
-                    className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer"
+                    className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center transition cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
 
-              {/* Cronómetro en Vivo + Barra de Progreso + Pulso Cinético Anime.js */}
-              <div className="mt-3 space-y-2.5">
+              {/* Bloque Central Estilo Viaje Uber / DiDi con Barra de Ruta y Cronómetro */}
+              <div className="mt-3 space-y-3">
                 <div
                   ref={timerCardRef}
-                  className={`anime-console-item rounded-2xl p-3 border transition-colors ${
-                    info.isActive
-                      ? 'bg-amber-50/80 border-amber-200/90'
-                      : 'bg-slate-50/90 border-slate-200/80'
-                  }`}
+                  className="anime-console-item rounded-2xl p-3.5 bg-white/[0.06] border border-white/10"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                          info.isActive
-                            ? 'bg-amber-500 text-white'
-                            : 'bg-[#0033FF]/10 text-[#0033FF]'
-                        }`}
-                      >
-                        <Clock className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="text-[9px] font-mono uppercase tracking-widest font-bold text-slate-500 block">
-                          {info.isActive ? 'CRONOMETRO DE PARQUIMETRO' : 'SIN SESION EN CURSO'}
+                    <div>
+                      <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 block">
+                        {info.isActive ? 'TIEMPO DE ESTANCIA EN CURSO' : 'ESTACIONAMIENTO EN ESPERA'}
+                      </span>
+                      <div className="flex items-baseline gap-2 mt-0.5">
+                        <span
+                          ref={clockDigitsRef}
+                          className="inline-block font-mono font-black text-2xl sm:text-3xl text-white tracking-tight origin-left"
+                        >
+                          {info.clockStr}
                         </span>
-                        <div className="flex items-baseline gap-2">
-                          <span
-                            ref={clockDigitsRef}
-                            className="inline-block font-mono font-black text-lg sm:text-xl text-slate-900 tracking-tight origin-left"
-                          >
-                            {info.clockStr}
-                          </span>
-                          <span className="text-[10px] font-mono font-bold text-slate-500">
-                            {info.isActive
-                              ? `${info.hours}h ${info.minutes}m ${info.seconds}s`
-                              : info.historyText}
-                          </span>
-                        </div>
+                        <span className="text-[11px] font-mono font-bold text-[#38bdf8]">
+                          $6.00/hr
+                        </span>
                       </div>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <span className="text-[9px] font-mono uppercase tracking-widest text-slate-500 block">
-                        {info.isActive ? 'COBRO EN VIVO' : 'TARIFA OFICIAL'}
+                    <div className="text-right">
+                      <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 block">
+                        {info.isActive ? 'TOTAL ACUMULADO' : 'SALDO NFC'}
                       </span>
                       <span
                         ref={costDigitsRef}
-                        className="inline-block font-mono font-black text-lg sm:text-xl text-[#0033FF] origin-right"
+                        className="inline-block font-mono font-black text-xl sm:text-2xl text-emerald-400 origin-right"
                       >
-                        {info.isActive ? `$${info.cost}` : '$6.00/hr'}
+                        {info.isActive ? `$${info.cost} MXN` : `$${info.balance}`}
                       </span>
                     </div>
                   </div>
 
-                  {/* Barra de Progreso en Vivo */}
-                  <div className="mt-2.5 space-y-1">
-                    <div className="w-full h-1.5 rounded-full bg-slate-200/80 overflow-hidden">
+                  {/* Barra de Ruta / Progreso Estilo Uber/DiDi con Nodo Animado Anime.js */}
+                  <div className="mt-3.5 space-y-1.5">
+                    <div className="relative w-full h-2 rounded-full bg-white/10 flex items-center">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
-                          info.isActive ? 'bg-[#0033FF]' : 'bg-slate-400'
+                          info.isActive ? 'bg-gradient-to-r from-[#0033FF] to-[#38bdf8]' : 'bg-emerald-500/60'
                         }`}
-                        style={{ width: `${info.isActive ? hourProgressPct : 0}%` }}
+                        style={{ width: `${hourProgressPct}%` }}
+                      />
+                      <span
+                        ref={uberProgressNodeRef}
+                        style={{ left: `calc(${hourProgressPct}% - 7px)` }}
+                        className="absolute w-3.5 h-3.5 rounded-full bg-white border-2 border-[#0033FF] shadow-[0_0_12px_rgba(56,189,248,0.9)] transition-all duration-500"
                       />
                     </div>
-                    <div className="flex items-center justify-between text-[10px] font-mono text-slate-500">
-                      <span>{info.zoneName}</span>
-                      <span>Saldo NFC: ${info.balance} MXN</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Datos en Vivo del Conductor y Vehículo */}
-                <div className="anime-console-item grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="rounded-xl bg-slate-50 border border-slate-200/60 p-2.5 flex items-center gap-2 min-w-0">
-                    <User className="w-3.5 h-3.5 text-[#0033FF] shrink-0" />
-                    <div className="min-w-0">
-                      <span className="text-[9px] font-mono uppercase text-slate-400 block">
-                        TITULAR
-                      </span>
-                      <span className="font-semibold text-slate-800 truncate block">
-                        {info.fullName}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl bg-slate-50 border border-slate-200/60 p-2.5 flex items-center gap-2 min-w-0">
-                    <Car className="w-3.5 h-3.5 text-[#0033FF] shrink-0" />
-                    <div className="min-w-0">
-                      <span className="text-[9px] font-mono uppercase text-slate-400 block">
-                        PLACAS • {info.plates}
-                      </span>
-                      <span className="font-semibold text-slate-800 truncate block">
-                        {info.carDesc}
+                    <div className="flex items-center justify-between text-[10px] font-mono text-slate-300">
+                      <span className="truncate">{info.zoneName}</span>
+                      <span className="text-emerald-400 font-bold shrink-0">
+                        Saldo NFC: ${info.balance} MXN
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Controles Interactivos en Vivo con Física Anime.js */}
-                <div className="anime-console-item grid grid-cols-3 gap-1.5 pt-0.5">
+                {/* Tarjeta de Vehículo y Conductor estilo Uber Driver Info */}
+                <div className="anime-console-item rounded-2xl bg-white/[0.04] border border-white/10 px-3.5 py-2.5 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-[#38bdf8] shrink-0">
+                      <Car className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-white truncate">{info.carDesc}</p>
+                      <p className="text-[10px] text-slate-400 truncate">
+                        Titular: {info.fullName} • {info.rfidTag}
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="px-2.5 py-1 rounded-lg bg-white text-slate-950 font-mono font-black text-xs tracking-wider shrink-0">
+                    {info.plates}
+                  </span>
+                </div>
+
+                {/* 3 Botones de Control Directo (Idénticos a los de la Notificación en 2º Plano) */}
+                <div className="anime-console-item grid grid-cols-3 gap-2 pt-0.5">
                   <button
                     type="button"
                     onClick={handleToggleParkingLive}
-                    className={`col-span-1 py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm ${
+                    className={`col-span-1 py-2.5 px-2.5 rounded-xl font-sans font-bold text-[11px] flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm ${
                       info.isActive
                         ? 'bg-rose-600 hover:bg-rose-700 text-white'
                         : 'bg-[#0033FF] hover:bg-[#1e4bff] text-white'
@@ -708,19 +752,19 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                   <button
                     type="button"
                     onClick={(e) => handleQuickAddBalance(50, e)}
-                    className="col-span-1 py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-sans font-bold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer"
+                    className="col-span-1 py-2.5 px-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-sans font-bold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer"
                   >
-                    <Plus className="w-3.5 h-3.5 text-[#0033FF]" />
-                    <span>Recargar $50</span>
+                    <Plus className="w-3.5 h-3.5 text-[#38bdf8]" />
+                    <span>+$50 Saldo</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={handleToggleAutoPayLive}
-                    className={`col-span-1 py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer border ${
+                    className={`col-span-1 py-2.5 px-2.5 rounded-xl font-sans font-bold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer border ${
                       info.autoPayEnabled
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                        : 'bg-slate-100 border-slate-200 text-slate-600'
+                        ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-300'
+                        : 'bg-white/5 border-white/15 text-slate-300'
                     }`}
                   >
                     <Zap className="w-3 h-3 shrink-0" />
@@ -728,8 +772,8 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                   </button>
                 </div>
 
-                {/* Pie de Consola: Estado del Aviso al Salir y Envío al Teléfono */}
-                <div className="anime-console-item pt-1 border-t border-slate-100 flex items-center justify-between gap-2">
+                {/* Pie de Consola: Activar / Probar Control desde la Barra del Teléfono */}
+                <div className="anime-console-item pt-2 border-t border-white/10 flex items-center justify-between gap-2">
                   <button
                     type="button"
                     onClick={(e) => {
@@ -738,24 +782,24 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                     }}
                     className={`px-2.5 py-1.5 rounded-xl text-[10px] font-mono uppercase tracking-wider font-bold border transition cursor-pointer flex items-center gap-1.5 ${
                       autoNotifyOnExit
-                        ? 'bg-slate-900 border-slate-900 text-white'
-                        : 'bg-slate-100 border-slate-200 text-slate-600'
+                        ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-300'
+                        : 'bg-white/5 border-white/15 text-slate-400'
                     }`}
                   >
                     <CheckCircle2 className="w-3 h-3 shrink-0" />
-                    <span>{autoNotifyOnExit ? '2º PLANO: ACTIVO' : '2º PLANO: PAUSADO'}</span>
+                    <span>{autoNotifyOnExit ? 'AL SALIR: ACTIVO' : 'AL SALIR: PAUSADO'}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={handleEnableOrTestNotification}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-sans font-bold text-[11px] transition cursor-pointer flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-xl bg-white text-slate-950 hover:bg-slate-200 font-sans font-bold text-[11px] transition cursor-pointer flex items-center gap-1.5"
                   >
                     <Bell className="w-3.5 h-3.5 text-[#0033FF]" />
                     <span>
                       {permission === 'granted'
-                        ? 'Actualizar en Barra del Telefono'
-                        : 'Permitir en mi Telefono'}
+                        ? 'Probar Noti Uber en mi Barra'
+                        : 'Activar Control en mi Barra'}
                     </span>
                   </button>
                 </div>
