@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import CloudSky from './ui/cloud-sky';
 import { useParking } from '../context/ParkingContext';
+import { requestParkingNotificationPermission } from '../utils/parkingNotification';
 
 const PRESENTATION_STEPS = [
   {
@@ -536,7 +537,7 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
 });
 
 export const LoadingScreen = ({ onComplete }) => {
-  const { vehicle, card } = useParking();
+  const { vehicle, card, activeSession, startParking } = useParking();
   const [isExiting, setIsExiting] = useState(false);
   const hasExitedRef = useRef(false);
 
@@ -544,6 +545,7 @@ export const LoadingScreen = ({ onComplete }) => {
   const handleTriggerExit = useCallback(() => {
     if (hasExitedRef.current) return;
     hasExitedRef.current = true;
+    requestParkingNotificationPermission().catch(() => {});
     document.body.dataset.loadingActive = 'false';
     setIsExiting(true);
 
@@ -551,6 +553,15 @@ export const LoadingScreen = ({ onComplete }) => {
       if (onComplete) onComplete();
     }, 650);
   }, [onComplete]);
+
+  // Botón "Iniciar": activa estancia inmediata ($6.00/hr), habilita el centro de control en segundo plano y entra al sistema
+  const handleQuickStart = useCallback(() => {
+    requestParkingNotificationPermission().catch(() => {});
+    if (!activeSession && typeof startParking === 'function') {
+      startParking('Espacio #1042 • Centro Histórico', 6.0);
+    }
+    handleTriggerExit();
+  }, [activeSession, startParking, handleTriggerExit]);
 
   // Atajo de teclado: Enter o Barra espaciadora para entrar al sistema
   useEffect(() => {
@@ -609,13 +620,13 @@ export const LoadingScreen = ({ onComplete }) => {
       {/* 
         ══════════════════════════════════════════════════════════════
         CONTENIDO PRINCIPAL SOBRE LAS NUBES:
-        IZQUIERDA: SOLO LOGO DE PARQU, SLOGAN Y BOTÓN "EMPECEMOS"
+        IZQUIERDA: SOLO LOGO DE PARQU, SLOGAN Y BOTONES "EMPECEMOS" + "INICIAR"
         DERECHA: PRESENTACIÓN INTERACTIVA DE LA APLICACIÓN EN 3 TELÉFONOS
         ══════════════════════════════════════════════════════════════
       */}
       <div className="relative z-10 w-full max-w-[1280px] mx-auto py-3 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-8 lg:gap-6 items-center">
         
-        {/* COLUMNA IZQUIERDA: LOGO DE PARQU, SLOGAN Y BOTÓN EMPECEMOS */}
+        {/* COLUMNA IZQUIERDA: LOGO DE PARQU, SLOGAN Y BOTONES EMPECEMOS + INICIAR */}
         <div className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2.5 sm:space-y-7">
           {/* Logotipo Oficial Parqu */}
           <div className="relative flex items-center justify-center">
@@ -632,15 +643,24 @@ export const LoadingScreen = ({ onComplete }) => {
             Sistema Inteligente de <span className="text-white font-bold">Parquímetros</span> y Autocobro Digital
           </p>
 
-          {/* Botón "Empecemos" Elegante y Sin Bordes */}
-          <div className="pt-0.5 sm:pt-1">
+          {/* Botones "Empecemos" e "Iniciar" uno al lado del otro */}
+          <div className="pt-0.5 sm:pt-1 flex flex-row flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5">
             <button
               type="button"
               onClick={handleTriggerExit}
-              className="font-sans text-xs sm:text-base font-bold text-white px-7 py-2.5 sm:px-10 sm:py-4 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 transition-all duration-300 backdrop-blur-md border-0 shadow-[0_0_35px_rgba(128,125,254,0.45)] flex items-center justify-center gap-2 cursor-pointer group"
+              className="font-sans text-xs sm:text-base font-bold text-white px-6 py-2.5 sm:px-9 sm:py-4 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 transition-all duration-300 backdrop-blur-md border-0 shadow-[0_0_35px_rgba(128,125,254,0.45)] flex items-center justify-center gap-2 cursor-pointer group"
             >
               <span>Empecemos</span>
               <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white inline transition-transform duration-300 group-hover:translate-x-1.5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleQuickStart}
+              className="font-sans text-xs sm:text-base font-bold text-white px-6 py-2.5 sm:px-9 sm:py-4 rounded-full bg-[#0033FF] hover:bg-[#1a47ff] active:scale-95 transition-all duration-300 border-0 shadow-[0_0_35px_rgba(0,51,255,0.65)] flex items-center justify-center gap-2 cursor-pointer group"
+            >
+              <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-white inline transition-transform duration-300 group-hover:scale-110" />
+              <span>Iniciar</span>
             </button>
           </div>
         </div>
