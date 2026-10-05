@@ -4,6 +4,7 @@ import { Toaster, sileo } from 'sileo';
 import 'sileo/styles.css';
 import { ParkingProvider, useParking } from './context/ParkingContext';
 import { Header } from './components/Header';
+import { ExitNotificationManager } from './components/ExitNotificationManager';
 import { DigitalCard } from './components/DigitalCard';
 import { VehicleOwnerForm } from './components/VehicleOwnerForm';
 import { AutoPaymentConfig } from './components/AutoPaymentConfig';
@@ -56,6 +57,7 @@ const MainContent = () => {
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'autopay', 'vehicle', 'history'
   const [showQRQuickModal, setShowQRQuickModal] = useState(false);
   const [showRechargeQuickModal, setShowRechargeQuickModal] = useState(false);
+  const [showNotificationBanner, setShowNotificationBanner] = useState(false);
   const [rechargeAmt, setRechargeAmt] = useState(150);
   const systemRef = useRef(null);
 
@@ -483,6 +485,7 @@ const MainContent = () => {
           onSelectTab={handleSelectFeature}
           onOpenRecharge={() => setShowRechargeQuickModal(true)}
           onOpenNFC={() => setShowQRQuickModal(true)}
+          onOpenNotification={() => setShowNotificationBanner((prev) => !prev)}
           onNavigateToPanel={() => {
             const el = document.getElementById('panel-control-metropolitano');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -491,6 +494,11 @@ const MainContent = () => {
             const el = document.getElementById('selector-orbital-metropolitano');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
           }}
+        />
+
+        <ExitNotificationManager
+          isOpenExternal={showNotificationBanner}
+          onCloseExternal={() => setShowNotificationBanner(false)}
         />
 
         {/* Banner de Sesión Activa si está en otra pestaña con soporte completo de teclado */}

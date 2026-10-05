@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo } from 'react';
-import { Menu, X, Wifi, Sparkles } from 'lucide-react';
+import { Menu, X, Wifi, BellRing } from 'lucide-react';
 import { useParking } from '../context/ParkingContext';
 
 export const Header = memo(({
@@ -8,6 +8,7 @@ export const Header = memo(({
   onSelectTab,
   onOpenRecharge,
   onOpenNFC,
+  onOpenNotification,
   activeTab,
 }) => {
   const { activeSession, vehicle, card } = useParking();
@@ -194,8 +195,30 @@ export const Header = memo(({
             ))}
           </div>
 
-          {/* Derecha: Botón de acción principal + botón de menú colapsable en móvil */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Derecha: Botón de notificación en vivo + acción principal + menú colapsable en móvil */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <button
+              type="button"
+              aria-label="Ver notificación de parquímetro"
+              title="Ver notificación y tiempo de parquímetro"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                if (onOpenNotification) onOpenNotification();
+              }}
+              className={`relative w-8 h-8 rounded-[11px] flex items-center justify-center transition cursor-pointer ${
+                isScrolled
+                  ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-black'
+                  : 'bg-white/15 hover:bg-white/25 text-white'
+              }`}
+            >
+              <BellRing className="w-3.5 h-3.5" />
+              <span
+                className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${
+                  activeSession ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'
+                }`}
+              />
+            </button>
+
             <button
               type="button"
               onClick={handlePrimaryAction}

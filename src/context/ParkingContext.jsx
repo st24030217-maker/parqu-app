@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { generateTicketFolio } from '../utils/formatters';
+import {
+  requestParkingNotificationPermission,
+  sendParkingExitNotification,
+} from '../utils/parkingNotification';
 
 const ParkingContext = createContext();
 
@@ -10,6 +14,7 @@ const STORAGE_KEYS = {
   AUTOPAY: 'parkdigital_autopay',
   HISTORY: 'parkdigital_history',
   PINNED_LOCATIONS: 'parkdigital_pinned_locations',
+  ACTIVE_SESSION: 'parkdigital_active_session',
 };
 
 const defaultVehicle = {
@@ -148,8 +153,28 @@ export const ParkingProvider = ({ children }) => {
   // Punto activo fijado en el mapa
   const [activePinnedLocation, setActivePinnedLocation] = useState(null);
 
-  // Estado de sesión activa de estacionamiento (parquímetro metropolitano)
-  const [activeSession, setActiveSession] = useState(null);
+  // Estado de sesión activa de estacionamiento (parquímetro metropolitano) con persistencia real
+  const [activeSession, setActiveSession] = useState(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.ACTIVE_SESSION) : null;
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      if (!parsed || !parsed.startTime) return null;
+      const wallSeconds = Math.max(
+        Number(parsed.secondsElapsed) || 0,
+        Math.floor((Date.now() - new Date(parsed.startTime).getTime()) / 1000)
+      );
+      const ratePerSecond = (Number(parsed.ratePerHour) || 6.0) / 3600;
+      const currentCost = Math.min(wallSeconds * ratePerSecond, Number(parsed.maxLimit) || 180);
+      return {
+        ...parsed,
+        secondsElapsed: wallSeconds,
+        currentCost: Number(currentCost.toFixed(2)),
+      };
+    } catch {
+      return null;
+    }
+  });
 
   // Último recibo generado por el sistema de autocobro
   const [lastReceipt, setLastReceipt] = useState(null);
@@ -203,6 +228,18 @@ export const ParkingProvider = ({ children }) => {
     }
   }, [pinnedLocations]);
 
+  useEffect(() => {
+    try {
+      if (activeSession) {
+        localStorage.setItem(STORAGE_KEYS.ACTIVE_SESSION, JSON.stringify(activeSession));
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.ACTIVE_SESSION);
+      }
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+  }, [activeSession]);
+
   // Actualizadores de Estado
   const updateVehicle = (newVehicleData) => {
     setVehicle((prev) => ({ ...prev, ...newVehicleData }));
@@ -227,14 +264,17 @@ export const ParkingProvider = ({ children }) => {
     }));
   };
 
-  // Temporizador para el parquímetro metropolitano en tiempo real
+  // Temporizador para el parquímetro metropolitano en tiempo real (incluso si la app estuvo en segundo plano)
   useEffect(() => {
     let timer;
     if (activeSession) {
       timer = setInterval(() => {
         setActiveSession((prev) => {
           if (!prev) return null;
-          const secondsElapsed = prev.secondsElapsed + 1;
+          const wallSeconds = prev.startTime
+            ? Math.floor((Date.now() - new Date(prev.startTime).getTime()) / 1000)
+            : 0;
+          const secondsElapsed = Math.max(prev.secondsElapsed + 1, wallSeconds);
           const ratePerSecond = prev.ratePerHour / 3600;
           const rawCost = secondsElapsed * ratePerSecond;
           const currentCost = Math.min(rawCost, prev.maxLimit);
@@ -314,6 +354,21 @@ export const ParkingProvider = ({ children }) => {
       setPinnedLocations((prev) => [pinRecord, ...prev.filter(p => p.status !== 'ACTIVA')]);
       setActivePinnedLocation(pinRecord);
     }
+
+    // Solicitar permiso de notificación del sistema para que avise al salir de la app
+    requestParkingNotificationPermission()
+      .then((perm) => {
+        if (perm === 'granted') {
+          sendParkingExitNotification({
+            owner,
+            vehicle,
+            card: { ...card, status: 'EN_PARQUIMETRO' },
+            activeSession: newSession,
+            transactions,
+          });
+        }
+      })
+      .catch(() => {});
   };
 
   // Detener y ejecutar autocobro inmediato
