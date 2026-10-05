@@ -558,64 +558,6 @@ const MainContent = () => {
             onOpenQR={() => setShowQRQuickModal(true)}
           />
 
-          {/* 2. ENCABEZADO DEL CENTRO DE OPERACIONES */}
-          <div className="p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-white shadow-xl shadow-slate-200/50 border-0 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
-            <div>
-              <div className="flex items-center gap-2 mb-1 sm:mb-1.5 text-[10px] sm:text-xs font-mono text-slate-500">
-                <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="tracking-widest uppercase font-bold text-slate-800">SISTEMA METROPOLITANO EN VIVO</span>
-                <span className="text-slate-300">•</span>
-                <span className="text-slate-500">$6.00/hr • 0 Monedas</span>
-              </div>
-              <h2 className="text-lg sm:text-3xl font-black text-black tracking-tight flex items-center gap-2.5 sm:gap-3 font-sans">
-                <span>Centro de Operaciones Parqu</span>
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-600 mt-1 font-sans">
-                Control centralizado de tarjeta virtual, parquímetros municipales y sistema de autocobro.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 font-sans">
-              <button
-                type="button"
-                aria-label="Ir al Menú 3D OptionWheel"
-                onClick={() => {
-                  const el = document.getElementById('selector-orbital-metropolitano');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-black hover:bg-neutral-800 text-white font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 border-0 shadow-md shadow-black/20 transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
-                title="Ir al Menú 3D OptionWheel"
-              >
-                <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-                <span>Menú 3D OptionWheel</span>
-              </button>
-
-              <button
-                type="button"
-                aria-label="Ejecutar diagnóstico de red metropolitana"
-                onClick={() => {
-                  sileo.success({
-                    title: 'Diagnóstico Completado',
-                    description: 'Enlace metropolitano y sensores de parquímetro activos al 100%.',
-                  });
-                }}
-                className="px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200 text-black font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 border-0 shadow-sm transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
-                title="Ejecutar diagnóstico de red"
-              >
-                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current text-amber-500" />
-                <span>Diagnóstico de Red</span>
-              </button>
-
-              <div className="flex items-center gap-2.5 sm:gap-3 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-100 shadow-sm border-0 shrink-0">
-                <PlugConnectedIcon size={16} className="text-emerald-500" />
-                <div className="text-left font-sans">
-                  <div className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-widest font-bold font-mono">Sistema Online</div>
-                  <div className="text-[11px] sm:text-xs font-bold text-black">Red Municipal Conectada</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Modal Rápido de Recarga de Saldo */}
           {showRechargeQuickModal && (
             <div 
