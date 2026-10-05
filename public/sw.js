@@ -1,4 +1,4 @@
-// Service Worker Oficial de Parqu - Notificacion Interactiva Estilo Uber / DiDi con Control Total en 2o Plano
+// Service Worker Oficial de Parqu - Notificacion Interactiva Estilo Dynamic Island en 2o Plano
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 const WAVE_CHARS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
 
@@ -16,32 +16,12 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Barra de progreso estilo Uber / DiDi en vivo
-function buildUberStyleTrack(frame, isActive) {
-  const width = 12;
-  if (!isActive) {
-    return '○' + '─'.repeat(width) + '○';
-  }
-  const pos = frame % width;
-  let track = '●';
-  for (let i = 0; i < width; i += 1) {
-    if (i < pos) {
-      track += '━';
-    } else if (i === pos) {
-      track += '◈';
-    } else {
-      track += '─';
-    }
-  }
-  track += '◉';
-  return track;
-}
-
-function buildAnimatedWave(frame, length = 6, isActive = true) {
+// Mini onda compacta tipo Dynamic Island (solo 5 barras, nunca larga)
+function buildIslandWave(frame, isActive = true) {
   let out = '';
-  for (let i = 0; i < length; i += 1) {
-    const speed = isActive ? 0.8 : 0.4;
-    const val = (Math.sin(frame * speed + i * 0.7) + 1) / 2;
+  for (let i = 0; i < 5; i += 1) {
+    const speed = isActive ? 0.85 : 0.45;
+    const val = (Math.sin(frame * speed + i * 0.75) + 1) / 2;
     const idx = Math.min(
       WAVE_CHARS.length - 1,
       Math.max(0, Math.floor(val * WAVE_CHARS.length))
@@ -51,7 +31,6 @@ function buildAnimatedWave(frame, length = 6, isActive = true) {
   return out;
 }
 
-// Convierte un ArrayBuffer a Base64 Data URL dentro del Service Worker para mostrar imagen en vivo estilo Uber/DiDi
 function arrayBufferToBase64DataUrl(buffer, mime = 'image/png') {
   let binary = '';
   const bytes = new Uint8Array(buffer);
@@ -62,87 +41,83 @@ function arrayBufferToBase64DataUrl(buffer, mime = 'image/png') {
   return `data:${mime};base64,${self.btoa(binary)}`;
 }
 
-// Genera una tarjeta grafica en vivo con OffscreenCanvas (como el widget de viaje de Uber / DiDi)
-async function buildUberLiveBannerImage(s, clockStr, cost, frame) {
+// Dibuja una pildora redondeada en Canvas
+function drawRoundedPill(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// Genera una capsula estilo Dynamic Island de iPhone centrada (sin barras largas)
+async function buildDynamicIslandImage(s, clockStr, cost, frame) {
   if (typeof OffscreenCanvas === 'undefined') return undefined;
   try {
-    const width = 640;
-    const height = 220;
+    const width = 600;
+    const height = 180;
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
     if (!ctx) return undefined;
 
-    // Fondo oscuro elegante estilo Uber / Parqu
-    ctx.fillStyle = '#090d16';
-    ctx.fillRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height);
 
-    // Linea superior de acento
-    ctx.fillStyle = s.isActive ? '#0033FF' : '#10b981';
-    ctx.fillRect(0, 0, width, 6);
+    // Capsula Dynamic Island centrada (no abarca todo el ancho)
+    const pillW = 460;
+    const pillH = 124;
+    const pillX = Math.round((width - pillW) / 2);
+    const pillY = Math.round((height - pillH) / 2);
 
-    // Etiqueta de estado superior izquierda
-    ctx.fillStyle = s.isActive ? '#60a5fa' : '#34d399';
-    ctx.font = 'bold 17px monospace';
-    ctx.fillText(
-      s.isActive ? 'PARQU EN CURSO • CONTROL ACTIVO' : 'PARQU DISPONIBLE • CONTROL EN 2O PLANO',
-      28,
-      38
-    );
-
-    // Placas a la derecha
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(width - 168, 16, 140, 32);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 18px monospace';
-    ctx.fillText(String(s.plates || 'XYZ-7842'), width - 150, 38);
-
-    // Reloj gigante y Costo estilo Uber Live Activity
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 52px monospace';
-    ctx.fillText(s.isActive ? clockStr : '00:00:00', 28, 102);
-
-    ctx.fillStyle = s.isActive ? '#38bdf8' : '#94a3b8';
-    ctx.font = 'bold 38px sans-serif';
-    ctx.fillText(s.isActive ? `$${cost} MXN` : '$6.00/hr', 310, 98);
-
-    // Barra de progreso tipo ruta Uber/DiDi
-    const barX = 28;
-    const barY = 132;
-    const barW = width - 56;
-    const barH = 10;
-
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(barX, barY, barW, barH);
-
-    const progressRatio = s.isActive ? ((frame % 20) + 1) / 20 : 0.15;
-    ctx.fillStyle = s.isActive ? '#0033FF' : '#10b981';
-    ctx.fillRect(barX, barY, Math.round(barW * progressRatio), barH);
-
-    // Punto indicador animado en la barra
-    const dotX = barX + Math.round(barW * progressRatio);
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(dotX, barY + barH / 2, 9, 0, Math.PI * 2);
+    ctx.fillStyle = '#07080c';
+    drawRoundedPill(ctx, pillX, pillY, pillW, pillH, 62);
     ctx.fill();
 
-    // Ondas de telemetria a la derecha
-    const waveXStart = width - 155;
-    for (let i = 0; i < 10; i += 1) {
-      const amp = (Math.sin(frame * 0.8 + i * 0.65) + 1) / 2;
-      const h = Math.max(6, Math.round(amp * 34));
-      ctx.fillStyle = s.isActive ? '#3b82f6' : '#10b981';
-      ctx.fillRect(waveXStart + i * 12, 96 - h, 7, h);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = s.isActive ? '#38bdf8' : 'rgba(255,255,255,0.18)';
+    ctx.stroke();
+
+    // Izquierda de la Isla: Estado + Reloj en vivo
+    ctx.fillStyle = s.isActive ? '#38bdf8' : '#34d399';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText(
+      s.isActive ? `PARQU • ${s.plates || 'XYZ-7842'}` : `EN ESPERA • ${s.plates || 'XYZ-7842'}`,
+      pillX + 34,
+      pillY + 42
+    );
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 38px monospace';
+    ctx.fillText(s.isActive ? clockStr : '00:00:00', pillX + 34, pillY + 88);
+
+    // Centro-Derecha: Mini ondas estilo Dynamic Island
+    const waveX = pillX + 258;
+    for (let i = 0; i < 6; i += 1) {
+      const amp = (Math.sin(frame * 0.85 + i * 0.7) + 1) / 2;
+      const barH = Math.max(8, Math.round(amp * 34));
+      const barY = pillY + Math.round((pillH - barH) / 2);
+      ctx.fillStyle = s.isActive ? '#f59e0b' : '#38bdf8';
+      drawRoundedPill(ctx, waveX + i * 9, barY, 5, barH, 2.5);
+      ctx.fill();
     }
 
-    // Pie de tarjeta: Vehiculo, Titular y Saldo NFC
-    ctx.fillStyle = '#cbd5e1';
-    ctx.font = 'bold 19px sans-serif';
+    // Derecha de la Isla: Cobro / Saldo
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText(s.isActive ? 'COBRO ($6/H)' : 'SALDO NFC', pillX + pillW - 34, pillY + 42);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 30px sans-serif';
     ctx.fillText(
-      `${s.carDesc || 'Volkswagen Jetta'} • Saldo NFC: $${s.balance || '320.00'} MXN • ${
-        s.autoPayEnabled !== false ? 'Autocobro ON' : 'Autocobro OFF'
-      }`,
-      28,
-      188
+      s.isActive ? `$${cost}` : `$${s.balance || '320'}`,
+      pillX + pillW - 34,
+      pillY + 86
     );
 
     const blob = await canvas.convertToBlob({ type: 'image/png' });
@@ -155,15 +130,12 @@ async function buildUberLiveBannerImage(s, clockStr, cost, frame) {
 
 async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
   const s = state || latestParquState || {};
-  const fullName = s.fullName || 'Sebastián Salinas';
   const plates = s.plates || 'XYZ-7842';
-  const carDesc = s.carDesc || 'Volkswagen Jetta Sportline';
+  const carDesc = s.carDesc || 'Volkswagen Jetta';
   const balance = Number(s.balance ?? 320).toFixed(2);
   const autoPayEnabled = s.autoPayEnabled !== false;
-  const autoPayLabel = autoPayEnabled ? 'Autocobro: ON' : 'Autocobro: OFF';
-
-  const track = buildUberStyleTrack(waveFrame, Boolean(s.isActive));
-  const wave = buildAnimatedWave(waveFrame, 6, Boolean(s.isActive));
+  const autoPayLabel = autoPayEnabled ? 'Auto ON' : 'Auto OFF';
+  const wave = buildIslandWave(waveFrame, Boolean(s.isActive));
 
   if (s.isActive && s.startTime) {
     const elapsedSeconds = Math.max(
@@ -181,14 +153,10 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
     ).toFixed(2);
 
     const clockStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    const bannerImage = await buildUberLiveBannerImage(s, clockStr, cost, waveFrame);
+    const islandImage = await buildDynamicIslandImage(s, clockStr, cost, waveFrame);
 
-    const title = `PARQU EN CURSO • ${clockStr} • $${cost} MXN  ${wave}`;
-    const body = [
-      `${track}  ${s.zoneName || 'Espacio #1042'} ($${rate.toFixed(2)}/hr)`,
-      `${carDesc} (${plates}) • ${fullName}`,
-      `Saldo NFC: $${balance} MXN • ${autoPayLabel}${s.lastActionNote ? ` • ${s.lastActionNote}` : ''}`,
-    ].join('\n');
+    const title = `Parqu  ${wave}  ${clockStr} • $${cost}`;
+    const body = `${plates} (${carDesc}) • Saldo $${balance} • ${autoPayLabel}`;
 
     return {
       title,
@@ -196,18 +164,17 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
         body,
         icon: './parqu-logo-black.png',
         badge: './parqu-logo-black.png',
-        image: bannerImage,
+        image: islandImage,
         tag: SINGLE_NOTIFICATION_TAG,
         renotify: !isSilentUpdate,
         silent: isSilentUpdate,
         requireInteraction: true,
-        // Controles interactivos directos desde la notificacion (sin necesidad de abrir la app)
         actions: [
-          { action: 'stop_parking', title: 'Finalizar y Cobrar' },
-          { action: 'add_balance_50', title: '+$50 Saldo NFC' },
+          { action: 'stop_parking', title: 'Finalizar' },
+          { action: 'add_balance_50', title: '+$50 NFC' },
           {
             action: 'toggle_autopay',
-            title: autoPayEnabled ? 'Pausar Autocobro' : 'Activar Autocobro',
+            title: autoPayEnabled ? 'Auto OFF' : 'Auto ON',
           },
         ],
         data: {
@@ -218,13 +185,9 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
     };
   }
 
-  const bannerImage = await buildUberLiveBannerImage(s, '00:00:00', '0.00', waveFrame);
-  const title = `PARQU CONTROL • ${plates} • Saldo $${balance}  ${wave}`;
-  const body = [
-    `${track}  Listo para estacionar • Tarifa $6.00/hr`,
-    `${carDesc} (${plates}) • ${fullName}`,
-    `${autoPayLabel}${s.lastActionNote ? ` • ${s.lastActionNote}` : ' • Toca abajo para controlar desde aqui'}`,
-  ].join('\n');
+  const islandImage = await buildDynamicIslandImage(s, '00:00:00', '0.00', waveFrame);
+  const title = `Parqu  ${wave}  ${plates} • $${balance}`;
+  const body = `En espera ($6.00/hr) • ${carDesc} • ${autoPayLabel}`;
 
   return {
     title,
@@ -232,18 +195,17 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
       body,
       icon: './parqu-logo-black.png',
       badge: './parqu-logo-black.png',
-      image: bannerImage,
+      image: islandImage,
       tag: SINGLE_NOTIFICATION_TAG,
       renotify: !isSilentUpdate,
       silent: isSilentUpdate,
       requireInteraction: true,
-      // Controles interactivos directos en la notificacion cuando esta en espera
       actions: [
-        { action: 'start_parking', title: 'Iniciar ($6.00/hr)' },
-        { action: 'add_balance_50', title: '+$50 Saldo NFC' },
+        { action: 'start_parking', title: 'Iniciar $6/h' },
+        { action: 'add_balance_50', title: '+$50 NFC' },
         {
           action: 'toggle_autopay',
-          title: autoPayEnabled ? 'Pausar Autocobro' : 'Activar Autocobro',
+          title: autoPayEnabled ? 'Auto OFF' : 'Auto ON',
         },
       ],
       data: {
@@ -339,7 +301,6 @@ self.addEventListener('message', (event) => {
 
   if (event.data.type === 'APP_FOREGROUNDED') {
     stopBackgroundLoop();
-    // Si el usuario ejecuto acciones desde la notificacion mientras estaba fuera, sincronizarlas con la app
     if (pendingActionsQueue.length > 0 && event.source) {
       pendingActionsQueue.forEach((act) => {
         event.source.postMessage({
@@ -350,7 +311,6 @@ self.addEventListener('message', (event) => {
       });
       pendingActionsQueue = [];
     }
-    // Cerrar la notificacion de segundo plano al entrar a la app para que no se duplique
     if (self.registration && typeof self.registration.getNotifications === 'function') {
       event.waitUntil(
         self.registration
@@ -384,7 +344,6 @@ self.addEventListener('message', (event) => {
 self.addEventListener('notificationclick', (event) => {
   const action = event.action;
 
-  // 1. INICIAR PARQUIMETRO DESDE LA NOTIFICACION (SIN ABRIR LA APP)
   if (action === 'start_parking') {
     const nowIso = new Date().toISOString();
     latestParquState = {
@@ -394,7 +353,6 @@ self.addEventListener('notificationclick', (event) => {
       baseSeconds: 0,
       zoneName: 'Espacio #1042 • Centro Histórico',
       rate: '6.00',
-      lastActionNote: 'Iniciado desde notificacion',
     };
 
     event.waitUntil(
@@ -407,7 +365,6 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
-  // 2. FINALIZAR Y COBRAR DESDE LA NOTIFICACION (SIN ABRIR LA APP)
   if (action === 'stop_parking') {
     const s = latestParquState || {};
     const elapsedSeconds = s.startTime
@@ -424,7 +381,6 @@ self.addEventListener('notificationclick', (event) => {
       startTime: null,
       baseSeconds: 0,
       balance: nextBalance,
-      lastActionNote: `Cobrado $${finalCharge.toFixed(2)} MXN`,
     };
 
     event.waitUntil(
@@ -436,14 +392,12 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
-  // 3. RECARGAR +$50 MXN DESDE LA NOTIFICACION (SIN ABRIR LA APP)
   if (action === 'add_balance_50') {
     const s = latestParquState || {};
     const nextBalance = (Number(s.balance ?? 320) + 50).toFixed(2);
     latestParquState = {
       ...s,
       balance: nextBalance,
-      lastActionNote: 'Recarga +$50 MXN aplicada',
     };
 
     event.waitUntil(
@@ -455,7 +409,6 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
-  // 4. ACTIVAR / PAUSAR AUTOCOBRO DESDE LA NOTIFICACION (SIN ABRIR LA APP)
   if (action === 'toggle_autopay') {
     const s = latestParquState || {};
     const nextAutoPay = !(s.autoPayEnabled !== false);
@@ -463,7 +416,6 @@ self.addEventListener('notificationclick', (event) => {
       ...s,
       autoPayEnabled: nextAutoPay,
       autoPayStatus: nextAutoPay ? 'AUTOCOBRO ON' : 'AUTOCOBRO PAUSADO',
-      lastActionNote: nextAutoPay ? 'Autocobro activado' : 'Autocobro pausado',
     };
 
     event.waitUntil(
@@ -475,7 +427,6 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
-  // Si toca el cuerpo general de la notificacion, lo lleva de regreso a Parqu
   event.notification.close();
   stopBackgroundLoop();
 

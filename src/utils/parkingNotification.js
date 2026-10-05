@@ -1,4 +1,4 @@
-// Motor de Notificacion Unica con Animacion en Vivo en la Barra de Notificaciones (Sin Duplicados)
+// Motor de Notificacion Unica Estilo Dynamic Island de iPhone (Compacta, Sin Barras Largas)
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 const WAVE_CHARS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
 
@@ -32,7 +32,7 @@ export const getNotificationPermissionState = () => {
   if (typeof window === 'undefined' || !('Notification' in window)) {
     return 'unsupported';
   }
-  return Notification.permission; // 'granted' | 'denied' | 'default'
+  return Notification.permission;
 };
 
 export const requestParkingNotificationPermission = async () => {
@@ -71,11 +71,11 @@ export const requestParkingNotificationPermission = async () => {
   }
 };
 
-const buildAnimatedWave = (frame, length = 10, isActive = true) => {
+const buildCompactIslandWave = (frame, isActive = true) => {
   let out = '';
-  for (let i = 0; i < length; i += 1) {
-    const speed = isActive ? 0.75 : 0.4;
-    const val = (Math.sin(frame * speed + i * 0.65) + 1) / 2;
+  for (let i = 0; i < 5; i += 1) {
+    const speed = isActive ? 0.85 : 0.45;
+    const val = (Math.sin(frame * speed + i * 0.75) + 1) / 2;
     const idx = Math.min(
       WAVE_CHARS.length - 1,
       Math.max(0, Math.floor(val * WAVE_CHARS.length))
@@ -83,22 +83,6 @@ const buildAnimatedWave = (frame, length = 10, isActive = true) => {
     out += WAVE_CHARS[idx];
   }
   return out;
-};
-
-const buildSweepingBar = (frame, width = 10) => {
-  const pos = frame % width;
-  let bar = '[';
-  for (let i = 0; i < width; i += 1) {
-    if (i === pos) {
-      bar += '●';
-    } else if (i < pos) {
-      bar += '━';
-    } else {
-      bar += '─';
-    }
-  }
-  bar += ']';
-  return bar;
 };
 
 export const buildParkingNotificationPayload = ({
@@ -111,11 +95,11 @@ export const buildParkingNotificationPayload = ({
 }) => {
   const fullName = owner?.fullName || 'Sebastián Salinas';
   const plates = vehicle?.plates || 'XYZ-7842';
-  const carDesc = `${vehicle?.brand || 'Volkswagen'} ${vehicle?.model || 'Jetta Sportline'}`.trim();
+  const carDesc = `${vehicle?.brand || 'Volkswagen'} ${vehicle?.model || 'Jetta'}`.trim();
   const balance = Number(card?.balance ?? 0).toFixed(2);
   const rfidTag = card?.rfidTag || 'NFC-MX-09142-PK';
   const autoPayEnabled = autoPay?.enabled !== false;
-  const autoPayStatus = autoPayEnabled ? 'AUTOCOBRO ON' : 'AUTOCOBRO PAUSADO';
+  const autoPayStatus = autoPayEnabled ? 'Auto ON' : 'Auto OFF';
 
   const historyMinutes = Array.isArray(transactions)
     ? transactions.reduce((acc, t) => acc + (Number(t?.durationMinutes) || 0), 0)
@@ -124,11 +108,10 @@ export const buildParkingNotificationPayload = ({
   const histRemMinutes = historyMinutes % 60;
   const historyText =
     historyMinutes > 0
-      ? `${histHours} hr ${histRemMinutes} min acumulados`
-      : '0 hr 00 min registrados';
+      ? `${histHours}h ${histRemMinutes}m acumulados`
+      : '0h 00m registrados';
 
-  const wave = buildAnimatedWave(localWaveFrame, 10, Boolean(activeSession));
-  const sweep = buildSweepingBar(localWaveFrame, 10);
+  const wave = buildCompactIslandWave(localWaveFrame, Boolean(activeSession));
 
   if (activeSession) {
     const elapsedSeconds = Math.max(
@@ -154,12 +137,8 @@ export const buildParkingNotificationPayload = ({
         : `${minutes}m ${String(seconds).padStart(2, '0')}s`;
     const progressPercent = Math.min(100, Math.max(4, Math.round((Number(cost) / maxLimit) * 100)));
 
-    const title = `PARQU ${wave} ${clockStr} • $${cost} MXN`;
-    const body = [
-      `${sweep} ACTIVO • Placas ${plates} (${carDesc})`,
-      `Zona: ${activeSession.zoneName} • Tarifa $${rate.toFixed(2)}/hr • ${autoPayStatus}`,
-      `Titular: ${fullName} • Saldo NFC: $${balance} MXN`,
-    ].join('\n');
+    const title = `Parqu  ${wave}  ${clockStr} • $${cost}`;
+    const body = `${plates} (${carDesc}) • Saldo $${balance} • ${autoPayStatus}`;
 
     return {
       title,
@@ -189,12 +168,8 @@ export const buildParkingNotificationPayload = ({
     };
   }
 
-  const title = `PARQU ${wave} ${plates} • EN VIVO`;
-  const body = [
-    `${sweep} EN ESPERA (00:00:00) • ${autoPayStatus}`,
-    `Vehículo: ${carDesc} (${plates}) • Tarifa: $6.00/hr`,
-    `Titular: ${fullName} • Pase ${rfidTag} • Saldo: $${balance} MXN (${historyText})`,
-  ].join('\n');
+  const title = `Parqu  ${wave}  ${plates} • $${balance}`;
+  const body = `En espera ($6.00/hr) • ${carDesc} • ${autoPayStatus}`;
 
   return {
     title,
@@ -209,7 +184,7 @@ export const buildParkingNotificationPayload = ({
     rate: '6.00',
     maxLimit: 180,
     progressPercent: 0,
-    zoneName: 'Vigilancia NFC Activa • Listo para estacionar',
+    zoneName: 'Listo para estacionar ($6.00/hr)',
     startTime: null,
     baseSeconds: 0,
     isActive: false,
@@ -259,7 +234,6 @@ export const notifyAppForegrounded = () => {
   }
 };
 
-// Dispara UNICAMENTE UNA notificacion (por un solo canal) para que jamas aparezcan varias
 export const dispatchBackgroundNotificationImmediate = (contextData) => {
   localWaveFrame += 1;
   const payload = buildParkingNotificationPayload(contextData);
@@ -272,7 +246,6 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
     return { sent: false, payload };
   }
 
-  // Canal 1 (Preferido y Unico): Delegar al Service Worker para que anime la UNICA notificacion en la barra
   try {
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({
@@ -287,7 +260,6 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
     // ignore
   }
 
-  // Canal 2 (Solo si el SW aun no controla la pagina): Mostrar 1 sola notificacion con tag unico y renotify: false
   const options = {
     body: payload.body,
     icon: './parqu-logo-black.png',

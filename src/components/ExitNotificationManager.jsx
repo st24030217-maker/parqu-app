@@ -3,8 +3,6 @@ import {
   Bell,
   BellRing,
   Car,
-  Clock,
-  User,
   X,
   CheckCircle2,
   Play,
@@ -13,8 +11,6 @@ import {
   Zap,
   ChevronDown,
   ChevronUp,
-  Activity,
-  ExternalLink,
 } from 'lucide-react';
 import { animate, stagger } from 'animejs';
 import { sileo } from 'sileo';
@@ -49,21 +45,17 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
   const [isMinimizedPill, setIsMinimizedPill] = useState(false);
   const [permission, setPermission] = useState(() => getNotificationPermissionState());
   const [autoNotifyOnExit, setAutoNotifyOnExit] = useState(true);
-  const [lastExitTime, setLastExitTime] = useState(null);
   const [dismissedPromptPill, setDismissedPromptPill] = useState(false);
   const [liveTick, setLiveTick] = useState(0);
 
-  // Referencias para animaciones con Anime.js v4
+  // Referencias para animaciones tipo Dynamic Island con Anime.js v4
   const consoleCardRef = useRef(null);
   const minimizedPillRef = useRef(null);
   const telemetryWaveRef = useRef(null);
   const minimizedWaveRef = useRef(null);
   const clockDigitsRef = useRef(null);
   const costDigitsRef = useRef(null);
-  const timerCardRef = useRef(null);
-  const uberProgressNodeRef = useRef(null);
 
-  // Mantener referencia síncrona actualizada para visibilitychange en teléfono
   const latestContextRef = useRef({
     owner,
     vehicle,
@@ -79,7 +71,7 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     syncParquStateToServiceWorker(ctx);
   }, [owner, vehicle, card, autoPay, activeSession, transactions, liveTick]);
 
-  // Reloj en vivo de alta precisión segundo a segundo
+  // Reloj en vivo segundo a segundo
   useEffect(() => {
     if (!bannerOpen && !activeSession) return undefined;
     const interval = setInterval(() => {
@@ -95,7 +87,7 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
 
   const lastNotificationSentAtRef = useRef(0);
 
-  // Sincronizar apertura externa desde el botón de campana en el Header
+  // Sincronizar apertura externa desde la Isla Dinámica del Header
   useEffect(() => {
     if (isOpenExternal) {
       setBannerOpen(true);
@@ -107,15 +99,16 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     if (consoleCardRef.current) {
       animate(consoleCardRef.current, {
         opacity: [1, 0],
-        scale: [1, 0.92],
-        translateY: [0, -14],
-        duration: 220,
+        scaleX: [1, 0.55],
+        scaleY: [1, 0.4],
+        translateY: [0, -16],
+        duration: 240,
         ease: 'inQuad',
       });
       setTimeout(() => {
         setBannerOpen(false);
         if (onCloseExternal) onCloseExternal();
-      }, 200);
+      }, 220);
       return;
     }
     setBannerOpen(false);
@@ -131,63 +124,61 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     transactions,
   });
 
-  // 1. Animación Anime.js tipo Uber / Dynamic Island al expandir o contraer la Consola en Vivo
+  // 1. Expansión física estilo Dynamic Island de iPhone con Anime.js v4
   useEffect(() => {
     if (!bannerOpen) return;
 
     if (isMinimizedPill && minimizedPillRef.current) {
       animate(minimizedPillRef.current, {
         opacity: [0, 1],
-        scaleX: [1.35, 1],
-        scaleY: [1.2, 1],
-        translateY: [8, 0],
-        duration: 620,
+        scaleX: [1.3, 1],
+        scaleY: [1.25, 1],
+        duration: 600,
         ease: 'outElastic(1, .62)',
       });
     } else if (!isMinimizedPill && consoleCardRef.current) {
       animate(consoleCardRef.current, {
         opacity: [0, 1],
-        scaleX: [0.68, 1],
-        scaleY: [0.76, 1],
-        translateY: [-18, 0],
-        duration: 720,
-        ease: 'outElastic(1, .66)',
+        scaleX: [0.52, 1],
+        scaleY: [0.45, 1],
+        translateY: [-14, 0],
+        duration: 740,
+        ease: 'outElastic(1, .64)',
       });
 
-      const blocks = consoleCardRef.current.querySelectorAll('.anime-console-item');
+      const blocks = consoleCardRef.current.querySelectorAll('.anime-island-item');
       if (blocks.length > 0) {
         blocks.forEach((el) => {
           el.style.opacity = '0';
-          el.style.transform = 'translateY(12px) scale(0.97)';
+          el.style.transform = 'translateY(8px) scale(0.96)';
         });
         animate(blocks, {
           opacity: [0, 1],
-          translateY: [12, 0],
-          scale: [0.97, 1],
-          delay: stagger(55, { start: 90 }),
-          duration: 540,
+          translateY: [8, 0],
+          scale: [0.96, 1],
+          delay: stagger(45, { start: 80 }),
+          duration: 480,
           ease: 'outExpo',
         });
       }
     }
   }, [bannerOpen, isMinimizedPill]);
 
-  // 2. Osciloscopio / Ondas de Telemetría y Nodo de Ruta estilo Uber/DiDi con Anime.js
+  // 2. Ondas de Telemetría estilo Dynamic Island con Anime.js
   useEffect(() => {
     if (!bannerOpen) return undefined;
 
     let waveAnim;
-    let nodeAnim;
     const targetContainer = isMinimizedPill ? minimizedWaveRef.current : telemetryWaveRef.current;
 
     if (targetContainer) {
       const bars = targetContainer.querySelectorAll('.anime-telemetry-bar');
       if (bars.length > 0) {
         waveAnim = animate(bars, {
-          scaleY: info.isActive ? [0.25, 1, 0.35, 0.9, 0.3] : [0.22, 0.55, 0.22],
-          opacity: info.isActive ? [0.55, 1, 0.65] : [0.35, 0.75, 0.35],
+          scaleY: info.isActive ? [0.25, 1, 0.35, 0.9, 0.3] : [0.25, 0.6, 0.25],
+          opacity: info.isActive ? [0.6, 1, 0.7] : [0.4, 0.8, 0.4],
           delay: stagger(55, { from: 'center' }),
-          duration: info.isActive ? 760 : 1500,
+          duration: info.isActive ? 720 : 1400,
           loop: true,
           alternate: true,
           ease: 'inOutSine',
@@ -195,44 +186,32 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
       }
     }
 
-    if (!isMinimizedPill && uberProgressNodeRef.current) {
-      nodeAnim = animate(uberProgressNodeRef.current, {
-        scale: info.isActive ? [1, 1.35, 1] : [1, 1.12, 1],
-        duration: info.isActive ? 900 : 1800,
-        loop: true,
-        ease: 'inOutSine',
-      });
-    }
-
     return () => {
       if (waveAnim && typeof waveAnim.pause === 'function') waveAnim.pause();
-      if (nodeAnim && typeof nodeAnim.pause === 'function') nodeAnim.pause();
     };
   }, [bannerOpen, isMinimizedPill, info.isActive]);
 
-  // 3. Pulso cinético segundo a segundo en el reloj digital con Anime.js
+  // 3. Pulso segundo a segundo en el reloj digital con Anime.js
   useEffect(() => {
     if (!bannerOpen || isMinimizedPill || !clockDigitsRef.current) return;
     animate(clockDigitsRef.current, {
-      scale: info.isActive ? [1.05, 1] : [1.015, 1],
-      translateY: info.isActive ? [-1.5, 0] : [0, 0],
-      duration: 360,
+      scale: info.isActive ? [1.05, 1] : [1.01, 1],
+      duration: 340,
       ease: 'outExpo',
     });
   }, [liveTick, bannerOpen, isMinimizedPill, info.isActive]);
 
-  // 4. Rebote elástico en el monto de cobro / saldo cuando se actualiza con Anime.js
+  // 4. Rebote elástico en el cobro / saldo con Anime.js
   useEffect(() => {
     if (!bannerOpen || isMinimizedPill || !costDigitsRef.current) return;
     animate(costDigitsRef.current, {
-      scale: [1.22, 1],
-      translateY: [-3, 0],
-      duration: 620,
+      scale: [1.2, 1],
+      duration: 580,
       ease: 'outElastic(1, .52)',
     });
   }, [info.cost, info.balance, info.isActive, bannerOpen, isMinimizedPill]);
 
-  // 5. Escuchar TODAS las acciones ejecutadas desde la notificación estilo Uber/DiDi en 2º plano
+  // 5. Sincronizar controles ejecutados desde la notificación en 2º plano
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return undefined;
 
@@ -243,31 +222,31 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
       if (action === 'START_PARKING' && !latestContextRef.current.activeSession) {
         startParking('Espacio #1042 • Centro Histórico', 6.0);
         sileo.success({
-          title: 'Parquímetro Iniciado desde Notificación',
-          description: 'Tarifa activa a $6.00/hr en Espacio #1042.',
+          title: 'Parquímetro Iniciado',
+          description: 'Tarifa activa a $6.00/hr desde la notificación.',
         });
       } else if (action === 'STOP_PARKING' && latestContextRef.current.activeSession) {
         const txn = stopParkingAndAutoCharge();
         if (txn) {
           sileo.success({
-            title: 'Estancia Finalizada desde Notificación',
-            description: `Folio ${txn.folio} • Total cobrado: $${txn.amount.toFixed(2)} MXN`,
+            title: 'Estancia Finalizada',
+            description: `Folio ${txn.folio} • Cobrado: $${txn.amount.toFixed(2)} MXN`,
           });
         }
       } else if (action === 'ADD_BALANCE') {
         const addAmt = Number(amount) || 50;
         addBalance(addAmt);
         sileo.success({
-          title: `Recarga +$${addAmt}.00 desde Notificación`,
-          description: 'Tu saldo NFC se actualizó desde el control en segundo plano.',
+          title: `Recarga +$${addAmt}.00 Aplicada`,
+          description: 'Saldo NFC actualizado desde la notificación.',
         });
       } else if (action === 'TOGGLE_AUTOPAY') {
         const nextEnabled =
           typeof enabled === 'boolean' ? enabled : !latestContextRef.current.autoPay?.enabled;
         updateAutoPay({ enabled: nextEnabled });
         sileo.info({
-          title: nextEnabled ? 'Autocobro Activado' : 'Autocobro Pausado',
-          description: 'Cambio aplicado desde la notificación en segundo plano.',
+          title: nextEnabled ? 'Autocobro ON' : 'Autocobro OFF',
+          description: 'Actualizado desde la notificación en segundo plano.',
         });
       }
     };
@@ -276,7 +255,7 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     return () => navigator.serviceWorker.removeEventListener('message', handleSwMessage);
   }, [startParking, stopParkingAndAutoCharge, addBalance, updateAutoPay]);
 
-  // 6. Controles de Hardware / Pantalla de Bloqueo (MediaSession Action Handlers)
+  // 6. Controles de Pantalla de Bloqueo (MediaSession)
   useEffect(() => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
     try {
@@ -297,11 +276,11 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
         updateAutoPay({ enabled: !latestContextRef.current.autoPay?.enabled });
       });
     } catch {
-      // ignore unsupported handlers
+      // ignore
     }
   }, [startParking, stopParkingAndAutoCharge, addBalance, updateAutoPay]);
 
-  // Registrar Service Worker y solicitar permiso en el primer click/tap en móvil
+  // Registrar Service Worker y solicitar permiso en el primer toque
   useEffect(() => {
     registerParquServiceWorker();
     setPermission(getNotificationPermissionState());
@@ -324,7 +303,7 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     };
   }, []);
 
-  // Disparo síncrono único cuando el usuario sale de la app en su teléfono
+  // Disparo síncrono único al salir de la app
   const triggerExitNotificationSync = useCallback((source = 'exit') => {
     if (!autoNotifyRef.current && source !== 'manual') return null;
 
@@ -334,17 +313,7 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     }
     lastNotificationSentAtRef.current = now;
 
-    const result = dispatchBackgroundNotificationImmediate(latestContextRef.current);
-
-    setLastExitTime(
-      new Date().toLocaleTimeString('es-MX', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      })
-    );
-
-    return result;
+    return dispatchBackgroundNotificationImmediate(latestContextRef.current);
   }, []);
 
   useEffect(() => {
@@ -366,16 +335,9 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
   const pulseInteractiveElement = (el) => {
     if (el) {
       animate(el, {
-        scale: [0.9, 1.06, 1],
-        duration: 500,
+        scale: [0.9, 1.07, 1],
+        duration: 480,
         ease: 'outElastic(1, .55)',
-      });
-    }
-    if (timerCardRef.current) {
-      animate(timerCardRef.current, {
-        scale: [0.985, 1.015, 1],
-        duration: 460,
-        ease: 'outElastic(1, .6)',
       });
     }
   };
@@ -392,17 +354,17 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
 
     if (sent) {
       sileo.success({
-        title: 'Control Tipo Uber/DiDi Enviado a tu Barra',
-        description: 'Desliza la barra de tu teléfono: puedes Iniciar/Finalizar, Recargar +$50 o cambiar Autocobro desde ahí.',
+        title: 'Notificación Activa en tu Barra',
+        description: 'Revisa la barra de tu teléfono: puedes controlar Parqu directamente desde ahí.',
       });
     } else if (currentPerm === 'denied') {
       sileo.info({
         title: 'Permiso bloqueado en navegador',
-        description: 'Habilita las notificaciones en el icono de candado de la barra de direcciones.',
+        description: 'Habilita las notificaciones en el candado de la barra de direcciones.',
       });
     } else {
       sileo.success({
-        title: 'Control en Vivo Activo',
+        title: 'Isla Dinámica Lista',
         description: `${payload.fullName} • Placas ${payload.plates} • ${payload.clockStr}`,
       });
     }
@@ -422,8 +384,8 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     } else {
       startParking('Espacio #1042 • Centro Histórico', 6.0);
       sileo.success({
-        title: 'Parquímetro Iniciado en Vivo',
-        description: 'Tarifa activa a $6.00/hr • Control en segundo plano habilitado.',
+        title: 'Parquímetro Iniciado ($6.00/hr)',
+        description: 'Control activo en la Isla Dinámica y al salir de la app.',
       });
     }
   };
@@ -433,8 +395,8 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     triggerHaptic();
     addBalance(amount);
     sileo.success({
-      title: `Recarga Express +$${amount}.00 MXN`,
-      description: `Nuevo saldo NFC disponible: $${(Number(card?.balance ?? 0) + amount).toFixed(2)} MXN`,
+      title: `Recarga +$${amount}.00 MXN`,
+      description: `Nuevo saldo NFC: $${(Number(card?.balance ?? 0) + amount).toFixed(2)} MXN`,
     });
   };
 
@@ -444,83 +406,66 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     const nextState = !autoPay?.enabled;
     updateAutoPay({ enabled: nextState });
     sileo.info({
-      title: nextState ? 'Autocobro Activado' : 'Autocobro en Pausa',
-      description: nextState
-        ? 'El cobro automático por segundo está activo.'
-        : 'El cobro automático fue pausado temporalmente.',
+      title: nextState ? 'Autocobro ON' : 'Autocobro OFF',
+      description: nextState ? 'Débito automático activado.' : 'Débito automático en pausa.',
     });
   };
 
-  // Barra de progreso tipo viaje Uber/DiDi (0 a 100%)
-  const hourProgressPct = info.isActive
-    ? Math.min(96, Math.max(8, Math.round(((info.elapsedSeconds % 3600) / 3600) * 100)))
-    : 12;
-
   return (
     <>
-      {/* Píldora flotante de 1 toque si el teléfono aún no ha otorgado permiso */}
+      {/* Píldora compacta inferior si el teléfono aún no ha otorgado permiso */}
       {permission === 'default' && !dismissedPromptPill && !bannerOpen && (
         <div className="fixed bottom-4 inset-x-0 z-50 px-3 pointer-events-none flex justify-center">
-          <div className="pointer-events-auto max-w-md w-full rounded-2xl bg-white/95 backdrop-blur-2xl border border-slate-200/90 px-3.5 py-2.5 shadow-[0_14px_35px_rgba(15,23,42,0.16)] flex items-center justify-between gap-2.5 text-slate-900">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-[#0033FF] flex items-center justify-center shrink-0">
-                <BellRing className="w-4 h-4 text-white animate-pulse" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] font-bold leading-tight truncate text-slate-900">
-                  Activar Notificación con Control Tipo Uber / DiDi
-                </p>
-                <p className="text-[10px] text-slate-500 truncate">
-                  Controla tu parquímetro y saldo desde la barra al salir de la app
-                </p>
-              </div>
+          <div className="pointer-events-auto w-fit max-w-[92vw] rounded-full bg-[#090a0f]/95 backdrop-blur-2xl border border-white/15 pl-3 pr-2 py-1.5 shadow-[0_14px_35px_rgba(0,0,0,0.4)] flex items-center gap-2.5 text-white">
+            <div className="w-6 h-6 rounded-full bg-[#0033FF] flex items-center justify-center shrink-0">
+              <BellRing className="w-3.5 h-3.5 text-white animate-pulse" />
             </div>
-
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                type="button"
-                onClick={handleEnableOrTestNotification}
-                className="px-3 py-1.5 rounded-xl bg-[#0033FF] hover:bg-[#2250ff] active:scale-95 text-white font-sans font-bold text-[11px] cursor-pointer whitespace-nowrap"
-              >
-                Activar
-              </button>
-              <button
-                type="button"
-                aria-label="Cerrar aviso"
-                onClick={() => setDismissedPromptPill(true)}
-                className="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <span className="text-[11px] font-bold truncate">
+              Control al salir de la app
+            </span>
+            <button
+              type="button"
+              onClick={handleEnableOrTestNotification}
+              className="px-3 py-1 rounded-full bg-[#0033FF] hover:bg-[#2250ff] active:scale-95 text-white font-sans font-bold text-[11px] cursor-pointer whitespace-nowrap"
+            >
+              Activar
+            </button>
+            <button
+              type="button"
+              aria-label="Cerrar aviso"
+              onClick={() => setDismissedPromptPill(true)}
+              className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300 cursor-pointer"
+            >
+              <X className="w-3 h-3" />
+            </button>
           </div>
         </div>
       )}
 
-      {/* Consola de Control en Vivo Estilo Uber / DiDi animada con Anime.js v4 */}
+      {/* ISLA DINÁMICA DE IPHONE (COMPACTA O EXPANDIDA EN EL CENTRO SUPERIOR) */}
       {bannerOpen && (
         <div
           role="region"
-          aria-label="Consola de control en vivo tipo Uber y DiDi"
-          className="fixed top-[68px] sm:top-[76px] inset-x-0 z-50 px-3 sm:px-6 pointer-events-none flex justify-center"
+          aria-label="Isla Dinámica de Control Parqu"
+          className="fixed top-3 sm:top-4 inset-x-0 z-50 px-3 pointer-events-none flex justify-center"
         >
           {isMinimizedPill ? (
-            /* MODO PÍLDORA FLOTANTE COMPACTA TIPO UBER / DYNAMIC ISLAND */
+            /* CÁPSULA DYNAMIC ISLAND MINIMIZADA (w-fit centrada) */
             <div
               ref={minimizedPillRef}
-              className="pointer-events-auto max-w-[460px] w-full rounded-full bg-[#090d16]/95 backdrop-blur-2xl border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.35)] px-3.5 py-2 flex items-center justify-between gap-2 text-white origin-top"
+              className="pointer-events-auto w-fit max-w-[94vw] rounded-full bg-[#07080c]/95 backdrop-blur-2xl border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.5)] px-3 py-1.5 flex items-center gap-2.5 text-white origin-top"
             >
               <button
                 type="button"
                 onClick={() => setIsMinimizedPill(false)}
-                className="flex items-center gap-2 min-w-0 text-left cursor-pointer"
+                className="flex items-center gap-2 text-left cursor-pointer"
               >
-                <div ref={minimizedWaveRef} className="flex items-center gap-0.5 h-3.5 px-1">
+                <div ref={minimizedWaveRef} className="flex items-center gap-[2px] h-3 px-0.5">
                   {[0, 1, 2, 3, 4].map((idx) => (
                     <span
                       key={idx}
-                      className={`anime-telemetry-bar w-0.5 h-3.5 rounded-full origin-center ${
-                        info.isActive ? 'bg-[#38bdf8]' : 'bg-emerald-400'
+                      className={`anime-telemetry-bar w-[2px] h-3 rounded-full origin-center ${
+                        info.isActive ? 'bg-amber-400' : 'bg-[#38bdf8]'
                       }`}
                     />
                   ))}
@@ -529,97 +474,74 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                 <span className="font-mono font-black text-xs text-white tracking-tight">
                   {info.clockStr}
                 </span>
-                <span className="text-slate-500">•</span>
                 <span className="font-mono font-bold text-xs text-[#38bdf8]">
-                  ${info.cost} MXN
-                </span>
-                <span className="text-[11px] font-mono font-semibold text-slate-300 truncate">
-                  {info.plates}
+                  ${info.cost}
                 </span>
               </button>
 
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={handleToggleParkingLive}
-                  className={`px-2.5 py-1 rounded-full font-sans font-bold text-[10px] uppercase tracking-wider transition cursor-pointer ${
-                    info.isActive
-                      ? 'bg-rose-600 hover:bg-rose-700 text-white'
-                      : 'bg-[#0033FF] hover:bg-[#1e4bff] text-white'
-                  }`}
-                >
-                  {info.isActive ? 'Finalizar' : 'Iniciar'}
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => handleQuickAddBalance(50, e)}
-                  className="px-2 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white font-mono font-bold text-[10px] cursor-pointer"
-                >
-                  +$50
-                </button>
-                <button
-                  type="button"
-                  aria-label="Expandir control en vivo"
-                  onClick={() => setIsMinimizedPill(false)}
-                  className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center cursor-pointer"
-                >
-                  <ChevronDown className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Cerrar"
-                  onClick={handleCloseBanner}
-                  className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleToggleParkingLive}
+                className={`px-2.5 py-0.5 rounded-full font-sans font-bold text-[10px] uppercase tracking-wider transition cursor-pointer ${
+                  info.isActive
+                    ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                    : 'bg-[#0033FF] hover:bg-[#1e4bff] text-white'
+                }`}
+              >
+                {info.isActive ? 'Parar' : 'Iniciar'}
+              </button>
+
+              <button
+                type="button"
+                aria-label="Expandir Isla Dinámica"
+                onClick={() => setIsMinimizedPill(false)}
+                className="w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center cursor-pointer"
+              >
+                <ChevronDown className="w-3 h-3" />
+              </button>
+              <button
+                type="button"
+                aria-label="Cerrar Isla Dinámica"
+                onClick={handleCloseBanner}
+                className="w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-3 h-3" />
+              </button>
             </div>
           ) : (
-            /* TARJETA DE CONTROL EN VIVO ESTILO UBER / DIDI */
+            /* ISLA DINÁMICA DE IPHONE EXPANDIDA (Compacta max-w-[355px], bordes redondeados [34px], sin barras largas) */
             <div
               ref={consoleCardRef}
-              className="w-full max-w-[480px] pointer-events-auto rounded-[24px] bg-[#090d16]/95 backdrop-blur-2xl border border-white/15 shadow-[0_24px_60px_rgba(0,0,0,0.45)] p-4 text-white origin-top"
+              className="w-full max-w-[355px] pointer-events-auto rounded-[34px] bg-[#07080c]/95 backdrop-blur-2xl border border-white/15 shadow-[0_24px_60px_rgba(0,0,0,0.55)] p-3.5 text-white origin-top"
             >
-              {/* Cabecera estilo Uber Live Activity */}
-              <div className="anime-console-item flex items-center justify-between gap-2 pb-3 border-b border-white/10">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center shadow-sm shrink-0 ${
-                      info.isActive ? 'bg-[#0033FF] text-white' : 'bg-emerald-500 text-slate-950'
-                    }`}
-                  >
-                    <Activity className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-black text-[10px] uppercase tracking-widest text-[#38bdf8]">
-                        PARQU LIVE CONTROL
-                      </span>
-                      <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded-md bg-white/10 text-white font-bold">
-                        {info.isActive ? 'EN PARQUIMETRO' : 'LISTO PARA SALIR'}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-slate-400 font-mono truncate">
-                      {lastExitTime
-                        ? `Control activo en barra desde: ${lastExitTime}`
-                        : 'Controla Parqu desde tu barra de notificaciones al salir'}
-                    </p>
-                  </div>
+              {/* Fila Superior de la Isla Dinámica: Logo + Placas + Ondas + Cerrar */}
+              <div className="anime-island-item flex items-center justify-between gap-2 px-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <img
+                    src="./parqu-logo-white.png"
+                    alt="Parqu"
+                    className="h-4 w-auto object-contain shrink-0"
+                  />
+                  <span className="font-mono font-bold text-[10px] uppercase tracking-wider text-slate-300 truncate">
+                    {info.plates}
+                  </span>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-white/10 text-emerald-400 font-bold">
+                    ${info.balance}
+                  </span>
                 </div>
 
-                {/* Ondas Anime.js y botones de ventana */}
+                {/* Ondas de audio/telemetría tipo Dynamic Island iPhone */}
                 <div className="flex items-center gap-1.5 shrink-0">
                   <div
                     ref={telemetryWaveRef}
                     aria-hidden="true"
-                    className="hidden sm:flex items-center gap-[3px] h-5 px-2 py-1 rounded-lg bg-white/5 border border-white/10"
+                    className="flex items-center gap-[2.5px] h-4 px-1.5"
                   >
-                    {Array.from({ length: 10 }).map((_, idx) => (
+                    {Array.from({ length: 7 }).map((_, idx) => (
                       <span
                         key={idx}
                         className={`anime-telemetry-bar w-[2.5px] h-3.5 rounded-full origin-center ${
-                          info.isActive ? 'bg-[#38bdf8]' : 'bg-emerald-400'
+                          info.isActive ? 'bg-amber-400' : 'bg-[#38bdf8]'
                         }`}
                       />
                     ))}
@@ -628,181 +550,124 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                   <button
                     type="button"
                     onClick={() => setIsMinimizedPill(true)}
-                    title="Minimizar a píldora flotante"
-                    aria-label="Minimizar notificación"
-                    className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center transition cursor-pointer"
+                    aria-label="Contraer a píldora"
+                    className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center transition cursor-pointer"
                   >
                     <ChevronUp className="w-3.5 h-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={handleCloseBanner}
-                    aria-label="Cerrar notificación"
-                    className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center transition cursor-pointer"
+                    aria-label="Cerrar Isla Dinámica"
+                    className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 flex items-center justify-center transition cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
 
-              {/* Bloque Central Estilo Viaje Uber / DiDi con Barra de Ruta y Cronómetro */}
-              <div className="mt-3 space-y-3">
-                <div
-                  ref={timerCardRef}
-                  className="anime-console-item rounded-2xl p-3.5 bg-white/[0.06] border border-white/10"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 block">
-                        {info.isActive ? 'TIEMPO DE ESTANCIA EN CURSO' : 'ESTACIONAMIENTO EN ESPERA'}
-                      </span>
-                      <div className="flex items-baseline gap-2 mt-0.5">
-                        <span
-                          ref={clockDigitsRef}
-                          className="inline-block font-mono font-black text-2xl sm:text-3xl text-white tracking-tight origin-left"
-                        >
-                          {info.clockStr}
-                        </span>
-                        <span className="text-[11px] font-mono font-bold text-[#38bdf8]">
-                          $6.00/hr
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 block">
-                        {info.isActive ? 'TOTAL ACUMULADO' : 'SALDO NFC'}
-                      </span>
-                      <span
-                        ref={costDigitsRef}
-                        className="inline-block font-mono font-black text-xl sm:text-2xl text-emerald-400 origin-right"
-                      >
-                        {info.isActive ? `$${info.cost} MXN` : `$${info.balance}`}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Barra de Ruta / Progreso Estilo Uber/DiDi con Nodo Animado Anime.js */}
-                  <div className="mt-3.5 space-y-1.5">
-                    <div className="relative w-full h-2 rounded-full bg-white/10 flex items-center">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          info.isActive ? 'bg-gradient-to-r from-[#0033FF] to-[#38bdf8]' : 'bg-emerald-500/60'
-                        }`}
-                        style={{ width: `${hourProgressPct}%` }}
-                      />
-                      <span
-                        ref={uberProgressNodeRef}
-                        style={{ left: `calc(${hourProgressPct}% - 7px)` }}
-                        className="absolute w-3.5 h-3.5 rounded-full bg-white border-2 border-[#0033FF] shadow-[0_0_12px_rgba(56,189,248,0.9)] transition-all duration-500"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] font-mono text-slate-300">
-                      <span className="truncate">{info.zoneName}</span>
-                      <span className="text-emerald-400 font-bold shrink-0">
-                        Saldo NFC: ${info.balance} MXN
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Tarjeta de Vehículo y Conductor estilo Uber Driver Info */}
-                <div className="anime-console-item rounded-2xl bg-white/[0.04] border border-white/10 px-3.5 py-2.5 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-[#38bdf8] shrink-0">
-                      <Car className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-white truncate">{info.carDesc}</p>
-                      <p className="text-[10px] text-slate-400 truncate">
-                        Titular: {info.fullName} • {info.rfidTag}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className="px-2.5 py-1 rounded-lg bg-white text-slate-950 font-mono font-black text-xs tracking-wider shrink-0">
-                    {info.plates}
+              {/* Fila Central de la Isla Dinámica: Reloj a la izquierda y Cobro a la derecha */}
+              <div className="anime-island-item mt-2.5 rounded-[24px] bg-white/[0.06] border border-white/10 px-3.5 py-2.5 flex items-center justify-between gap-2">
+                <div>
+                  <span className="text-[9px] font-mono uppercase tracking-wider text-slate-400 block">
+                    {info.isActive ? 'EN PARQUIMETRO' : 'EN ESPERA ($6/HR)'}
+                  </span>
+                  <span
+                    ref={clockDigitsRef}
+                    className="inline-block font-mono font-black text-2xl text-white tracking-tight origin-left"
+                  >
+                    {info.clockStr}
                   </span>
                 </div>
 
-                {/* 3 Botones de Control Directo (Idénticos a los de la Notificación en 2º Plano) */}
-                <div className="anime-console-item grid grid-cols-3 gap-2 pt-0.5">
-                  <button
-                    type="button"
-                    onClick={handleToggleParkingLive}
-                    className={`col-span-1 py-2.5 px-2.5 rounded-xl font-sans font-bold text-[11px] flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm ${
-                      info.isActive
-                        ? 'bg-rose-600 hover:bg-rose-700 text-white'
-                        : 'bg-[#0033FF] hover:bg-[#1e4bff] text-white'
-                    }`}
+                <div className="text-right">
+                  <span className="text-[9px] font-mono uppercase tracking-wider text-slate-400 block">
+                    {info.isActive ? 'COBRO ACTUAL' : 'VEHICULO'}
+                  </span>
+                  <span
+                    ref={costDigitsRef}
+                    className="inline-block font-mono font-black text-xl text-[#38bdf8] origin-right"
                   >
-                    {info.isActive ? (
-                      <>
-                        <Square className="w-3 h-3 fill-current" />
-                        <span>Finalizar</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-3 h-3 fill-current" />
-                        <span>Iniciar $6/h</span>
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={(e) => handleQuickAddBalance(50, e)}
-                    className="col-span-1 py-2.5 px-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-sans font-bold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-[#38bdf8]" />
-                    <span>+$50 Saldo</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleToggleAutoPayLive}
-                    className={`col-span-1 py-2.5 px-2.5 rounded-xl font-sans font-bold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer border ${
-                      info.autoPayEnabled
-                        ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-300'
-                        : 'bg-white/5 border-white/15 text-slate-300'
-                    }`}
-                  >
-                    <Zap className="w-3 h-3 shrink-0" />
-                    <span>{info.autoPayEnabled ? 'Autocobro ON' : 'Autocobro OFF'}</span>
-                  </button>
+                    {info.isActive ? `$${info.cost}` : info.plates}
+                  </span>
                 </div>
+              </div>
 
-                {/* Pie de Consola: Activar / Probar Control desde la Barra del Teléfono */}
-                <div className="anime-console-item pt-2 border-t border-white/10 flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      pulseInteractiveElement(e.currentTarget);
-                      setAutoNotifyOnExit((prev) => !prev);
-                    }}
-                    className={`px-2.5 py-1.5 rounded-xl text-[10px] font-mono uppercase tracking-wider font-bold border transition cursor-pointer flex items-center gap-1.5 ${
-                      autoNotifyOnExit
-                        ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-300'
-                        : 'bg-white/5 border-white/15 text-slate-400'
+              {/* Controles de 1 Toque dentro de la Isla Dinámica */}
+              <div className="anime-island-item mt-2.5 grid grid-cols-3 gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleToggleParkingLive}
+                  className={`py-2 px-2 rounded-full font-sans font-bold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer ${
+                    info.isActive
+                      ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                      : 'bg-[#0033FF] hover:bg-[#1e4bff] text-white'
+                  }`}
+                >
+                  {info.isActive ? (
+                    <>
+                      <Square className="w-3 h-3 fill-current" />
+                      <span>Finalizar</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-3 h-3 fill-current" />
+                      <span>Iniciar</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => handleQuickAddBalance(50, e)}
+                  className="py-2 px-2 rounded-full bg-white/10 hover:bg-white/20 text-white font-sans font-bold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer"
+                >
+                  <Plus className="w-3 h-3 text-[#38bdf8]" />
+                  <span>+$50 NFC</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleToggleAutoPayLive}
+                  className={`py-2 px-2 rounded-full font-sans font-bold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer ${
+                    info.autoPayEnabled
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'
+                      : 'bg-white/10 text-slate-300'
+                  }`}
+                >
+                  <Zap className="w-3 h-3 shrink-0" />
+                  <span>{info.autoPayEnabled ? 'Auto ON' : 'Auto OFF'}</span>
+                </button>
+              </div>
+
+              {/* Pie compacto de la Isla Dinámica: Enviar / Probar en la Barra del Teléfono */}
+              <div className="anime-island-item mt-2 pt-2 border-t border-white/10 flex items-center justify-between gap-2 px-1">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    pulseInteractiveElement(e.currentTarget);
+                    setAutoNotifyOnExit((prev) => !prev);
+                  }}
+                  className="text-[10px] font-mono text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer"
+                >
+                  <CheckCircle2
+                    className={`w-3 h-3 ${
+                      autoNotifyOnExit ? 'text-emerald-400' : 'text-slate-500'
                     }`}
-                  >
-                    <CheckCircle2 className="w-3 h-3 shrink-0" />
-                    <span>{autoNotifyOnExit ? 'AL SALIR: ACTIVO' : 'AL SALIR: PAUSADO'}</span>
-                  </button>
+                  />
+                  <span>{autoNotifyOnExit ? 'Al salir: ON' : 'Al salir: OFF'}</span>
+                </button>
 
-                  <button
-                    type="button"
-                    onClick={handleEnableOrTestNotification}
-                    className="px-3 py-1.5 rounded-xl bg-white text-slate-950 hover:bg-slate-200 font-sans font-bold text-[11px] transition cursor-pointer flex items-center gap-1.5"
-                  >
-                    <Bell className="w-3.5 h-3.5 text-[#0033FF]" />
-                    <span>
-                      {permission === 'granted'
-                        ? 'Probar Noti Uber en mi Barra'
-                        : 'Activar Control en mi Barra'}
-                    </span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={handleEnableOrTestNotification}
+                  className="px-2.5 py-1 rounded-full bg-white text-slate-950 hover:bg-slate-200 font-sans font-bold text-[10px] transition cursor-pointer flex items-center gap-1"
+                >
+                  <Bell className="w-3 h-3 text-[#0033FF]" />
+                  <span>
+                    {permission === 'granted' ? 'Enviar a mi Barra' : 'Permitir en Telefono'}
+                  </span>
+                </button>
               </div>
             </div>
           )}

@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef, memo } from 'react';
 import { BellRing } from 'lucide-react';
-import { animate } from 'animejs';
+import { animate, stagger } from 'animejs';
 import { useParking } from '../context/ParkingContext';
 
 export const Header = memo(({ onOpenNotification }) => {
   const { activeSession, vehicle } = useParking();
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const navPillRef = useRef(null);
+  const islandRef = useRef(null);
   const bellIconRef = useRef(null);
-  const bellPulseRingRef = useRef(null);
+  const miniWaveRef = useRef(null);
 
   useEffect(() => {
     let ticking = false;
@@ -30,156 +30,178 @@ export const Header = memo(({ onOpenNotification }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Entrada elástica inicial con Anime.js
+  // Entrada elástica estilo Dynamic Island de iPhone con Anime.js
   useEffect(() => {
-    if (navPillRef.current) {
-      animate(navPillRef.current, {
+    if (islandRef.current) {
+      animate(islandRef.current, {
         opacity: [0, 1],
-        translateY: [-18, 0],
-        scale: [0.92, 1],
-        duration: 750,
-        ease: 'outElastic(1, .68)',
+        translateY: [-20, 0],
+        scaleX: [0.65, 1],
+        scaleY: [0.75, 1],
+        duration: 820,
+        ease: 'outElastic(1, .64)',
       });
     }
   }, []);
 
-  // Animación continua de ondas en el botón de notificaciones y sacudida armónica de la campana
+  // Mini ondas de telemetría en vivo dentro de la Isla Dinámica
   useEffect(() => {
-    let ringAnim;
-    if (bellPulseRingRef.current) {
-      ringAnim = animate(bellPulseRingRef.current, {
-        scale: [1, 1.85],
-        opacity: [0.65, 0],
-        duration: activeSession ? 1200 : 2200,
-        loop: true,
-        ease: 'outSine',
-      });
+    let waveAnim;
+    if (miniWaveRef.current) {
+      const bars = miniWaveRef.current.querySelectorAll('.island-wave-bar');
+      if (bars.length > 0) {
+        waveAnim = animate(bars, {
+          scaleY: activeSession ? [0.3, 1, 0.35, 0.9] : [0.25, 0.6, 0.25],
+          delay: stagger(70, { from: 'center' }),
+          duration: activeSession ? 680 : 1400,
+          loop: true,
+          alternate: true,
+          ease: 'inOutSine',
+        });
+      }
     }
 
     if (bellIconRef.current) {
       animate(bellIconRef.current, {
-        rotate: [0, -18, 18, -12, 12, -6, 6, 0],
-        scale: [1, 1.15, 1],
-        duration: 700,
+        rotate: [0, -18, 18, -10, 10, 0],
+        scale: [1, 1.16, 1],
+        duration: 680,
         ease: 'outElastic(1, .5)',
       });
     }
 
     return () => {
-      if (ringAnim && typeof ringAnim.pause === 'function') {
-        ringAnim.pause();
+      if (waveAnim && typeof waveAnim.pause === 'function') {
+        waveAnim.pause();
       }
     };
   }, [activeSession]);
 
-  const triggerMicroBounce = (targetEl) => {
-    if (!targetEl) return;
-    animate(targetEl, {
-      scale: [0.9, 1.06, 1],
-      duration: 460,
-      ease: 'outElastic(1, .55)',
-    });
+  const formatShortTimer = (sec = 0) => {
+    const s = Math.max(0, Math.floor(Number(sec) || 0));
+    const m = Math.floor(s / 60);
+    const rem = s % 60;
+    return `${String(m).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
   };
 
-  const handleBellClick = (e) => {
-    triggerMicroBounce(e.currentTarget);
+  const handleIslandClick = (e) => {
+    if (islandRef.current) {
+      animate(islandRef.current, {
+        scaleX: [0.92, 1.06, 1],
+        scaleY: [0.9, 1.05, 1],
+        duration: 520,
+        ease: 'outElastic(1, .55)',
+      });
+    }
     if (bellIconRef.current) {
       animate(bellIconRef.current, {
-        rotate: [0, -22, 22, -14, 14, 0],
-        duration: 620,
+        rotate: [0, -22, 22, -12, 12, 0],
+        duration: 600,
         ease: 'outElastic(1, .5)',
       });
     }
-    if (onOpenNotification) onOpenNotification();
+    if (onOpenNotification) {
+      onOpenNotification(e);
+    }
   };
 
   return (
     <header
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-      className="fixed top-3 sm:top-4 inset-x-0 z-40 px-3 sm:px-6 pointer-events-none"
+      className="fixed top-3 sm:top-4 inset-x-0 z-40 px-3 pointer-events-none flex justify-center"
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between pointer-events-none">
-        <nav
-          ref={navPillRef}
-          aria-label="Barra superior Parqu"
-          className={`w-full rounded-[22px] backdrop-blur-xl border px-4 sm:px-5 h-12 sm:h-[52px] flex items-center justify-between gap-3 pointer-events-auto transition-colors duration-300 ${
-            isScrolled
-              ? 'bg-white/95 border-slate-200/90 shadow-[0_12px_34px_rgba(15,23,42,0.10)]'
-              : 'bg-white/15 border-white/25 shadow-[0_10px_28px_rgba(0,20,80,0.15)]'
-          }`}
+      {/* Cápsula Compacta Tipo Dynamic Island de iPhone (w-fit centrada, nunca barra larga) */}
+      <nav
+        ref={islandRef}
+        aria-label="Isla Dinámica Parqu"
+        className={`w-fit max-w-[92vw] rounded-full backdrop-blur-2xl border px-3 sm:px-3.5 h-10 sm:h-11 flex items-center gap-2.5 sm:gap-3 pointer-events-auto transition-colors duration-300 ${
+          isScrolled
+            ? 'bg-white/95 border-slate-200/90 shadow-[0_10px_30px_rgba(15,23,42,0.12)]'
+            : 'bg-white/15 border-white/25 shadow-[0_10px_28px_rgba(0,20,80,0.18)]'
+        }`}
+      >
+        {/* Izquierda de la Isla: Logo Parqu */}
+        <button
+          type="button"
+          aria-label="Parqu - Volver arriba"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="flex items-center gap-1.5 cursor-pointer group shrink-0 focus-visible:outline-none pl-0.5"
         >
-          {/* Izquierda: Solo el Logo Oficial PARQU */}
-          <button
-            type="button"
-            aria-label="Parqu - Volver arriba"
-            onClick={(e) => {
-              triggerMicroBounce(e.currentTarget);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="flex items-center gap-2.5 cursor-pointer group shrink-0 text-left focus-visible:outline-none"
-          >
-            <div className="relative h-6 sm:h-7 w-auto flex items-center">
-              <img
-                src="./parqu-logo-white.png"
-                alt="Parqu"
-                className={`h-6 sm:h-7 w-auto object-contain drop-shadow-[0_0_12px_rgba(212,214,230,0.35)] transition-all duration-300 ${
-                  isScrolled ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'
-                }`}
-              />
-              <img
-                src="./parqu-logo-black.png"
-                alt="Parqu"
-                className={`absolute inset-0 h-6 sm:h-7 w-auto object-contain transition-all duration-300 ${
-                  isScrolled ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-                }`}
-              />
-            </div>
-
-            <span
-              className={`font-sans font-black text-sm sm:text-base tracking-tight transition-colors duration-300 ${
-                isScrolled ? 'text-black group-hover:text-slate-700' : 'text-white'
+          <div className="relative h-5 w-auto flex items-center">
+            <img
+              src="./parqu-logo-white.png"
+              alt="Parqu"
+              className={`h-5 w-auto object-contain transition-all duration-300 ${
+                isScrolled ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'
               }`}
-            >
-              Parqu
-            </span>
-          </button>
-
-          {/* Derecha: Solo el botón de Notificaciones */}
-          <button
-            type="button"
-            aria-label="Abrir notificaciones en vivo"
-            title="Ver notificaciones y estado de Parqu"
-            onClick={handleBellClick}
-            className={`relative px-3 py-1.5 rounded-[14px] flex items-center gap-2 transition cursor-pointer overflow-visible ${
-              isScrolled
-                ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 hover:text-black'
-                : 'bg-white/15 hover:bg-white/25 text-white'
+            />
+            <img
+              src="./parqu-logo-black.png"
+              alt="Parqu"
+              className={`absolute inset-0 h-5 w-auto object-contain transition-all duration-300 ${
+                isScrolled ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+              }`}
+            />
+          </div>
+          <span
+            className={`font-sans font-black text-xs sm:text-[13px] tracking-tight transition-colors duration-300 ${
+              isScrolled ? 'text-black' : 'text-white'
             }`}
           >
-            <span
-              ref={bellPulseRingRef}
-              className={`absolute inset-0 rounded-[14px] pointer-events-none border ${
-                activeSession
-                  ? 'border-amber-400 bg-amber-400/15'
-                  : isScrolled
-                    ? 'border-[#0033FF]/40 bg-[#0033FF]/5'
-                    : 'border-white/40 bg-white/10'
-              }`}
-            />
-            <span ref={bellIconRef} className="relative z-10 flex items-center justify-center">
-              <BellRing className="w-4 h-4" />
+            Parqu
+          </span>
+        </button>
+
+        {/* Separador sutil tipo sensor de Dynamic Island */}
+        <span
+          className={`w-px h-4 rounded-full transition-colors duration-300 ${
+            isScrolled ? 'bg-slate-200' : 'bg-white/20'
+          }`}
+        />
+
+        {/* Derecha de la Isla: Botón de Notificaciones / Telemetría en Vivo */}
+        <button
+          type="button"
+          aria-label="Abrir Isla Dinámica de Notificaciones"
+          title="Abrir control en vivo"
+          onClick={handleIslandClick}
+          className={`px-2.5 py-1 rounded-full flex items-center gap-2 transition cursor-pointer ${
+            isScrolled
+              ? 'bg-slate-100 hover:bg-slate-200 text-slate-900'
+              : 'bg-white/15 hover:bg-white/25 text-white'
+          }`}
+        >
+          {/* Mini ondas Anime.js estilo Dynamic Island */}
+          <div ref={miniWaveRef} className="flex items-center gap-[2px] h-3">
+            {[0, 1, 2, 3].map((idx) => (
+              <span
+                key={idx}
+                className={`island-wave-bar w-[2px] h-3 rounded-full origin-center ${
+                  activeSession
+                    ? 'bg-amber-400'
+                    : isScrolled
+                      ? 'bg-[#0033FF]'
+                      : 'bg-emerald-400'
+                }`}
+              />
+            ))}
+          </div>
+
+          {activeSession ? (
+            <span className="font-mono font-black text-[11px] tracking-tight">
+              {formatShortTimer(activeSession.secondsElapsed)} • {vehicle?.plates || ''}
             </span>
-            <span className="relative z-10 font-sans font-bold text-[11px] sm:text-xs tracking-tight">
-              {activeSession ? `En Vivo • ${vehicle?.plates || ''}` : 'Notificaciones'}
+          ) : (
+            <span className="font-sans font-bold text-[11px] tracking-tight">
+              Notis
             </span>
-            <span
-              className={`relative z-20 w-2 h-2 rounded-full ${
-                activeSession ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'
-              }`}
-            />
-          </button>
-        </nav>
-      </div>
+          )}
+
+          <span ref={bellIconRef} className="flex items-center justify-center">
+            <BellRing className="w-3.5 h-3.5" />
+          </span>
+        </button>
+      </nav>
     </header>
   );
 });
