@@ -18,7 +18,7 @@ import { WobbleCard } from './ui/wobble-card';
 import { ParkingMap } from './ParkingMap';
 import { AnimeCounter } from './ui/anime-counter';
 
-const DEFAULT_SPOT = { id: 'SPOT_1042', name: 'Espacio #1042', spotNumber: '1042', ratePerHour: 18.00 };
+const DEFAULT_SPOT = { id: 'SPOT_1042', name: 'Espacio #1042', spotNumber: '1042', ratePerHour: 6.00 };
 
 export const ParkingMeter = () => {
   const { 
@@ -36,7 +36,7 @@ export const ParkingMeter = () => {
   const handleStart = (zoneParam = null) => {
     const targetZone = (zoneParam && zoneParam.name) ? zoneParam : selectedZone;
     const coords = (targetZone.lat && targetZone.lng) ? { lat: targetZone.lat, lng: targetZone.lng } : null;
-    startParking(targetZone.name, targetZone.ratePerHour || 18.00, coords);
+    startParking(targetZone.name, targetZone.ratePerHour || 6.00, coords);
     setJustChargedNotice(null);
     sileo.info({
       title: 'Parquímetro Activado',

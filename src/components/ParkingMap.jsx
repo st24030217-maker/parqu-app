@@ -100,7 +100,7 @@ export const ParkingMap = ({
         spotNumber: num,
         spotCode: `#${num}`,
         cajon: `#${num}`,
-        ratePerHour: 18.00,
+        ratePerHour: 6.00,
         lat,
         lng,
         spotsAvailable: 1,
@@ -399,7 +399,7 @@ export const ParkingMap = ({
       lat: coords.lat,
       lng: coords.lng,
       status: 'ACTIVA',
-      ratePerHour: 18.00,
+      ratePerHour: 6.00,
       notes: `Registrado en espacio #${num} a las ${new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`,
     });
 
@@ -417,7 +417,7 @@ export const ParkingMap = ({
         spotNumber: num,
         spotCode: `#${num}`,
         cajon: `#${num}`,
-        ratePerHour: 18.00,
+        ratePerHour: 6.00,
         lat: coords.lat,
         lng: coords.lng,
       });
@@ -715,7 +715,7 @@ export const ParkingMap = ({
                   <span>•</span>
                   <span className="text-emerald-400 font-bold flex items-center gap-1 font-mono">
                     <CurrencyDollarIcon size={12} className="text-emerald-400" />
-                    $18.00 / hora
+                    $6.00 / hora
                   </span>
                 </div>
 

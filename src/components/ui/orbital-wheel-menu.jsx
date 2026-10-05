@@ -65,7 +65,7 @@ export const MENU_ITEMS = [
     icon: Zap,
     actionTarget: 'autopay',
     badge: '0 FILAS',
-    description: 'Debitado automático continuo. Olvídate de multas y boletos físicos.'
+    description: 'Debitado automático continuo a $6.00/hr sin boletos físicos.'
   },
   {
     id: 'qr-credential',
@@ -176,10 +176,10 @@ export const OrbitalWheelMenu = ({
 
   const handleStartParking = useCallback(() => {
     triggerHaptic();
-    startParking('Centro Histórico (Zona A)', '34-B');
+    startParking('Centro Histórico • Espacio #34-B', 6.00);
     sileo.success({
       title: 'Parquímetro Iniciado',
-      description: 'Espacio 34-B en Centro Histórico. Autocobro activo.',
+      description: 'Espacio 34-B en Centro Histórico ($6.00/hr). Autocobro activo.',
     });
   }, [startParking]);
 
@@ -333,7 +333,7 @@ export const OrbitalWheelMenu = ({
                     <div className="text-[10px] text-slate-400 font-mono uppercase">Estatus Parquímetro</div>
                     <div className="font-bold text-slate-900">Listo para Estacionar</div>
                   </div>
-                  <span className="font-mono text-[11px] font-bold text-slate-500">$0.25/min</span>
+                  <span className="font-mono text-[11px] font-bold text-slate-500">$6.00/hr</span>
                 </div>
               )
             )}
@@ -375,7 +375,7 @@ export const OrbitalWheelMenu = ({
                   <div className="font-mono font-bold text-slate-900">{vehicle?.plates || 'JNZ-4821'}</div>
                 </div>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 font-bold">
-                  AES-256
+                  NFC AES-256
                 </span>
               </div>
             )}
@@ -507,8 +507,8 @@ export const OrbitalWheelMenu = ({
                     onClick={onOpenQR}
                     className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border-0 shadow-sm"
                   >
-                    <QrCode size={12} />
-                    <span>Ver QR</span>
+                    <Wifi size={12} className="rotate-90" />
+                    <span>Ver NFC</span>
                   </button>
                 </div>
               )}

@@ -53,18 +53,18 @@ export const StaggeredGrid = memo(function StaggeredGrid({
 
         {/* Subtítulo Hero */}
         <p className="relative z-10 mt-3 sm:mt-4 text-xs sm:text-sm md:text-base text-[#D4D6E6] font-sans max-w-2xl mx-auto leading-relaxed px-3 sm:px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
-          La plataforma metropolitana que elimina las filas, las monedas y las multas. Autocobro continuo segundo a segundo con tecnología de <strong className="text-white">SSS.Solutions</strong>.
+          La plataforma metropolitana que elimina las filas y las monedas. Autocobro continuo a $6.00/hr con tecnología NFC de <strong className="text-white">SSS.Solutions</strong>.
         </p>
 
         {/* Barra de Estadísticas Clave */}
         <div className="relative z-10 mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 max-w-4xl w-full mx-auto px-2 sm:px-4">
           <div className="p-2.5 sm:p-3 rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
-            <div className="text-base sm:text-xl font-black text-white font-mono">$0.25</div>
-            <div className="text-[9px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">MXN por Minuto</div>
+            <div className="text-base sm:text-xl font-black text-white font-mono">$6.00</div>
+            <div className="text-[9px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">MXN por Hora</div>
           </div>
           <div className="p-2.5 sm:p-3 rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
-            <div className="text-base sm:text-xl font-black text-emerald-400 font-mono">0 Multas</div>
-            <div className="text-[9px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">Garantía Activa</div>
+            <div className="text-base sm:text-xl font-black text-emerald-400 font-mono">NFC Activo</div>
+            <div className="text-[9px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">Sin Contacto</div>
           </div>
           <div className="p-2.5 sm:p-3 rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
             <div className="text-base sm:text-xl font-black text-[#807DFE] font-mono">AES-256</div>

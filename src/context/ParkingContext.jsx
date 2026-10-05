@@ -55,7 +55,7 @@ const defaultTransactions = [
     date: new Date(Date.now() - 86400000 * 2).toISOString(),
     zone: 'Zona Financiera (Espacio #1042)',
     durationMinutes: 75,
-    amount: 25.00,
+    amount: 7.50,
     method: 'Autocobro Débito Directo (Santander •••• 8821)',
     plate: 'XYZ-7842',
     status: 'COMPLETADO',
@@ -66,7 +66,7 @@ const defaultTransactions = [
     date: new Date(Date.now() - 86400000).toISOString(),
     zone: 'Centro Cultural (Espacio #2055)',
     durationMinutes: 120,
-    amount: 36.00,
+    amount: 12.00,
     method: 'Autocobro Débito Directo (Santander •••• 8821)',
     plate: 'XYZ-7842',
     status: 'COMPLETADO',
@@ -84,7 +84,7 @@ const defaultPinnedLocations = [
     plates: 'XYZ-7842',
     notes: 'Junto al parquímetro municipal #04',
     status: 'COMPLETADO',
-    ratePerHour: 18.00,
+    ratePerHour: 6.00,
   }
 ];
 
@@ -262,7 +262,7 @@ export const ParkingProvider = ({ children }) => {
       plates: vehicle.plates,
       notes: locationData.notes || 'Posición fijada en mapa satelital',
       status: locationData.status || 'GUARDADA',
-      ratePerHour: locationData.ratePerHour || 18.00,
+      ratePerHour: locationData.ratePerHour || 6.00,
     };
 
     setPinnedLocations((prev) => [newRecord, ...prev]);
@@ -283,7 +283,7 @@ export const ParkingProvider = ({ children }) => {
   };
 
   // Iniciar estancia en parquímetro con coordenadas de ubicación fijada
-  const startParking = (zoneName = 'Espacio #1042 • Centro Histórico', ratePerHour = 18.00, coords = null) => {
+  const startParking = (zoneName = 'Espacio #1042 • Centro Histórico', ratePerHour = 6.00, coords = null) => {
     const newSession = {
       id: 'SESS-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
       zoneName,

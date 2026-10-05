@@ -92,7 +92,7 @@ export const AutoPaymentConfig = () => {
             Configuración de Autocobro Continuo
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 mt-1 font-sans max-w-2xl leading-relaxed">
-            Elimina multas y filas domiciliando el cobro directo de tus estancias de parquímetro.
+            Domicilia el cobro directo de tus estancias de parquímetro a $6.00/hr sin filas ni efectivo.
           </p>
         </div>
 

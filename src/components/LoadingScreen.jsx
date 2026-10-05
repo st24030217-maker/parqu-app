@@ -29,16 +29,16 @@ const PRESENTATION_STEPS = [
   {
     id: 1,
     badge: 'PASO 02 / 03 • AUTOCOBRO EN VIVO',
-    title: 'Paga solo los segundos que te estaciones',
+    title: 'Paga solo el tiempo que te estaciones',
     subtitle:
-      'Activa el parquímetro desde tu celular a $0.25 MXN por minuto. Detén el reloj cuando te retires.',
+      'Activa el parquímetro desde tu celular a $6.00 MXN por hora. Detén el reloj cuando te retires.',
   },
   {
     id: 2,
     badge: 'PASO 03 / 03 • TECNOLOGÍA NFC CONTACTLESS',
     title: 'Verificación NFC oficial sin contacto',
     subtitle:
-      'Tu estancia queda protegida con tecnología NFC contactless y cifrado AES-256 ante supervisores viales.',
+      'Tu estancia queda registrada con tecnología NFC contactless y cifrado AES-256 ante supervisores viales.',
   },
 ];
 
@@ -56,7 +56,7 @@ const LiveTimerDisplay = memo(() => {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
   const formattedTimer = `00:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  const liveCost = ((seconds / 60) * 0.25).toFixed(2);
+  const liveCost = ((seconds / 3600) * 6).toFixed(2);
 
   return (
     <div className="mt-2 text-center py-2.5 px-3 rounded-2xl bg-black/25">
@@ -324,7 +324,7 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
                   <Clock className="w-3 h-3 text-[#807DFE]" />
                   Tarifa Oficial
                 </span>
-                <span className="font-bold text-white">$0.25 / min</span>
+                <span className="font-bold text-white">$6.00 / hr</span>
               </div>
 
               <LiveTimerDisplay />
@@ -349,7 +349,7 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5 text-amber-500" />
-                  <span className="text-[10px] font-bold text-slate-800">Cobro justo al segundo</span>
+                  <span className="text-[10px] font-bold text-slate-800">Tarifa $6.00 MXN / hr</span>
                 </div>
                 <span className="text-[9px] font-mono font-bold text-slate-500">AUTO</span>
               </div>
@@ -374,7 +374,7 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
         </div>
 
         {/* ════════════════════════════════════════════════════════════
-            PANTALLA 3 (INDEX 2): TECNOLOGÍA NFC CONTACTLESS & CERO MULTAS
+            PANTALLA 3 (INDEX 2): TECNOLOGÍA NFC CONTACTLESS & VERIFICACIÓN VIAL
         ════════════════════════════════════════════════════════════ */}
         <div
           onClick={() => handleSelectPhone(2)}
@@ -443,8 +443,8 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
                 <span className="font-mono font-bold text-slate-900">NFC AES-256</span>
               </div>
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-slate-500">Infracciones</span>
-                <span className="font-bold text-emerald-600">0 Multas Garantizado</span>
+                <span className="text-slate-500">Tarifa Vigente</span>
+                <span className="font-mono font-bold text-emerald-600">$6.00 / hr</span>
               </div>
             </div>
 
