@@ -20,7 +20,6 @@ import { CurrencyDollarIcon, PlugConnectedIcon } from './components/icons';
 import { AnimeMetricsHub } from './components/ui/anime-metrics-hub';
 import { AnimeStaggerGroup } from './components/ui/anime-stagger-group';
 import { OrbitalWheelMenu } from './components/ui/orbital-wheel-menu';
-import { BackgroundMusicPlayer } from './components/ui/background-music-player';
 import { 
   CreditCard, 
   Car, 
@@ -806,7 +805,6 @@ export default function App() {
   return (
     <ParkingProvider>
       <Toaster position="top-right" theme="light" options={{ fill: '#000000' }} />
-      <BackgroundMusicPlayer />
       <ErrorBoundary fallbackText="Centro de Operaciones Parqu">
         <MainContent />
       </ErrorBoundary>
