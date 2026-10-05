@@ -1,50 +1,23 @@
 import React, { useState, useEffect, memo } from 'react';
-import { Clock, Activity, Compass } from 'lucide-react';
-import { PlugConnectedIcon } from './icons';
+import { Menu, X, Wifi, Sparkles } from 'lucide-react';
 import { useParking } from '../context/ParkingContext';
 
-const LiveClock = memo(({ isScrolled }) => {
-  const [currentTime, setCurrentTime] = useState(() => new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      if (document.body.dataset.loadingActive === 'true') return;
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div 
-      className={`hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono transition-colors duration-300 border-0 ${
-        isScrolled 
-          ? 'bg-slate-100 text-slate-800 shadow-sm' 
-          : 'bg-white/10 text-[#D4D6E6]'
-      }`}
-    >
-      <Clock className={`w-3.5 h-3.5 transition-colors duration-300 ${isScrolled ? 'text-black' : 'text-[#807DFE]'}`} />
-      <span>
-        {currentTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-      </span>
-    </div>
-  );
-});
-
-export const Header = memo(({ onNavigateToPanel, onNavigateToOrbital }) => {
-  const { activeSession, vehicle } = useParking();
+export const Header = memo(({
+  onNavigateToPanel,
+  onNavigateToOrbital,
+  onSelectTab,
+  onOpenRecharge,
+  onOpenNFC,
+  activeTab,
+}) => {
+  const { activeSession, vehicle, card } = useParking();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Detección reactiva de scroll optimizada con requestAnimationFrame
   useEffect(() => {
     let ticking = false;
     const updateScroll = () => {
-      const systemEl = document.getElementById('interactive-system');
-      if (systemEl) {
-        const rect = systemEl.getBoundingClientRect();
-        setIsScrolled(rect.top <= 80);
-      } else {
-        setIsScrolled(window.scrollY > 200);
-      }
+      setIsScrolled(window.scrollY > 24);
       ticking = false;
     };
 
@@ -60,170 +33,193 @@ export const Header = memo(({ onNavigateToPanel, onNavigateToOrbital }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const navItems = [
+    {
+      id: 'metrics',
+      label: 'Métricas',
+      onClick: () => {
+        setMobileMenuOpen(false);
+        if (onNavigateToPanel) {
+          onNavigateToPanel();
+        } else {
+          const el = document.getElementById('panel-control-metropolitano');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+      },
+    },
+    {
+      id: 'orbital',
+      label: 'Ruleta 3D',
+      onClick: () => {
+        setMobileMenuOpen(false);
+        if (onNavigateToOrbital) {
+          onNavigateToOrbital();
+        } else {
+          const el = document.getElementById('selector-orbital-metropolitano');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+      },
+    },
+    {
+      id: 'dashboard',
+      label: 'Parquímetro',
+      active: activeTab === 'dashboard',
+      onClick: () => {
+        setMobileMenuOpen(false);
+        if (onSelectTab) {
+          onSelectTab('dashboard');
+        }
+      },
+    },
+    {
+      id: 'autopay',
+      label: 'Autocobro',
+      active: activeTab === 'autopay',
+      onClick: () => {
+        setMobileMenuOpen(false);
+        if (onSelectTab) {
+          onSelectTab('autopay');
+        }
+      },
+    },
+    {
+      id: 'vehicle',
+      label: 'Vehículo',
+      active: activeTab === 'vehicle',
+      onClick: () => {
+        setMobileMenuOpen(false);
+        if (onSelectTab) {
+          onSelectTab('vehicle');
+        }
+      },
+    },
+    {
+      id: 'nfc',
+      label: 'Pase NFC',
+      onClick: () => {
+        setMobileMenuOpen(false);
+        if (onOpenNFC) {
+          onOpenNFC();
+        }
+      },
+    },
+  ];
+
+  const handlePrimaryAction = () => {
+    setMobileMenuOpen(false);
+    if (onOpenRecharge) {
+      onOpenRecharge();
+    } else if (onSelectTab) {
+      onSelectTab('dashboard');
+    }
+  };
+
   return (
-    <header 
+    <header
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-      className={`fixed top-0 inset-x-0 z-40 transition-colors duration-300 border-0 ${
-        isScrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-sm'
-          : 'bg-transparent shadow-none'
-      }`}
+      className="fixed top-3 sm:top-4 inset-x-0 z-40 px-3 sm:px-6 pointer-events-none"
     >
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-20 flex items-center justify-between gap-2">
-        
-        {/* Logotipo Oficial PARQU - Transición fluida entre logo blanco y logo negro */}
-        <div 
-          role="button"
-          tabIndex={0}
-          aria-label="Parqu Digital - Volver al inicio"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-          }}
-          className="flex items-center gap-2 sm:gap-3.5 cursor-pointer group shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
-          title="Parqu Digital - Volver al Inicio"
+      <div className="max-w-[760px] mx-auto pointer-events-auto">
+        {/* Píldora flotante principal estilo NotchPop (#090a0d, radio 22px, borde 1px translúcido) */}
+        <nav
+          aria-label="Navegación principal del sistema Parqu"
+          className={`w-full rounded-[22px] bg-[#090a0d]/95 backdrop-blur-xl border border-white/[0.11] px-3.5 sm:px-5 h-12 sm:h-[52px] flex items-center justify-between gap-2 transition-shadow duration-300 ${
+            isScrolled
+              ? 'shadow-[0_14px_38px_rgba(0,0,0,0.45)]'
+              : 'shadow-[0_10px_28px_rgba(0,0,0,0.28)]'
+          }`}
         >
-          <div className="relative flex items-center justify-center p-0.5 sm:p-1 group-hover:scale-105 transition-transform duration-300">
-            <div 
-              className={`absolute -inset-1.5 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity ${
-                isScrolled ? 'bg-black/10' : 'bg-[#0033FF]/30'
-              }`} 
+          {/* Izquierda: Logotipo y Nombre Parqu */}
+          <button
+            type="button"
+            aria-label="Parqu - Volver arriba"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="flex items-center gap-2.5 cursor-pointer group shrink-0 text-left focus-visible:outline-none"
+          >
+            <img
+              src="./parqu-logo-white.png"
+              alt="Parqu"
+              className="h-5 sm:h-6 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
             />
-            
-            {/* Contenedor relativo de logos para transición cross-fade */}
-            <div className="relative h-6 sm:h-10 w-auto flex items-center">
-              {/* Logo Blanco (Activo sobre fondo oscuro de nubes) */}
-              <img 
-                src="./parqu-logo-white.png" 
-                alt="Parqu" 
-                style={{ maxHeight: '40px' }}
-                className={`h-6 sm:h-10 w-auto object-contain drop-shadow-[0_0_15px_rgba(212,214,230,0.35)] transition-all duration-300 ${
-                  isScrolled ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'
-                }`}
+            <span className="font-sans font-bold text-[13px] sm:text-sm text-white tracking-tight">
+              Parqu
+            </span>
+            {activeSession && (
+              <span
+                title={`Estacionado: ${vehicle?.plates || ''}`}
+                className="w-2 h-2 rounded-full bg-amber-400 animate-ping"
               />
-
-              {/* Logo Negro (Activo con transición al combinarse con el blanco) */}
-              <img 
-                src="./parqu-logo-black.png" 
-                alt="Parqu" 
-                style={{ maxHeight: '40px' }}
-                className={`absolute inset-0 h-6 sm:h-10 w-auto object-contain transition-all duration-300 ${
-                  isScrolled ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-                }`}
-              />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center gap-1.5 sm:gap-2.5">
-              <span 
-                className={`font-black text-base sm:text-xl tracking-tight transition-colors duration-300 ${
-                  isScrolled ? 'text-black group-hover:text-slate-700' : 'text-[#D4D6E6] group-hover:text-white'
-                }`}
-              >
-                Parqu
-              </span>
-              <span 
-                className={`hidden sm:inline-flex text-[10px] uppercase font-mono tracking-widest px-2.5 py-0.5 rounded-full transition-colors duration-300 font-bold border-0 ${
-                  isScrolled 
-                    ? 'bg-slate-100 text-slate-800' 
-                    : 'bg-[#0033FF]/30 text-[#D4D6E6]'
-                }`}
-              >
-                Digital Pass
-              </span>
-            </div>
-            <p 
-              className={`text-[11px] font-sans hidden md:block transition-colors duration-300 ${
-                isScrolled ? 'text-slate-500' : 'text-[#D4D6E6]/80'
-              }`}
-            >
-              Parquímetro Digital • Autocobro Inteligente
-            </p>
-          </div>
-        </div>
-
-        {/* Estatus Central, Hora y Acciones en Header */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          <LiveClock isScrolled={isScrolled} />
-
-          {/* Badge de Estado de Estacionamiento */}
-          {activeSession ? (
-            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-amber-500/15 border-0 text-amber-700 text-xs font-semibold animate-pulse shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-              <span className="font-mono text-[11px] sm:text-xs">
-                <span className="hidden sm:inline font-sans">En Parquímetro: </span>
-                {vehicle.plates}
-              </span>
-            </div>
-          ) : (
-            <div 
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-medium transition-colors duration-300 border-0 ${
-                isScrolled 
-                  ? 'bg-slate-100 text-slate-800 shadow-sm' 
-                  : 'bg-white/10 backdrop-blur-sm text-[#D4D6E6]'
-              }`}
-            >
-              <PlugConnectedIcon size={14} className="text-emerald-500 shrink-0" />
-              <span className="font-sans text-[11px] sm:text-xs">
-                <span className="hidden md:inline">Autocobro </span>Conectado
-              </span>
-            </div>
-          )}
-
-          {/* Botón Acceso Rápido al Selector Orbital 3D */}
-          <button
-            type="button"
-            aria-label="Ir al Selector Orbital 3D"
-            onClick={() => {
-              if (onNavigateToOrbital) {
-                onNavigateToOrbital();
-              } else {
-                const el = document.getElementById('selector-orbital-metropolitano');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-            className={`flex items-center gap-1 sm:gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-sans font-bold transition-all duration-300 active:scale-95 cursor-pointer border-0 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
-              isScrolled
-                ? 'bg-slate-100 hover:bg-slate-200 text-black'
-                : 'bg-white/15 hover:bg-white/25 text-white'
-            }`}
-            title="Ir al Selector Orbital 3D"
-          >
-            <Compass className={`w-3.5 h-3.5 shrink-0 transition-colors duration-300 ${isScrolled ? 'text-black' : 'text-[#807DFE]'}`} />
-            <span className="hidden sm:inline">Selector 3D</span>
-            <span className="sm:hidden text-[11px]">3D</span>
+            )}
           </button>
 
-          {/* Botón Acceso Rápido al Panel de Control Metropolitano */}
-          <button
-            type="button"
-            aria-label="Ir directo al Panel de Control Metropolitano"
-            onClick={() => {
-              if (onNavigateToPanel) {
-                onNavigateToPanel();
-              } else {
-                const el = document.getElementById('panel-control-metropolitano');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-            className={`flex items-center gap-1 sm:gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-sans font-bold transition-all duration-300 active:scale-95 cursor-pointer border-0 shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
-              isScrolled
-                ? 'bg-black hover:bg-neutral-800 text-white'
-                : 'bg-[#0033FF] text-white hover:bg-[#2250ff]'
-            }`}
-            title="Ir directo al Panel de Control Metropolitano"
-          >
-            <Activity className="w-3.5 h-3.5 text-white shrink-0" />
-            <span className="hidden sm:inline">Panel</span>
-            <span className="sm:hidden text-[11px]">Panel</span>
-          </button>
-        </div>
+          {/* Centro: Enlaces compactos en gris frío (#8d929d), 12px sans, gap de 8px */}
+          <div className="hidden md:flex items-center gap-2 px-3">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={item.onClick}
+                className={`px-2.5 py-1 rounded-lg font-sans text-[12px] font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap ${
+                  item.active
+                    ? 'text-white bg-white/[0.08]'
+                    : 'text-[#8d929d] hover:text-white hover:bg-white/[0.04]'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
 
+          {/* Derecha: Botón blanco pequeño redondeado + botón de menú colapsable en móvil */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handlePrimaryAction}
+              className="px-3 sm:px-3.5 py-1.5 rounded-[12px] bg-white hover:bg-neutral-200 active:scale-95 text-[#090a0d] font-sans font-bold text-[11px] sm:text-[12px] tracking-tight transition-all cursor-pointer shadow-sm whitespace-nowrap"
+            >
+              {activeSession
+                ? `En Vivo • ${vehicle?.plates || ''}`
+                : `Recargar • $${Number(card?.balance ?? 0).toFixed(0)}`}
+            </button>
+
+            {/* Botón para colapsar enlaces secundarios en pantallas pequeñas */}
+            <button
+              type="button"
+              aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+              aria-expanded={mobileMenuOpen}
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              className="md:hidden w-8 h-8 rounded-[11px] bg-white/[0.07] hover:bg-white/[0.14] text-[#8d929d] hover:text-white flex items-center justify-center transition cursor-pointer"
+            >
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </button>
+          </div>
+        </nav>
+
+        {/* Menú desplegable compacto en pantallas pequeñas (< md) */}
+        {mobileMenuOpen && (
+          <div className="md:hidden mt-2 rounded-[20px] bg-[#090a0d]/95 backdrop-blur-xl border border-white/[0.11] p-2.5 shadow-[0_16px_40px_rgba(0,0,0,0.5)] grid grid-cols-2 gap-1.5">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={item.onClick}
+                className={`px-3 py-2 rounded-xl text-left font-sans text-[12px] font-medium transition-colors cursor-pointer flex items-center justify-between ${
+                  item.active
+                    ? 'bg-white/[0.1] text-white font-semibold'
+                    : 'text-[#8d929d] hover:text-white hover:bg-white/[0.05]'
+                }`}
+              >
+                <span>{item.label}</span>
+                {item.id === 'nfc' && <Wifi className="w-3 h-3 rotate-90 text-[#807DFE]" />}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </header>
   );
 });
+

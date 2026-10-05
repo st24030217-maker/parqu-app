@@ -479,6 +479,10 @@ const MainContent = () => {
       
       <div className="relative z-10 flex flex-col min-h-screen">
         <Header 
+          activeTab={activeTab}
+          onSelectTab={handleSelectFeature}
+          onOpenRecharge={() => setShowRechargeQuickModal(true)}
+          onOpenNFC={() => setShowQRQuickModal(true)}
           onNavigateToPanel={() => {
             const el = document.getElementById('panel-control-metropolitano');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
