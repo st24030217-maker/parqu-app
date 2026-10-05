@@ -1,6 +1,10 @@
-// Motor de Notificaciones Interactivas en Vivo en Segundo Plano (Sin Emojis)
+// Motor de Notificacion Unica con Animacion en Vivo en la Barra de Notificaciones (Sin Duplicados)
+const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
+const WAVE_CHARS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
+
 let swRegistrationPromise = null;
 let cachedSwRegistration = null;
+let localWaveFrame = 0;
 
 export const registerParquServiceWorker = () => {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
@@ -67,10 +71,34 @@ export const requestParkingNotificationPermission = async () => {
   }
 };
 
-const buildAsciiProgressBar = (elapsedSeconds) => {
-  const ratio = Math.min(1, (elapsedSeconds % 3600) / 3600);
-  const filled = Math.max(1, Math.round(ratio * 10));
-  return '[' + '█'.repeat(filled) + '░'.repeat(10 - filled) + ']';
+const buildAnimatedWave = (frame, length = 10, isActive = true) => {
+  let out = '';
+  for (let i = 0; i < length; i += 1) {
+    const speed = isActive ? 0.75 : 0.4;
+    const val = (Math.sin(frame * speed + i * 0.65) + 1) / 2;
+    const idx = Math.min(
+      WAVE_CHARS.length - 1,
+      Math.max(0, Math.floor(val * WAVE_CHARS.length))
+    );
+    out += WAVE_CHARS[idx];
+  }
+  return out;
+};
+
+const buildSweepingBar = (frame, width = 10) => {
+  const pos = frame % width;
+  let bar = '[';
+  for (let i = 0; i < width; i += 1) {
+    if (i === pos) {
+      bar += '●';
+    } else if (i < pos) {
+      bar += '━';
+    } else {
+      bar += '─';
+    }
+  }
+  bar += ']';
+  return bar;
 };
 
 export const buildParkingNotificationPayload = ({
@@ -99,6 +127,9 @@ export const buildParkingNotificationPayload = ({
       ? `${histHours} hr ${histRemMinutes} min acumulados`
       : '0 hr 00 min registrados';
 
+  const wave = buildAnimatedWave(localWaveFrame, 10, Boolean(activeSession));
+  const sweep = buildSweepingBar(localWaveFrame, 10);
+
   if (activeSession) {
     const elapsedSeconds = Math.max(
       Number(activeSession.secondsElapsed) || 0,
@@ -121,12 +152,11 @@ export const buildParkingNotificationPayload = ({
       hours > 0
         ? `${hours}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`
         : `${minutes}m ${String(seconds).padStart(2, '0')}s`;
-    const bar = buildAsciiProgressBar(elapsedSeconds);
     const progressPercent = Math.min(100, Math.max(4, Math.round((Number(cost) / maxLimit) * 100)));
 
-    const title = `PARQU EN VIVO • ${clockStr} • $${cost} MXN`;
+    const title = `PARQU ${wave} ${clockStr} • $${cost} MXN`;
     const body = [
-      `${bar} ACTIVO • Placas ${plates} (${carDesc})`,
+      `${sweep} ACTIVO • Placas ${plates} (${carDesc})`,
       `Zona: ${activeSession.zoneName} • Tarifa $${rate.toFixed(2)}/hr • ${autoPayStatus}`,
       `Titular: ${fullName} • Saldo NFC: $${balance} MXN`,
     ].join('\n');
@@ -159,9 +189,9 @@ export const buildParkingNotificationPayload = ({
     };
   }
 
-  const title = `PARQU MONITOR • ${plates} • EN ESPERA`;
+  const title = `PARQU ${wave} ${plates} • EN VIVO`;
   const body = [
-    `[──────────] SIN COBRO ACTIVO (00:00:00) • ${autoPayStatus}`,
+    `${sweep} EN ESPERA (00:00:00) • ${autoPayStatus}`,
     `Vehículo: ${carDesc} (${plates}) • Tarifa: $6.00/hr`,
     `Titular: ${fullName} • Pase ${rfidTag} • Saldo: $${balance} MXN (${historyText})`,
   ].join('\n');
@@ -208,25 +238,6 @@ export const syncParquStateToServiceWorker = (contextData) => {
   } catch {
     // ignore
   }
-
-  // Actualizar MediaSession metadata sin emojis para pantalla de bloqueo móvil
-  try {
-    if ('mediaSession' in navigator && typeof window.MediaMetadata !== 'undefined') {
-      navigator.mediaSession.metadata = new window.MediaMetadata({
-        title: payload.isActive
-          ? `PARQU EN VIVO • ${payload.clockStr} ($${payload.cost} MXN)`
-          : `PARQU MONITOR • ${payload.plates} (${payload.autoPayStatus})`,
-        artist: `${payload.fullName} • ${payload.carDesc} (${payload.plates})`,
-        album: `Saldo NFC: $${payload.balance} MXN • Tarifa $6.00/hr`,
-        artwork: [
-          { src: './parqu-logo.png', sizes: '192x192', type: 'image/png' },
-          { src: './parqu-logo.png', sizes: '512x512', type: 'image/png' },
-        ],
-      });
-    }
-  } catch {
-    // ignore
-  }
 };
 
 export const notifyAppForegrounded = () => {
@@ -237,12 +248,20 @@ export const notifyAppForegrounded = () => {
         type: 'APP_FOREGROUNDED',
       });
     }
+    if (cachedSwRegistration && typeof cachedSwRegistration.getNotifications === 'function') {
+      cachedSwRegistration
+        .getNotifications()
+        .then((list) => list.forEach((n) => n.close()))
+        .catch(() => {});
+    }
   } catch {
     // ignore
   }
 };
 
-export const dispatchBackgroundNotificationImmediate = (contextData, isSilentUpdate = false) => {
+// Dispara UNICAMENTE UNA notificacion (por un solo canal) para que jamas aparezcan varias
+export const dispatchBackgroundNotificationImmediate = (contextData) => {
+  localWaveFrame += 1;
   const payload = buildParkingNotificationPayload(contextData);
 
   if (typeof window === 'undefined' || !('Notification' in window)) {
@@ -253,74 +272,54 @@ export const dispatchBackgroundNotificationImmediate = (contextData, isSilentUpd
     return { sent: false, payload };
   }
 
+  // Canal 1 (Preferido y Unico): Delegar al Service Worker para que anime la UNICA notificacion en la barra
+  try {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'APP_BACKGROUNDED',
+        payload: {
+          state: payload,
+        },
+      });
+      return { sent: true, payload };
+    }
+  } catch {
+    // ignore
+  }
+
+  // Canal 2 (Solo si el SW aun no controla la pagina): Mostrar 1 sola notificacion con tag unico y renotify: false
   const options = {
     body: payload.body,
     icon: './parqu-logo-black.png',
     badge: './parqu-logo-black.png',
-    tag: 'parqu-live-parking-status',
-    renotify: !isSilentUpdate,
-    silent: isSilentUpdate,
+    tag: SINGLE_NOTIFICATION_TAG,
+    renotify: false,
+    silent: true,
     requireInteraction: Boolean(payload.isActive),
-    vibrate: isSilentUpdate ? undefined : [140, 60, 140],
-    actions: payload.isActive
-      ? [
-          { action: 'stop_parking', title: 'Finalizar Estancia' },
-          { action: 'open_app', title: 'Abrir Panel en Vivo' },
-        ]
-      : [
-          { action: 'start_parking', title: 'Iniciar Parquimetro ($6/hr)' },
-          { action: 'open_app', title: 'Abrir Parqu' },
-        ],
     data: {
       url: window.location.href,
       timestamp: Date.now(),
     },
   };
 
-  let sent = false;
-
-  // 1. Disparo síncrono vía Service Worker para que continúe en vivo al salir de la app
-  try {
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'APP_BACKGROUNDED',
-        payload: {
-          title: payload.title,
-          options,
-          state: payload,
-        },
-      });
-      sent = true;
-    }
-  } catch {
-    // ignore
-  }
-
-  // 2. Respaldo directo en el registro del Service Worker en memoria
   try {
     if (cachedSwRegistration && typeof cachedSwRegistration.showNotification === 'function') {
       cachedSwRegistration.showNotification(payload.title, options).catch(() => {});
-      sent = true;
+      return { sent: true, payload };
     }
   } catch {
     // ignore
   }
 
-  // 3. Fallback Notification constructor para Safari / Desktop
-  if (!sent) {
-    try {
-      const { actions, ...fallbackOptions } = options;
-      new Notification(payload.title, fallbackOptions);
-      sent = true;
-    } catch {
-      // ignore
-    }
+  try {
+    new Notification(payload.title, options);
+    return { sent: true, payload };
+  } catch {
+    return { sent: false, payload };
   }
-
-  return { sent, payload };
 };
 
 export const sendParkingExitNotification = async (contextData) => {
   await registerParquServiceWorker();
-  return dispatchBackgroundNotificationImmediate(contextData, false);
+  return dispatchBackgroundNotificationImmediate(contextData);
 };

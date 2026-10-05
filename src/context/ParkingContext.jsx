@@ -355,20 +355,8 @@ export const ParkingProvider = ({ children }) => {
       setActivePinnedLocation(pinRecord);
     }
 
-    // Solicitar permiso de notificación del sistema para que avise al salir de la app
-    requestParkingNotificationPermission()
-      .then((perm) => {
-        if (perm === 'granted') {
-          sendParkingExitNotification({
-            owner,
-            vehicle,
-            card: { ...card, status: 'EN_PARQUIMETRO' },
-            activeSession: newSession,
-            transactions,
-          });
-        }
-      })
-      .catch(() => {});
+    // Solicitar permiso de notificación del sistema para que esté listo al salir de la app
+    requestParkingNotificationPermission().catch(() => {});
   };
 
   // Detener y ejecutar autocobro inmediato

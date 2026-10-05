@@ -1,6 +1,11 @@
-// Service Worker Oficial de Parqu - Telemetría Interactiva en Vivo en Segundo Plano (Sin Emojis)
+// Service Worker Oficial de Parqu - Notificacion Unica con Animacion en Vivo en la Barra del Telefono
+const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
+const WAVE_CHARS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
+
 let latestParquState = null;
 let backgroundIntervalId = null;
+let waveFrame = 0;
+let isShowingLock = false;
 
 self.addEventListener('install', () => {
   self.skipWaiting();
@@ -10,14 +15,39 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-function buildProgressBar(elapsedSeconds) {
-  // Barra visual de progreso por cada hora (3600s)
-  const ratio = Math.min(1, (elapsedSeconds % 3600) / 3600);
-  const filled = Math.max(1, Math.round(ratio * 10));
-  return '[' + '█'.repeat(filled) + '░'.repeat(10 - filled) + ']';
+// Genera una onda armonica en movimiento (estilo Anime.js) para la barra de notificaciones
+function buildAnimatedWave(frame, length = 12, isActive = true) {
+  let out = '';
+  for (let i = 0; i < length; i += 1) {
+    const speed = isActive ? 0.75 : 0.4;
+    const val = (Math.sin(frame * speed + i * 0.65) + 1) / 2; // 0..1
+    const idx = Math.min(
+      WAVE_CHARS.length - 1,
+      Math.max(0, Math.floor(val * WAVE_CHARS.length))
+    );
+    out += WAVE_CHARS[idx];
+  }
+  return out;
 }
 
-function buildLiveBackgroundNotification(state, isSilentUpdate = false) {
+// Genera una barra con pulso deslizante en vivo
+function buildSweepingBar(frame, width = 10) {
+  const pos = frame % width;
+  let bar = '[';
+  for (let i = 0; i < width; i += 1) {
+    if (i === pos) {
+      bar += '●';
+    } else if (i < pos) {
+      bar += '━';
+    } else {
+      bar += '─';
+    }
+  }
+  bar += ']';
+  return bar;
+}
+
+function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
   const s = state || latestParquState || {};
   const fullName = s.fullName || 'Sebastián Salinas';
   const plates = s.plates || 'XYZ-7842';
@@ -25,6 +55,9 @@ function buildLiveBackgroundNotification(state, isSilentUpdate = false) {
   const balance = s.balance || '320.00';
   const rfidTag = s.rfidTag || 'NFC-MX-09142-PK';
   const autoPayStatus = s.autoPayEnabled !== false ? 'AUTOCOBRO ON' : 'AUTOCOBRO PAUSADO';
+
+  const wave = buildAnimatedWave(waveFrame, 10, Boolean(s.isActive));
+  const sweep = buildSweepingBar(waveFrame, 10);
 
   if (s.isActive && s.startTime) {
     const elapsedSeconds = Math.max(
@@ -42,11 +75,10 @@ function buildLiveBackgroundNotification(state, isSilentUpdate = false) {
     ).toFixed(2);
 
     const clockStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    const bar = buildProgressBar(elapsedSeconds);
 
-    const title = `PARQU EN VIVO • ${clockStr} • $${cost} MXN`;
+    const title = `PARQU ${wave} ${clockStr} • $${cost} MXN`;
     const body = [
-      `${bar} ACTIVO • Placas ${plates} (${carDesc})`,
+      `${sweep} ACTIVO • Placas ${plates} (${carDesc})`,
       `Zona: ${s.zoneName || 'Centro Histórico'} • Tarifa $${rate.toFixed(2)}/hr • ${autoPayStatus}`,
       `Titular: ${fullName} • Saldo NFC: $${balance} MXN`,
     ].join('\n');
@@ -57,14 +89,14 @@ function buildLiveBackgroundNotification(state, isSilentUpdate = false) {
         body,
         icon: './parqu-logo-black.png',
         badge: './parqu-logo-black.png',
-        tag: 'parqu-live-parking-status',
+        tag: SINGLE_NOTIFICATION_TAG,
+        // renotify: false + silent: true evita que salgan multiples popups y actualiza la MISMA notificacion en vivo
         renotify: !isSilentUpdate,
         silent: isSilentUpdate,
         requireInteraction: true,
-        vibrate: isSilentUpdate ? undefined : [140, 60, 140],
         actions: [
           { action: 'stop_parking', title: 'Finalizar Estancia' },
-          { action: 'open_app', title: 'Abrir Panel en Vivo' },
+          { action: 'open_app', title: 'Abrir Parqu' },
         ],
         data: {
           url: './',
@@ -75,9 +107,9 @@ function buildLiveBackgroundNotification(state, isSilentUpdate = false) {
   }
 
   const histText = s.historyText || '0h 00m registrados';
-  const title = `PARQU MONITOR • ${plates} • EN ESPERA`;
+  const title = `PARQU ${wave} ${plates} • EN VIVO`;
   const body = [
-    `[──────────] SIN COBRO ACTIVO (00:00:00) • ${autoPayStatus}`,
+    `${sweep} EN ESPERA (00:00:00) • ${autoPayStatus}`,
     `Vehículo: ${carDesc} (${plates}) • Tarifa: $6.00/hr`,
     `Titular: ${fullName} • Pase ${rfidTag} • Saldo: $${balance} MXN (${histText})`,
   ].join('\n');
@@ -88,11 +120,10 @@ function buildLiveBackgroundNotification(state, isSilentUpdate = false) {
       body,
       icon: './parqu-logo-black.png',
       badge: './parqu-logo-black.png',
-      tag: 'parqu-live-parking-status',
+      tag: SINGLE_NOTIFICATION_TAG,
       renotify: !isSilentUpdate,
       silent: isSilentUpdate,
       requireInteraction: false,
-      vibrate: isSilentUpdate ? undefined : [120, 50, 120],
       actions: [
         { action: 'start_parking', title: 'Iniciar Parquimetro ($6/hr)' },
         { action: 'open_app', title: 'Abrir Parqu' },
@@ -112,22 +143,49 @@ function stopBackgroundLoop() {
   }
 }
 
+// Cierra cualquier notificacion duplicada con tags antiguos para garantizar SOLO UNA notificacion
+async function closeOldDuplicateNotifications() {
+  if (!self.registration || typeof self.registration.getNotifications !== 'function') return;
+  try {
+    const notifications = await self.registration.getNotifications();
+    notifications.forEach((n) => {
+      if (n.tag !== SINGLE_NOTIFICATION_TAG) {
+        n.close();
+      }
+    });
+  } catch {
+    // ignore
+  }
+}
+
+async function renderSingleNotificationFrame(isSilentUpdate = true) {
+  if (isShowingLock || !self.registration || !self.registration.showNotification) return;
+  isShowingLock = true;
+  try {
+    await closeOldDuplicateNotifications();
+    waveFrame += 1;
+    const { title, options } = buildLiveBackgroundNotification(latestParquState, isSilentUpdate);
+    await self.registration.showNotification(title, options);
+  } catch {
+    // ignore
+  } finally {
+    isShowingLock = false;
+  }
+}
+
 function startBackgroundLiveLoop(resolvePromise) {
   stopBackgroundLoop();
   let ticks = 0;
-  // Actualizar cada 5 segundos en vivo de forma silenciosa para que el reloj avance en la barra del teléfono
+  // Actualiza in-place la UNICA notificacion cada 1.5s para que la onda y el reloj se muevan en vivo en la barra
   backgroundIntervalId = setInterval(() => {
     ticks += 1;
-    if (ticks > 60) {
+    if (ticks > 120) {
       stopBackgroundLoop();
       if (resolvePromise) resolvePromise();
       return;
     }
-    const updated = buildLiveBackgroundNotification(latestParquState, true);
-    if (self.registration && self.registration.showNotification) {
-      self.registration.showNotification(updated.title, updated.options).catch(() => {});
-    }
-  }, 5000);
+    renderSingleNotificationFrame(true);
+  }, 1500);
 }
 
 self.addEventListener('message', (event) => {
@@ -140,35 +198,32 @@ self.addEventListener('message', (event) => {
 
   if (event.data.type === 'APP_FOREGROUNDED') {
     stopBackgroundLoop();
+    // Al volver a entrar a la app, cerramos la notificacion de segundo plano para que no se acumulen
+    if (self.registration && typeof self.registration.getNotifications === 'function') {
+      event.waitUntil(
+        self.registration
+          .getNotifications()
+          .then((list) => list.forEach((n) => n.close()))
+          .catch(() => {})
+      );
+    }
     return;
   }
 
   if (event.data.type === 'SHOW_PARQU_NOTIFICATION' || event.data.type === 'APP_BACKGROUNDED') {
     if (event.data.payload && event.data.payload.state) {
       latestParquState = event.data.payload.state;
+    } else if (event.data.payload) {
+      latestParquState = event.data.payload;
     }
-
-    const built = buildLiveBackgroundNotification(latestParquState, false);
-    const title = (event.data.payload && event.data.payload.title) || built.title;
-    const options = (event.data.payload && event.data.payload.options) || built.options;
 
     stopBackgroundLoop();
 
     const showAndMonitorPromise = new Promise((resolve) => {
-      if (self.registration && self.registration.showNotification) {
-        self.registration
-          .showNotification(title, options)
-          .catch(() => {})
-          .finally(() => {
-            if (event.data.type === 'APP_BACKGROUNDED') {
-              startBackgroundLiveLoop(resolve);
-            } else {
-              resolve();
-            }
-          });
-      } else {
-        resolve();
-      }
+      // Primer cuadro silencioso o suave pero con un unico tag para que NUNCA salgan varias notificaciones
+      renderSingleNotificationFrame(true).finally(() => {
+        startBackgroundLiveLoop(resolve);
+      });
     });
 
     event.waitUntil(showAndMonitorPromise);
@@ -187,11 +242,10 @@ self.addEventListener('notificationclick', (event) => {
       zoneName: 'Espacio #1042 • Centro Histórico',
       rate: '6.00',
     };
-    const updated = buildLiveBackgroundNotification(latestParquState, false);
 
     event.waitUntil(
       Promise.all([
-        self.registration.showNotification(updated.title, updated.options),
+        renderSingleNotificationFrame(true),
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
           clients.forEach((client) => {
             client.postMessage({ type: 'PARQU_SW_ACTION', action: 'START_PARKING' });
@@ -211,11 +265,10 @@ self.addEventListener('notificationclick', (event) => {
       baseSeconds: 0,
     };
     stopBackgroundLoop();
-    const updated = buildLiveBackgroundNotification(latestParquState, false);
 
     event.waitUntil(
       Promise.all([
-        self.registration.showNotification(updated.title, updated.options),
+        renderSingleNotificationFrame(true),
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
           clients.forEach((client) => {
             client.postMessage({ type: 'PARQU_SW_ACTION', action: 'STOP_PARKING' });

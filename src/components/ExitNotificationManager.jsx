@@ -272,17 +272,17 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     };
   }, []);
 
-  // Disparo síncrono cuando el usuario sale de la app en su teléfono
+  // Disparo síncrono único cuando el usuario sale de la app en su teléfono (solo 1 notificación en la barra)
   const triggerExitNotificationSync = useCallback((source = 'exit') => {
     if (!autoNotifyRef.current && source !== 'manual') return null;
 
     const now = Date.now();
-    if (source !== 'manual' && now - lastNotificationSentAtRef.current < 1800) {
+    if (source !== 'manual' && now - lastNotificationSentAtRef.current < 3500) {
       return null;
     }
     lastNotificationSentAtRef.current = now;
 
-    const result = dispatchBackgroundNotificationImmediate(latestContextRef.current, false);
+    const result = dispatchBackgroundNotificationImmediate(latestContextRef.current);
 
     setLastExitTime(
       new Date().toLocaleTimeString('es-MX', {
@@ -291,7 +291,6 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
         second: '2-digit',
       })
     );
-    setBannerOpen(true);
 
     return result;
   }, []);
@@ -306,24 +305,9 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
       }
     };
 
-    const handlePageHide = () => {
-      triggerExitNotificationSync('pagehide');
-    };
-
-    const handleWindowBlur = () => {
-      if (document.visibilityState === 'hidden') {
-        triggerExitNotificationSync('blur');
-      }
-    };
-
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('pagehide', handlePageHide);
-    window.addEventListener('blur', handleWindowBlur);
-
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('pagehide', handlePageHide);
-      window.removeEventListener('blur', handleWindowBlur);
     };
   }, [triggerExitNotificationSync]);
 
