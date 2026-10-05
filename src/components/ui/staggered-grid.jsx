@@ -27,6 +27,7 @@ export const StaggeredGrid = memo(function StaggeredGrid({
             clouds={{ softness: 85, shadow: 80, cirrus: 40 }}
             sun={{ x: 78, y: 90, glow: "rgba(128, 125, 254, 0.85)" }}
             pointer={{ parallax: 130, wind: 100, damping: 25 }}
+            pauseWhenLoading={true}
             className="w-full h-full"
           />
           {/* Capas sutiles de sombreado y transición para contraste perfecto */}

@@ -232,6 +232,7 @@ export default function CloudSky({
   pointer,
   width,
   height,
+  pauseWhenLoading = false,
   children,
 }) {
   const clouds_ = { ...CLOUD_DEFAULTS, ...(clouds || {}) };
@@ -259,6 +260,7 @@ export default function CloudSky({
     parallax: clampN(num(pointer_.parallax, 100), 0, 300) / 100,
     wind: clampN(num(pointer_.wind, 100), 0, 300) / 100,
     damping: clampN(num(pointer_.damping, 20), 1, 100),
+    pauseWhenLoading: Boolean(pauseWhenLoading),
   };
 
   const ptrRef = useRef({ x: 0, y: 0, inside: false });
@@ -319,10 +321,11 @@ export default function CloudSky({
 
     const render = (now) => {
       raf = requestAnimationFrame(render);
+      const v = vRef.current;
       if (
         !isVisible ||
         document.hidden ||
-        (hasRenderedInitial && document.body.dataset.loadingActive === "true")
+        (v.pauseWhenLoading && hasRenderedInitial && document.body.dataset.loadingActive === "true")
       ) {
         last = now;
         return;
@@ -330,7 +333,6 @@ export default function CloudSky({
 
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      const v = vRef.current;
       const p = ptrRef.current;
 
       const k = 1 - Math.exp(-(v.damping) * 0.12 * dt);
@@ -380,7 +382,7 @@ export default function CloudSky({
     };
 
     const track = (e) => {
-      if (document.body.dataset.loadingActive === "true") return;
+      if (vRef.current.pauseWhenLoading && document.body.dataset.loadingActive === "true") return;
       const r = canvas.getBoundingClientRect();
       if (r.width <= 0 || r.height <= 0) return;
       ptrRef.current.x = ((e.clientX - r.left) / r.width) * 2 - 1;
