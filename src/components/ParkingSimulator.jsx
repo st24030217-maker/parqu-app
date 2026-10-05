@@ -58,35 +58,35 @@ export const ParkingMeter = () => {
   return (
     <WobbleCard
       containerClassName="w-full bg-slate-950 text-white border-0 shadow-2xl shadow-slate-950/50 transition-colors"
-      className="p-6 sm:p-8 flex flex-col justify-between"
+      className="p-4 sm:p-8 flex flex-col justify-between"
     >
       {/* Encabezado Wobble Card */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-0 mb-6 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 sm:pb-5 border-0 mb-4 sm:mb-6 gap-2.5 sm:gap-3">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="px-3 py-1 rounded-full bg-[#0033FF]/20 border-0 text-[10px] font-mono font-bold uppercase tracking-widest text-[#D4D6E6]">
+          <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
+            <span className="px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-[#0033FF]/20 border-0 text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-widest text-[#D4D6E6]">
               TECNOLOGÍA SSS.SOLUTIONS
             </span>
             <span className="text-[#D4D6E6]/60 text-xs font-mono">•</span>
-            <span className="text-[11px] font-mono text-[#D4D6E6]">SESIÓN EN VIVO</span>
+            <span className="text-[10px] sm:text-[11px] font-mono text-[#D4D6E6]">SESIÓN EN VIVO</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <Clock className="w-6 h-6 text-[#807DFE]" />
+          <h2 className="text-lg sm:text-3xl font-black text-white tracking-tight flex items-center gap-2 sm:gap-2.5">
+            <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-[#807DFE]" />
             Parquímetro Metropolitano en Vivo
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 mt-1 font-sans max-w-2xl leading-relaxed">
-            Control y cobro automático segundo a segundo en parquímetros metropolitanos.
+            Control y cobro automático a $6.00/hr en parquímetros metropolitanos.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           {activeSession ? (
-            <span className="flex items-center gap-2 text-xs font-bold font-mono text-amber-300 bg-amber-500/20 border-0 px-4 py-1.5 rounded-full animate-pulse shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+            <span className="flex items-center gap-2 text-xs font-bold font-mono text-amber-300 bg-amber-500/20 border-0 px-3.5 py-1.5 rounded-full animate-pulse shadow-[0_0_15px_rgba(245,158,11,0.2)]">
               <span className="w-2 h-2 rounded-full bg-amber-400"></span>
               Estacionamiento Activo
             </span>
           ) : (
-            <span className="text-xs font-medium font-sans text-neutral-200 bg-white/10 px-4 py-1.5 rounded-full border-0 flex items-center gap-1.5 shadow-sm">
+            <span className="text-xs font-medium font-sans text-neutral-200 bg-white/10 px-3.5 py-1.5 rounded-full border-0 flex items-center gap-1.5 shadow-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
               Listo para Estacionar
             </span>
@@ -96,7 +96,7 @@ export const ParkingMeter = () => {
 
       {/* Notificación de Autocobro Ejecutado */}
       {justChargedNotice && !activeSession && (
-        <div className="mb-6 p-5 rounded-2xl bg-neutral-900 border-0 shadow-2xl animate-in fade-in slide-in-from-top-2">
+        <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-neutral-900 border-0 shadow-2xl animate-in fade-in slide-in-from-top-2">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-xl bg-neutral-800 border-0 text-white flex items-center justify-center flex-shrink-0 shadow-md">
@@ -131,17 +131,17 @@ export const ParkingMeter = () => {
 
       {/* Cuando está ESTACIONADO */}
       {activeSession ? (
-        <div className="space-y-6">
-          <div className="bg-white/5 backdrop-blur-xl border-0 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-lg">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-white/5 backdrop-blur-xl border-0 rounded-2xl sm:rounded-3xl p-4 sm:p-8 relative overflow-hidden shadow-lg">
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#0033FF]/20 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-center">
               {/* Cronómetro en Vivo */}
               <div className="text-center md:text-left">
                 <span className="text-xs uppercase tracking-wider font-semibold text-slate-300 block mb-1 font-mono">
                   Tiempo Transcurrido
                 </span>
-                <div className="font-mono text-4xl sm:text-5xl font-black text-white tracking-wider drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                <div className="font-mono text-3xl sm:text-5xl font-black text-white tracking-wider drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
                   {formatTimeFromSeconds(activeSession.secondsElapsed)}
                 </div>
                 <span className="text-xs text-slate-400 mt-1 block font-mono">
@@ -150,17 +150,17 @@ export const ParkingMeter = () => {
               </div>
 
               {/* Monto Acumulado en Vivo */}
-              <div className="text-center md:text-left py-4 md:py-0 md:px-6">
+              <div className="text-center md:text-left py-2 md:py-0 md:px-6">
                 <span className="text-xs uppercase tracking-wider font-semibold text-slate-300 block mb-1 font-mono">
                   Monto a Cobrar (Autocobro)
                 </span>
-                <div className="font-mono text-4xl sm:text-5xl font-black text-emerald-400 drop-shadow-[0_0_25px_rgba(52,211,153,0.4)]">
+                <div className="font-mono text-3xl sm:text-5xl font-black text-emerald-400 drop-shadow-[0_0_25px_rgba(52,211,153,0.4)]">
                   <AnimeCounter
                     value={activeSession.currentCost}
                     prefix="$"
                     decimals={2}
                     duration={400}
-                    className="font-mono text-4xl sm:text-5xl font-black text-emerald-400"
+                    className="font-mono text-3xl sm:text-5xl font-black text-emerald-400"
                   />
                 </div>
                 <div className="text-xs text-slate-300 mt-1 flex items-center justify-center md:justify-start gap-1.5 font-mono">

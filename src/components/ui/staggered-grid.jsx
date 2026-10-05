@@ -13,7 +13,7 @@ export const StaggeredGrid = memo(function StaggeredGrid({
     <div ref={containerRef} className={`relative w-full overflow-hidden text-white ${className}`}>
       
       {/* ═══ 1. HERO SECTION CON ORIGINKIT CLOUD-SKY (FONDO DE NUBES OFICIAL) Y HERO SHUTTER TEXT ═══ */}
-      <section className="relative z-10 min-h-[540px] sm:min-h-[600px] flex flex-col items-center justify-center text-center px-4 pt-24 sm:pt-28 pb-20 sm:pb-28 overflow-hidden">
+      <section className="relative z-10 min-h-[390px] sm:min-h-[600px] flex flex-col items-center justify-center text-center px-3 sm:px-4 pt-20 sm:pt-28 pb-12 sm:pb-28 overflow-hidden">
         
         {/* Fondo Animado WebGL Cloud-Sky de OriginKit - 100% Fluido e Interactivo */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-auto">
@@ -32,13 +32,13 @@ export const StaggeredGrid = memo(function StaggeredGrid({
           />
           {/* Capas sutiles de sombreado y transición para contraste perfecto */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#01033E]/20 via-transparent to-[#01033E]/95 pointer-events-none" />
-          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#01033E] to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-24 sm:h-32 bg-gradient-to-t from-[#01033E] to-transparent pointer-events-none" />
         </div>
 
         {/* Badge Superior */}
-        <div className="relative z-10 mb-4 inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-[#01033E]/55 backdrop-blur-sm border-0 text-xs font-mono text-[#D4D6E6] shadow-md">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-          <span className="tracking-[0.1em] sm:tracking-[0.2em] uppercase font-bold text-[9px] sm:text-[11px]">SISTEMA INTELIGENTE DE PARQUÍMETROS</span>
+        <div className="relative z-10 mb-2.5 sm:mb-4 inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#01033E]/55 backdrop-blur-sm border-0 text-xs font-mono text-[#D4D6E6] shadow-md">
+          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <span className="tracking-[0.08em] sm:tracking-[0.2em] uppercase font-bold text-[8px] sm:text-[11px]">SISTEMA INTELIGENTE DE PARQUÍMETROS</span>
           <span className="text-[#807DFE] hidden xs:inline">•</span>
           <span className="text-[9px] sm:text-[10px] font-bold text-[#807DFE] hidden xs:inline">2026 OFFICIAL</span>
         </div>
@@ -52,27 +52,27 @@ export const StaggeredGrid = memo(function StaggeredGrid({
         </div>
 
         {/* Subtítulo Hero */}
-        <p className="relative z-10 mt-3 sm:mt-4 text-xs sm:text-sm md:text-base text-[#D4D6E6] font-sans max-w-2xl mx-auto leading-relaxed px-3 sm:px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+        <p className="relative z-10 mt-2 sm:mt-4 text-[11px] sm:text-sm md:text-base text-[#D4D6E6] font-sans max-w-2xl mx-auto leading-snug sm:leading-relaxed px-2 sm:px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
           La plataforma metropolitana que elimina las filas y las monedas. Autocobro continuo a $6.00/hr con tecnología NFC de <strong className="text-white">SSS.Solutions</strong>.
         </p>
 
         {/* Barra de Estadísticas Clave */}
-        <div className="relative z-10 mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 max-w-4xl w-full mx-auto px-2 sm:px-4">
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
-            <div className="text-base sm:text-xl font-black text-white font-mono">$6.00</div>
-            <div className="text-[9px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">MXN por Hora</div>
+        <div className="relative z-10 mt-5 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 max-w-4xl w-full mx-auto px-1 sm:px-4">
+          <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
+            <div className="text-sm sm:text-xl font-black text-white font-mono">$6.00</div>
+            <div className="text-[8px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">MXN por Hora</div>
           </div>
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
-            <div className="text-base sm:text-xl font-black text-emerald-400 font-mono">NFC Activo</div>
-            <div className="text-[9px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">Sin Contacto</div>
+          <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
+            <div className="text-sm sm:text-xl font-black text-emerald-400 font-mono">NFC Activo</div>
+            <div className="text-[8px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">Sin Contacto</div>
           </div>
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
-            <div className="text-base sm:text-xl font-black text-[#807DFE] font-mono">AES-256</div>
-            <div className="text-[9px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">Cifrado Bancario</div>
+          <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
+            <div className="text-sm sm:text-xl font-black text-[#807DFE] font-mono">AES-256</div>
+            <div className="text-[8px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">Cifrado Bancario</div>
           </div>
-          <div className="p-2.5 sm:p-3 rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
-            <div className="text-base sm:text-xl font-black text-white font-mono">100% Digital</div>
-            <div className="text-[9px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">Cero Monedas</div>
+          <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
+            <div className="text-sm sm:text-xl font-black text-white font-mono">100% Digital</div>
+            <div className="text-[8px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">Cero Monedas</div>
           </div>
         </div>
 

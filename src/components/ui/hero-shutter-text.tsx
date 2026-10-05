@@ -17,7 +17,7 @@ export default function HeroText({
   const [count, setCount] = useState(0);
   const words = text.split(" ");
   let globalCharIndex = 0;
-  const sizeClass = textSize || "text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl";
+  const sizeClass = textSize || "text-2xl xs:text-3xl sm:text-5xl md:text-6xl lg:text-7xl";
 
   return (
     <div

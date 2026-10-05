@@ -367,11 +367,11 @@ const MainContent = () => {
 
             {/* Panel de Ayuda y Estatus Rápido (Col 8 a 12) */}
             <div className="anime-stagger-card lg:col-span-5 h-full">
-              <div className="w-full h-full p-6 sm:p-7 rounded-3xl bg-white/40 backdrop-blur-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+              <div className="w-full h-full p-4 sm:p-7 rounded-2xl sm:rounded-3xl bg-white/40 backdrop-blur-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="px-3 py-1 rounded-full bg-white/40 border border-slate-200/50 backdrop-blur-sm text-[10px] font-mono font-bold uppercase tracking-widest text-slate-800">
-                      GARANTÍA CERO MULTAS
+                    <span className="px-2.5 sm:px-3 py-1 rounded-full bg-white/40 border border-slate-200/50 backdrop-blur-sm text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-widest text-slate-800">
+                      TARIFA OFICIAL $6.00 / HR
                     </span>
                     <span className="text-[11px] font-mono text-emerald-600 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -379,27 +379,27 @@ const MainContent = () => {
                     </span>
                   </div>
 
-                  <h3 className="text-xl sm:text-2xl font-black text-black tracking-tight leading-tight font-sans">
-                    Protección & Monitoreo Satelital
+                  <h3 className="text-lg sm:text-2xl font-black text-black tracking-tight leading-tight font-sans">
+                    Verificación NFC & Monitoreo Satelital
                   </h3>
                   <p className="mt-2 text-xs text-slate-600 font-sans leading-relaxed">
-                    El sistema debita segundo a segundo exacto con tarifa regulada de <strong className="text-black font-mono">$0.25 MXN/min</strong> con encriptación oficial de <strong className="text-black">SSS.Solutions</strong>.
+                    El sistema debita en tiempo real con tarifa oficial de <strong className="text-black font-mono">$6.00 MXN/hr</strong> con encriptación de <strong className="text-black">SSS.Solutions</strong>.
                   </p>
 
-                  <div className="space-y-3 mt-4 text-xs font-sans">
+                  <div className="space-y-2.5 sm:space-y-3 mt-4 text-xs font-sans">
                     <div className="flex items-start gap-3 p-3 rounded-xl bg-white/30 border border-slate-200/40 backdrop-blur-sm">
                       <Zap className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-bold text-black block">Sin multas por expiración</span>
-                        <span className="text-[11px] text-slate-500">Débito continuo sin necesidad de volver al coche.</span>
+                        <span className="font-bold text-black block">Autocobro continuo a $6.00/hr</span>
+                        <span className="text-[11px] text-slate-500">Débito directo sin monedas ni necesidad de volver al coche.</span>
                       </div>
                     </div>
 
                     <div className="flex items-start gap-3 p-3 rounded-xl bg-white/30 border border-slate-200/40 backdrop-blur-sm">
-                      <Smartphone className="w-4 h-4 text-black flex-shrink-0 mt-0.5" />
+                      <Wifi className="w-4 h-4 rotate-90 text-black flex-shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-bold text-black block">Credencial Oficial de Tránsito</span>
-                        <span className="text-[11px] text-slate-500">Escaneo QR oficial y contactless NFC para agentes viales.</span>
+                        <span className="font-bold text-black block">Credencial NFC de Tránsito</span>
+                        <span className="text-[11px] text-slate-500">Verificación NFC contactless oficial para agentes viales.</span>
                       </div>
                     </div>
                   </div>
@@ -536,7 +536,7 @@ const MainContent = () => {
           <main 
             ref={systemRef} 
             id="interactive-system"
-            className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-10 scroll-mt-24"
+            className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-10 scroll-mt-20"
           >
           
           {/* 1. PANEL DE CONTROL METROPOLITANO (ACCESO INMEDIATO Y CENTRAL) */}
@@ -547,15 +547,15 @@ const MainContent = () => {
           />
 
           {/* 2. ENCABEZADO DEL CENTRO DE OPERACIONES */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-white shadow-xl shadow-slate-200/50 border-0 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-white shadow-xl shadow-slate-200/50 border-0 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
             <div>
-              <div className="flex items-center gap-2 mb-1.5 text-xs font-mono text-slate-500">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <div className="flex items-center gap-2 mb-1 sm:mb-1.5 text-[10px] sm:text-xs font-mono text-slate-500">
+                <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="tracking-widest uppercase font-bold text-slate-800">SISTEMA METROPOLITANO EN VIVO</span>
                 <span className="text-slate-300">•</span>
-                <span className="text-slate-500">0 Filas • 0 Monedas</span>
+                <span className="text-slate-500">$6.00/hr • 0 Monedas</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-black tracking-tight flex items-center gap-3 font-sans">
+              <h2 className="text-lg sm:text-3xl font-black text-black tracking-tight flex items-center gap-2.5 sm:gap-3 font-sans">
                 <span>Centro de Operaciones Parqu</span>
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 mt-1 font-sans">
@@ -563,7 +563,7 @@ const MainContent = () => {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 font-sans">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 font-sans">
               <button
                 type="button"
                 aria-label="Ir al Menú 3D OptionWheel"
@@ -571,10 +571,10 @@ const MainContent = () => {
                   const el = document.getElementById('selector-orbital-metropolitano');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="px-4 py-2.5 rounded-2xl bg-black hover:bg-neutral-800 text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center gap-2 border-0 shadow-md shadow-black/20 transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                className="px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-black hover:bg-neutral-800 text-white font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 border-0 shadow-md shadow-black/20 transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                 title="Ir al Menú 3D OptionWheel"
               >
-                <Compass className="w-4 h-4 text-white" />
+                <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                 <span>Menú 3D OptionWheel</span>
               </button>
 
@@ -587,18 +587,18 @@ const MainContent = () => {
                     description: 'Enlace metropolitano y sensores de parquímetro activos al 100%.',
                   });
                 }}
-                className="px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-black font-sans font-bold text-xs uppercase tracking-wider flex items-center gap-2 border-0 shadow-sm transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                className="px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200 text-black font-sans font-bold text-[11px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 border-0 shadow-sm transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                 title="Ejecutar diagnóstico de red"
               >
-                <Sparkles className="w-4 h-4 fill-current text-amber-500" />
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current text-amber-500" />
                 <span>Diagnóstico de Red</span>
               </button>
 
-              <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-slate-100 shadow-sm border-0 shrink-0">
-                <PlugConnectedIcon size={18} className="text-emerald-500" />
+              <div className="flex items-center gap-2.5 sm:gap-3 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-100 shadow-sm border-0 shrink-0">
+                <PlugConnectedIcon size={16} className="text-emerald-500" />
                 <div className="text-left font-sans">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold font-mono">Sistema Online</div>
-                  <div className="text-xs font-bold text-black">Red Municipal Conectada</div>
+                  <div className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-widest font-bold font-mono">Sistema Online</div>
+                  <div className="text-[11px] sm:text-xs font-bold text-black">Red Municipal Conectada</div>
                 </div>
               </div>
             </div>
@@ -738,7 +738,7 @@ const MainContent = () => {
           <HeroParallax 
             headerTitle="La Nueva Era del Parquímetro Digital"
             headerSubtitle="SISTEMA METROPOLITANO PARQU"
-            headerDescription="Descubre una plataforma diseñada para eliminar las filas, los parquímetros mecánicos y las multas. Autocobro continuo segundo a segundo con tecnología SSS.Solutions."
+            headerDescription="Descubre una plataforma diseñada para eliminar las filas y los parquímetros mecánicos. Autocobro continuo a $6.00/hr con tecnología NFC de SSS.Solutions."
           />
         </section>
 

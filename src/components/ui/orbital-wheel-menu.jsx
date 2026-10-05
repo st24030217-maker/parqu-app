@@ -296,11 +296,11 @@ export const OrbitalWheelMenu = ({
 
           {/* Icono y Título */}
           <div>
-            <div className="flex items-center gap-3 mb-1.5">
-              <div className="w-10 h-10 rounded-2xl bg-black text-white flex items-center justify-center border-0 shadow-md shrink-0">
-                {CurrentIcon && <CurrentIcon className="w-5 h-5 text-white" />}
+            <div className="flex items-center gap-2.5 sm:gap-3 mb-1.5">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-black text-white flex items-center justify-center border-0 shadow-md shrink-0">
+                {CurrentIcon && <CurrentIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />}
               </div>
-              <h4 className="text-2xl sm:text-3xl font-black text-slate-950 font-sans tracking-tight">
+              <h4 className="text-xl sm:text-3xl font-black text-slate-950 font-sans tracking-tight">
                 {currentItem.label}
               </h4>
             </div>
@@ -310,7 +310,7 @@ export const OrbitalWheelMenu = ({
           </div>
 
           {/* Fila de Datos en Vivo (Limpia, con divisores sutiles) */}
-          <div className="py-3 font-sans text-xs border-0">
+          <div className="py-2 sm:py-3 font-sans text-xs border-0">
             {currentItem.id === 'dashboard' && (
               activeSession ? (
                 <div className="flex items-center justify-between">
@@ -429,7 +429,7 @@ export const OrbitalWheelMenu = ({
               type="button"
               aria-label={`Abrir ${currentItem.label} y descender al sistema`}
               onClick={() => handleNavigateAndScroll(currentItem.actionTarget)}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-black hover:bg-neutral-800 text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 shadow-md transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+              className="w-full sm:w-auto px-5 py-2 sm:px-6 sm:py-2.5 rounded-full bg-black hover:bg-neutral-800 text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 shadow-md transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
             >
               <span>Abrir en el Sistema</span>
               <ArrowDown className="w-3.5 h-3.5 text-white animate-bounce" />
@@ -555,7 +555,7 @@ export const OrbitalWheelMenu = ({
           
           {/* Contenedor del OptionWheel 100% transparente sin bordes ni sombras de caja */}
           <div 
-            className="w-full h-[300px] sm:h-[360px] md:h-[400px] relative bg-transparent border-0 shadow-none overflow-hidden"
+            className="w-full h-[220px] sm:h-[360px] md:h-[400px] relative bg-transparent border-0 shadow-none overflow-hidden"
           >
             {/* Componente OptionWheel de React Bits con difuminado infinito sobre blanco */}
             <OptionWheel
@@ -566,29 +566,29 @@ export const OrbitalWheelMenu = ({
               textColor="#94a3b8"
               activeColor="#020617"
               side={isMobile ? 'left' : 'left'}
-              fontSize={isMobile ? 1.35 : 2.0}
-              spacing={isMobile ? 1.45 : 1.6}
-              curve={isMobile ? 0.75 : 0.88}
-              tilt={isMobile ? 4.5 : 5.6}
+              fontSize={isMobile ? 1.05 : 2.0}
+              spacing={isMobile ? 1.28 : 1.6}
+              curve={isMobile ? 0.72 : 0.88}
+              tilt={isMobile ? 4.2 : 5.6}
               blur={2.8}
               fade={0.38}
               minOpacity={0.06}
               smoothing={45}
-              inset={isMobile ? 16 : 32}
+              inset={isMobile ? 8 : 32}
               loop={true}
               draggable={true}
               renderItem={(item, isSelected) => {
                 const ItemIcon = item?.icon || Sparkles;
                 return (
-                  <span className="inline-flex items-center gap-3 sm:gap-4 transition-all duration-200">
+                  <span className="inline-flex items-center gap-2 sm:gap-4 transition-all duration-200">
                     <span 
-                      className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-all duration-200 ${
+                      className={`inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full transition-all duration-200 ${
                         isSelected 
-                          ? 'bg-black text-white shadow-sm scale-110' 
+                          ? 'bg-black text-white shadow-sm scale-105 sm:scale-110' 
                           : 'bg-transparent text-slate-400'
                       }`}
                     >
-                      {ItemIcon && <ItemIcon size={isMobile ? 14 : 16} />}
+                      {ItemIcon && <ItemIcon size={isMobile ? 12 : 16} />}
                     </span>
                     <span className={`tracking-tight ${isSelected ? 'font-black text-slate-950' : 'font-medium'}`}>
                       {item.label}

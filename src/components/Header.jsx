@@ -69,7 +69,7 @@ export const Header = memo(({ onNavigateToPanel, onNavigateToOrbital }) => {
           : 'bg-transparent shadow-none'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-20 flex items-center justify-between gap-2">
         
         {/* Logotipo Oficial PARQU - Transición fluida entre logo blanco y logo negro */}
         <div 
@@ -94,13 +94,13 @@ export const Header = memo(({ onNavigateToPanel, onNavigateToOrbital }) => {
             />
             
             {/* Contenedor relativo de logos para transición cross-fade */}
-            <div className="relative h-8 sm:h-10 w-auto flex items-center">
+            <div className="relative h-6 sm:h-10 w-auto flex items-center">
               {/* Logo Blanco (Activo sobre fondo oscuro de nubes) */}
               <img 
                 src="./parqu-logo-white.png" 
                 alt="Parqu" 
                 style={{ maxHeight: '40px' }}
-                className={`h-8 sm:h-10 w-auto object-contain drop-shadow-[0_0_15px_rgba(212,214,230,0.35)] transition-all duration-300 ${
+                className={`h-6 sm:h-10 w-auto object-contain drop-shadow-[0_0_15px_rgba(212,214,230,0.35)] transition-all duration-300 ${
                   isScrolled ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'
                 }`}
               />
@@ -110,7 +110,7 @@ export const Header = memo(({ onNavigateToPanel, onNavigateToOrbital }) => {
                 src="./parqu-logo-black.png" 
                 alt="Parqu" 
                 style={{ maxHeight: '40px' }}
-                className={`absolute inset-0 h-8 sm:h-10 w-auto object-contain transition-all duration-300 ${
+                className={`absolute inset-0 h-6 sm:h-10 w-auto object-contain transition-all duration-300 ${
                   isScrolled ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
                 }`}
               />
@@ -120,7 +120,7 @@ export const Header = memo(({ onNavigateToPanel, onNavigateToOrbital }) => {
           <div>
             <div className="flex items-center gap-1.5 sm:gap-2.5">
               <span 
-                className={`font-black text-lg sm:text-xl tracking-tight transition-colors duration-300 ${
+                className={`font-black text-base sm:text-xl tracking-tight transition-colors duration-300 ${
                   isScrolled ? 'text-black group-hover:text-slate-700' : 'text-[#D4D6E6] group-hover:text-white'
                 }`}
               >

@@ -80,9 +80,18 @@ const LiveTimerDisplay = memo(() => {
 // ══════════════════════════════════════════════════════════════════════════
 const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isMobileView, setIsMobileView] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false
+  );
 
   const formattedBalance = Number(balance ?? 250).toFixed(2);
   const activePlates = plates || 'ABC-123-A';
+
+  useEffect(() => {
+    const onResize = () => setIsMobileView(window.innerWidth < 640);
+    window.addEventListener('resize', onResize, { passive: true });
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   // Rotación continua y 100% automática cada 2.5 segundos sin detenerse con el mouse
   useEffect(() => {
@@ -92,13 +101,18 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
     return () => clearInterval(rotation);
   }, []);
 
-  // Calcula la posición dinámica en el abanico (izquierda, centro-frente, derecha) para cada teléfono
+  // Calcula la posición dinámica en el abanico (izquierda, centro-frente, derecha) adaptada a celular y escritorio
   const getPhonePositionStyle = (phoneIndex) => {
     const diff = (phoneIndex - activeIndex + 3) % 3;
+    const offsetX = isMobileView ? 76 : 122;
+    const offsetY = isMobileView ? 14 : 26;
+    const activeScale = isMobileView ? 0.72 : 1.02;
+    const sideScale = isMobileView ? 0.61 : 0.85;
+
     // diff === 0 -> Teléfono activo al frente en el centro
     if (diff === 0) {
       return {
-        transform: 'translate3d(0px, -6px, 0px) rotate(0deg) scale(1.02)',
+        transform: `translate3d(0px, -4px, 0px) rotate(0deg) scale(${activeScale})`,
         zIndex: 30,
         opacity: 1,
         filter: 'brightness(1)',
@@ -107,7 +121,7 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
     // diff === 1 -> Teléfono a la derecha en el abanico
     if (diff === 1) {
       return {
-        transform: 'translate3d(122px, 26px, 0px) rotate(11deg) scale(0.85)',
+        transform: `translate3d(${offsetX}px, ${offsetY}px, 0px) rotate(10deg) scale(${sideScale})`,
         zIndex: 20,
         opacity: 0.9,
         filter: 'brightness(0.9)',
@@ -115,7 +129,7 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
     }
     // diff === 2 -> Teléfono a la izquierda en el abanico
     return {
-      transform: 'translate3d(-122px, 26px, 0px) rotate(-11deg) scale(0.85)',
+      transform: `translate3d(-${offsetX}px, ${offsetY}px, 0px) rotate(-10deg) scale(${sideScale})`,
       zIndex: 20,
       opacity: 0.9,
       filter: 'brightness(0.9)',
@@ -133,17 +147,17 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
   const currentStep = PRESENTATION_STEPS[activeIndex];
 
   return (
-    <div className="relative w-full max-w-[580px] flex flex-col items-center select-none">
+    <div className="relative w-full max-w-[350px] sm:max-w-[580px] flex flex-col items-center select-none mx-auto">
       <style>{`
         @keyframes parquFanFloat {
           0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
+          50% { transform: translateY(-8px); }
         }
       `}</style>
       {/* ── ABANICO INTERACTIVO DE LOS 3 TELÉFONOS CON MOVIMIENTO CONTINUO ── */}
       <div
         style={{ animation: 'parquFanFloat 4s ease-in-out infinite' }}
-        className="relative w-full h-[465px] sm:h-[510px] flex items-center justify-center"
+        className="relative w-full h-[335px] sm:h-[510px] flex items-center justify-center"
       >
         {/* Resplandor atmosférico detrás de la presentación */}
         <div
@@ -468,18 +482,18 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
       </div>
 
       {/* ── TARJETA INFERIOR DE CONTROL DE LA PRESENTACIÓN DE LA APP ── */}
-      <div className="relative z-30 mt-2 w-full max-w-[440px] rounded-3xl bg-[#01033E]/65 backdrop-blur-md px-5 py-3.5 text-center shadow-xl border-0">
-        <div className="flex items-center justify-between gap-2 mb-1.5">
+      <div className="relative z-30 mt-0.5 sm:mt-2 w-full max-w-[330px] sm:max-w-[440px] rounded-2xl sm:rounded-3xl bg-[#01033E]/65 backdrop-blur-md px-3.5 py-2.5 sm:px-5 sm:py-3.5 text-center shadow-xl border-0">
+        <div className="flex items-center justify-between gap-2 mb-1 sm:mb-1.5">
           <button
             type="button"
             aria-label="Pantalla anterior de la presentación"
             onClick={() => setActiveIndex((prev) => (prev + 2) % 3)}
-            className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition cursor-pointer border-0"
+            className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition cursor-pointer border-0"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
 
-          <span className="text-[10px] font-mono uppercase tracking-widest text-[#807DFE] font-bold">
+          <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-[#807DFE] font-bold">
             {currentStep.badge}
           </span>
 
@@ -487,21 +501,21 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
             type="button"
             aria-label="Siguiente pantalla de la presentación"
             onClick={() => setActiveIndex((prev) => (prev + 1) % 3)}
-            className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition cursor-pointer border-0"
+            className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition cursor-pointer border-0"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
         </div>
 
-        <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">
+        <h3 className="text-xs sm:text-base font-bold text-white tracking-tight">
           {currentStep.title}
         </h3>
-        <p className="text-xs text-[#D4D6E6]/85 mt-0.5 leading-relaxed">
+        <p className="text-[11px] sm:text-xs text-[#D4D6E6]/85 mt-0.5 leading-snug sm:leading-relaxed">
           {currentStep.subtitle}
         </p>
 
         {/* Indicadores de diapositiva de la presentación */}
-        <div className="flex items-center justify-center gap-2 mt-3">
+        <div className="flex items-center justify-center gap-2 mt-2 sm:mt-3">
           {[0, 1, 2].map((idx) => (
             <button
               key={idx}
@@ -510,7 +524,7 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
               onClick={() => setActiveIndex(idx)}
               className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer border-0 ${
                 activeIndex === idx
-                  ? 'w-7 bg-white'
+                  ? 'w-6 sm:w-7 bg-white'
                   : 'w-2 bg-white/35 hover:bg-white/60'
               }`}
             />
@@ -569,7 +583,7 @@ export const LoadingScreen = ({ onComplete }) => {
         transition: 'transform 0.65s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.45s ease',
         willChange: 'transform, opacity',
       }}
-      className="fixed inset-0 w-screen h-screen z-50 overflow-y-auto overflow-x-hidden select-none pointer-events-auto bg-[#01033E] font-sans flex items-center justify-center px-5 sm:px-10 lg:px-16"
+      className="fixed inset-0 w-screen h-screen z-50 overflow-y-auto overflow-x-hidden select-none pointer-events-auto bg-[#01033E] font-sans flex items-center justify-center px-4 sm:px-10 lg:px-16"
     >
       {/* 
         ══════════════════════════════════════════════════════════════
@@ -599,35 +613,34 @@ export const LoadingScreen = ({ onComplete }) => {
         DERECHA: PRESENTACIÓN INTERACTIVA DE LA APLICACIÓN EN 3 TELÉFONOS
         ══════════════════════════════════════════════════════════════
       */}
-      <div className="relative z-10 w-full max-w-[1280px] mx-auto py-6 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
+      <div className="relative z-10 w-full max-w-[1280px] mx-auto py-3 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-8 lg:gap-6 items-center">
         
         {/* COLUMNA IZQUIERDA: LOGO DE PARQU, SLOGAN Y BOTÓN EMPECEMOS */}
-        <div className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 sm:space-y-8">
+        <div className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2.5 sm:space-y-7">
           {/* Logotipo Oficial Parqu */}
           <div className="relative flex items-center justify-center">
-            <div className="absolute -inset-8 bg-gradient-to-r from-[#0033FF]/25 via-[#807DFE]/20 to-[#0033FF]/25 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -inset-6 sm:-inset-8 bg-gradient-to-r from-[#0033FF]/25 via-[#807DFE]/20 to-[#0033FF]/25 rounded-full blur-2xl sm:blur-3xl pointer-events-none" />
             <img
               src="./parqu-logo-white.png"
               alt="Parqu Logo"
-              style={{ maxHeight: '120px' }}
-              className="h-24 sm:h-28 md:h-32 w-auto object-contain relative z-10 drop-shadow-[0_0_35px_rgba(128,125,254,0.45)]"
+              className="h-14 sm:h-28 md:h-32 w-auto object-contain relative z-10 drop-shadow-[0_0_35px_rgba(128,125,254,0.45)]"
             />
           </div>
 
           {/* Slogan */}
-          <p className="font-sans text-base sm:text-lg md:text-xl text-[#D4D6E6] font-normal tracking-normal leading-relaxed max-w-md drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
+          <p className="font-sans text-xs sm:text-lg md:text-xl text-[#D4D6E6] font-normal tracking-normal leading-snug sm:leading-relaxed max-w-[280px] sm:max-w-md drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
             Sistema Inteligente de <span className="text-white font-bold">Parquímetros</span> y Autocobro Digital
           </p>
 
           {/* Botón "Empecemos" Elegante y Sin Bordes */}
-          <div className="pt-1">
+          <div className="pt-0.5 sm:pt-1">
             <button
               type="button"
               onClick={handleTriggerExit}
-              className="font-sans text-sm sm:text-base font-bold text-white px-10 py-3.5 sm:py-4 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 transition-all duration-300 backdrop-blur-md border-0 shadow-[0_0_35px_rgba(128,125,254,0.45)] flex items-center justify-center gap-2.5 cursor-pointer group"
+              className="font-sans text-xs sm:text-base font-bold text-white px-7 py-2.5 sm:px-10 sm:py-4 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 transition-all duration-300 backdrop-blur-md border-0 shadow-[0_0_35px_rgba(128,125,254,0.45)] flex items-center justify-center gap-2 cursor-pointer group"
             >
               <span>Empecemos</span>
-              <ArrowRight className="w-5 h-5 text-white inline transition-transform duration-300 group-hover:translate-x-1.5" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white inline transition-transform duration-300 group-hover:translate-x-1.5" />
             </button>
           </div>
         </div>

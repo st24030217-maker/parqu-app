@@ -57,7 +57,7 @@ export const DigitalCard = () => {
 
   // Portada frontal con efecto 3D y el logo oficial de SSS.Solutions en paleta #01033E, #0033FF, #807DFE y #D4D6E6
   const FrontCover = (
-    <CardBody className="relative w-full h-full min-h-[270px] md:min-h-[295px] rounded-3xl bg-gradient-to-br from-[#01033E] via-slate-950 to-blue-950 border-0 p-6 md:p-8 flex flex-col justify-between overflow-hidden shadow-2xl">
+    <CardBody className="relative w-full h-full min-h-[215px] sm:min-h-[270px] md:min-h-[295px] rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#01033E] via-slate-950 to-blue-950 border-0 p-4 sm:p-6 md:p-8 flex flex-col justify-between overflow-hidden shadow-2xl">
       {/* Resplandor holográfico y textura de grano */}
       <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#0033FF]/[0.25] rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-[#807DFE]/[0.2] rounded-full blur-3xl pointer-events-none" />
@@ -65,39 +65,39 @@ export const DigitalCard = () => {
 
       {/* Fila Superior: Marca y Contactless en 3D */}
       <CardItem translateZ="40" className="w-full flex items-center justify-between z-10">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <img 
             src="./parqu-logo-white.png" 
             alt="Parqu" 
-            className="h-6 w-auto object-contain opacity-80"
+            className="h-5 sm:h-6 w-auto object-contain opacity-80"
           />
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#D4D6E6] font-bold">
+          <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.25em] text-[#D4D6E6] font-bold">
             PARQU DIGITAL PASS
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Wifi className="w-5 h-5 text-[#D4D6E6]/70 rotate-90" />
+          <Wifi className="w-4 h-4 sm:w-5 sm:h-5 text-[#D4D6E6]/70 rotate-90" />
         </div>
       </CardItem>
 
       {/* Centro: Logotipo Oficial SSS.Solutions flotando en 3D */}
-      <CardItem translateZ="75" className="w-full my-auto z-10 flex flex-col items-center justify-center text-center space-y-2.5 py-4">
+      <CardItem translateZ="75" className="w-full my-auto z-10 flex flex-col items-center justify-center text-center space-y-2 py-2.5 sm:py-4">
         <div className="relative group/logo">
           <div className="absolute -inset-4 bg-[#0033FF]/30 rounded-full blur-2xl pointer-events-none" />
           <img
             src="/sss-solutions-logo.png"
             alt="SSS.Solutions"
-            className="h-14 md:h-16 w-auto object-contain drop-shadow-[0_0_35px_rgba(0,51,255,0.5)] hover:scale-105 transition-transform duration-500"
+            className="h-11 sm:h-14 md:h-16 w-auto object-contain drop-shadow-[0_0_35px_rgba(0,51,255,0.5)] hover:scale-105 transition-transform duration-500"
           />
         </div>
-        <span className="text-[10px] uppercase font-mono tracking-[0.3em] text-[#D4D6E6] font-semibold">
+        <span className="text-[9px] sm:text-[10px] uppercase font-mono tracking-[0.22em] sm:tracking-[0.3em] text-[#D4D6E6] font-semibold">
           TECNOLOGÍA SSS.SOLUTIONS
         </span>
       </CardItem>
 
       {/* Fila Inferior: Indicador minimalista en 3D para pasar el cursor */}
-      <CardItem translateZ="35" className="w-full flex items-center justify-between z-10 pt-3 text-[11px] font-mono text-[#D4D6E6]">
-        <div className="flex items-center gap-2">
+      <CardItem translateZ="35" className="w-full flex items-center justify-between z-10 pt-2 sm:pt-3 text-[10px] sm:text-[11px] font-mono text-[#D4D6E6]">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <span className={`w-2 h-2 rounded-full ${isParked ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`} />
           <span className="text-[#D4D6E6] font-medium">
             {isParked ? 'Estacionamiento Activo' : 'Saldo:'}{' '}
@@ -105,8 +105,8 @@ export const DigitalCard = () => {
           </span>
         </div>
         <div className="flex items-center gap-1 text-[#D4D6E6] font-medium group-hover:text-white transition-colors">
-          <span>Toca o pasa el mouse</span>
-          <Sparkles className="w-3.5 h-3.5 text-[#807DFE] animate-pulse" />
+          <span>Toca la tarjeta</span>
+          <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#807DFE] animate-pulse" />
         </div>
       </CardItem>
     </CardBody>
@@ -129,46 +129,46 @@ export const DigitalCard = () => {
           {/* Componente Aceternity Direction Aware Hover */}
           <DirectionAwareHover frontContent={FrontCover}>
             {/* Tarjeta Física Virtual Obsidian con efectos 3D de profundidad */}
-            <CardBody className="relative card-hologram w-full h-full min-h-[270px] md:min-h-[295px] rounded-3xl border-0 bg-gradient-to-br from-[#01033E] via-slate-950 to-blue-950 p-6 md:p-8 text-[#D4D6E6] shadow-2xl flex flex-col justify-between">
+            <CardBody className="relative card-hologram w-full h-full min-h-[215px] sm:min-h-[270px] md:min-h-[295px] rounded-2xl sm:rounded-3xl border-0 bg-gradient-to-br from-[#01033E] via-slate-950 to-blue-950 p-4 sm:p-6 md:p-8 text-[#D4D6E6] shadow-2xl flex flex-col justify-between">
               
               {/* Fila Superior: Marca, Contactless y Estatus */}
               <CardItem translateZ="45" className="w-full flex items-center justify-between z-10">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div className="flex items-center justify-center">
                     <img 
                       src="./parqu-logo-white.png" 
                       alt="Parqu" 
-                      className="h-9 w-auto object-contain drop-shadow-[0_0_12px_rgba(0,51,255,0.4)]"
+                      className="h-7 sm:h-9 w-auto object-contain drop-shadow-[0_0_12px_rgba(0,51,255,0.4)]"
                     />
                   </div>
                   <div>
-                    <span className="font-black text-base tracking-wider uppercase text-white font-mono">
+                    <span className="font-black text-sm sm:text-base tracking-wider uppercase text-white font-mono">
                       Parqu
                     </span>
-                    <span className="block text-[9px] text-[#D4D6E6]/80 tracking-widest font-mono">
+                    <span className="block text-[8px] sm:text-[9px] text-[#D4D6E6]/80 tracking-widest font-mono">
                       TARJETA DIGITAL DE PARQUÍMETRO
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <Wifi className="w-5 h-5 text-[#D4D6E6]/70 rotate-90" />
-                  <div className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase border-0 flex items-center gap-1.5 shadow-sm ${
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Wifi className="w-4 h-4 sm:w-5 sm:h-5 text-[#D4D6E6]/70 rotate-90" />
+                  <div className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-mono font-bold tracking-wider uppercase border-0 flex items-center gap-1.5 shadow-sm ${
                     isParked
                       ? 'bg-amber-500/20 text-amber-300'
                       : 'bg-white/15 text-white'
                   }`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${isParked ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`}></span>
-                    {isParked ? 'EN ESTACIONAMIENTO' : 'TARJETA ACTIVA'}
+                    {isParked ? 'ACTIVO' : 'ACTIVA'}
                   </div>
                 </div>
               </CardItem>
 
               {/* Fila Media: Chip EMV y Placas en Alto Relieve 3D */}
-              <CardItem translateZ="75" className="w-full my-3 z-10 flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-4">
+              <CardItem translateZ="75" className="w-full my-2 sm:my-3 z-10 flex items-center justify-between flex-wrap gap-3 sm:gap-4">
+                <div className="flex items-center gap-3 sm:gap-4">
                   {/* Chip Plateado / Platino Monocromático */}
-                  <div className="w-11 h-8 rounded-md bg-gradient-to-br from-neutral-200 via-neutral-300 to-neutral-400 shadow-inner flex items-center justify-center p-1 border-0">
+                  <div className="w-9 h-6 sm:w-11 sm:h-8 rounded-md bg-gradient-to-br from-neutral-200 via-neutral-300 to-neutral-400 shadow-inner flex items-center justify-center p-1 border-0">
                     <div className="w-full h-full rounded-sm grid grid-cols-2 gap-0.5 opacity-60">
                       <div className="border-r border-b border-neutral-600/40"></div>
                       <div className="border-b border-neutral-600/40"></div>
@@ -179,11 +179,11 @@ export const DigitalCard = () => {
 
                   {/* Placas del Coche en Alto Relieve */}
                   <div>
-                    <span className="text-[10px] text-[#D4D6E6]/80 uppercase tracking-widest block font-medium font-mono">
+                    <span className="text-[9px] sm:text-[10px] text-[#D4D6E6]/80 uppercase tracking-widest block font-medium font-mono">
                       Placas del Vehículo
                     </span>
-                    <div className="bg-white/10 px-3.5 py-1 rounded-lg shadow-inner inline-block border-0">
-                      <span className="font-mono text-xl sm:text-2xl font-black text-white license-plate-badge tracking-wider">
+                    <div className="bg-white/10 px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-lg shadow-inner inline-block border-0">
+                      <span className="font-mono text-base sm:text-2xl font-black text-white license-plate-badge tracking-wider">
                         {formatPlate(vehicle.plates)}
                       </span>
                     </div>
