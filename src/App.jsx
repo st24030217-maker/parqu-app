@@ -57,7 +57,6 @@ const MainContent = () => {
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'autopay', 'vehicle', 'history'
   const [showQRQuickModal, setShowQRQuickModal] = useState(false);
   const [showRechargeQuickModal, setShowRechargeQuickModal] = useState(false);
-  const [showNotificationBanner, setShowNotificationBanner] = useState(false);
   const [rechargeAmt, setRechargeAmt] = useState(150);
   const systemRef = useRef(null);
 
@@ -483,22 +482,10 @@ const MainContent = () => {
         <Header 
           activeTab={activeTab}
           onSelectTab={handleSelectFeature}
-          onOpenRecharge={() => setShowRechargeQuickModal(true)}
-          onOpenNFC={() => setShowQRQuickModal(true)}
-          onOpenNotification={() => setShowNotificationBanner((prev) => !prev)}
-          onNavigateToPanel={() => {
-            const el = document.getElementById('panel-control-metropolitano');
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-          }}
-          onNavigateToOrbital={() => {
-            const el = document.getElementById('selector-orbital-metropolitano');
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-          }}
         />
 
         <ExitNotificationManager
-          isOpenExternal={showNotificationBanner}
-          onCloseExternal={() => setShowNotificationBanner(false)}
+          onOpenNFC={() => setShowQRQuickModal(true)}
         />
 
         {/* Banner de Sesión Activa si está en otra pestaña con soporte completo de teclado */}

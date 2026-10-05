@@ -56,12 +56,12 @@ function drawRoundedPill(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-// Genera una capsula estilo Dynamic Island de iPhone centrada (sin barras largas)
+// Genera una capsula estilo Dynamic Island de iPhone + Mini Centro de Control (sin barras largas)
 async function buildDynamicIslandImage(s, clockStr, cost, frame) {
   if (typeof OffscreenCanvas === 'undefined') return undefined;
   try {
     const width = 600;
-    const height = 180;
+    const height = 210;
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
     if (!ctx) return undefined;
@@ -69,34 +69,35 @@ async function buildDynamicIslandImage(s, clockStr, cost, frame) {
     ctx.clearRect(0, 0, width, height);
 
     // Capsula Dynamic Island centrada (no abarca todo el ancho)
-    const pillW = 460;
-    const pillH = 124;
+    const pillW = 476;
+    const pillH = 122;
     const pillX = Math.round((width - pillW) / 2);
-    const pillY = Math.round((height - pillH) / 2);
+    const pillY = 14;
 
     ctx.fillStyle = '#07080c';
-    drawRoundedPill(ctx, pillX, pillY, pillW, pillH, 62);
+    drawRoundedPill(ctx, pillX, pillY, pillW, pillH, 61);
     ctx.fill();
 
     ctx.lineWidth = 2;
-    ctx.strokeStyle = s.isActive ? '#38bdf8' : 'rgba(255,255,255,0.18)';
+    ctx.strokeStyle = s.isActive ? '#38bdf8' : 'rgba(255,255,255,0.22)';
     ctx.stroke();
 
     // Izquierda de la Isla: Estado + Reloj en vivo
+    ctx.textAlign = 'left';
     ctx.fillStyle = s.isActive ? '#38bdf8' : '#34d399';
-    ctx.font = 'bold 14px monospace';
+    ctx.font = 'bold 13px monospace';
     ctx.fillText(
-      s.isActive ? `PARQU • ${s.plates || 'XYZ-7842'}` : `EN ESPERA • ${s.plates || 'XYZ-7842'}`,
-      pillX + 34,
-      pillY + 42
+      s.isActive ? `PARQU • ${s.plates || 'XYZ-7842'}` : `LISTO • ${s.plates || 'XYZ-7842'}`,
+      pillX + 32,
+      pillY + 40
     );
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 38px monospace';
-    ctx.fillText(s.isActive ? clockStr : '00:00:00', pillX + 34, pillY + 88);
+    ctx.font = 'bold 36px monospace';
+    ctx.fillText(s.isActive ? clockStr : '00:00:00', pillX + 32, pillY + 86);
 
-    // Centro-Derecha: Mini ondas estilo Dynamic Island
-    const waveX = pillX + 258;
+    // Centro: Mini ondas estilo Dynamic Island
+    const waveX = pillX + 250;
     for (let i = 0; i < 6; i += 1) {
       const amp = (Math.sin(frame * 0.85 + i * 0.7) + 1) / 2;
       const barH = Math.max(8, Math.round(amp * 34));
@@ -109,16 +110,59 @@ async function buildDynamicIslandImage(s, clockStr, cost, frame) {
     // Derecha de la Isla: Cobro / Saldo
     ctx.textAlign = 'right';
     ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 13px monospace';
-    ctx.fillText(s.isActive ? 'COBRO ($6/H)' : 'SALDO NFC', pillX + pillW - 34, pillY + 42);
+    ctx.font = 'bold 12px monospace';
+    ctx.fillText(s.isActive ? 'COBRO ($6/H)' : 'SALDO NFC', pillX + pillW - 32, pillY + 40);
 
     ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 30px sans-serif';
+    ctx.font = 'bold 28px sans-serif';
     ctx.fillText(
       s.isActive ? `$${cost}` : `$${s.balance || '320'}`,
-      pillX + pillW - 34,
-      pillY + 86
+      pillX + pillW - 32,
+      pillY + 84
     );
+
+    // Fila inferior: Mini Centro de Control de Accesos Rapidos (3 pildoras compactas)
+    const autoPayOn = s.autoPayEnabled !== false;
+    const pills = [
+      {
+        label: s.isActive ? 'FINALIZAR ESTANCIA' : 'INICIAR $6.00/HR',
+        bg: s.isActive ? '#f59e0b' : '#0033ff',
+        fg: s.isActive ? '#050505' : '#ffffff',
+      },
+      {
+        label: '+$50 SALDO NFC',
+        bg: '#111827',
+        fg: '#38bdf8',
+      },
+      {
+        label: autoPayOn ? 'AUTOCOBRO ON' : 'AUTOCOBRO OFF',
+        bg: '#111827',
+        fg: autoPayOn ? '#34d399' : '#94a3b8',
+      },
+    ];
+
+    const dockW = 476;
+    const dockX = pillX;
+    const dockY = 148;
+    const gap = 8;
+    const itemW = Math.floor((dockW - gap * 2) / 3);
+    const itemH = 44;
+
+    pills.forEach((p, idx) => {
+      const x = dockX + idx * (itemW + gap);
+      ctx.fillStyle = p.bg;
+      drawRoundedPill(ctx, x, dockY, itemW, itemH, 22);
+      ctx.fill();
+
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+      ctx.stroke();
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = p.fg;
+      ctx.font = 'bold 11px monospace';
+      ctx.fillText(p.label, x + Math.round(itemW / 2), dockY + 26);
+    });
 
     const blob = await canvas.convertToBlob({ type: 'image/png' });
     const buffer = await blob.arrayBuffer();
@@ -155,8 +199,8 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
     const clockStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     const islandImage = await buildDynamicIslandImage(s, clockStr, cost, waveFrame);
 
-    const title = `Parqu  ${wave}  ${clockStr} • $${cost}`;
-    const body = `${plates} (${carDesc}) • Saldo $${balance} • ${autoPayLabel}`;
+    const title = `Centro Parqu  ${wave}  ${clockStr} • $${cost}`;
+    const body = `Accesos Rápidos • ${plates} (${carDesc}) • Saldo $${balance} • ${autoPayLabel}`;
 
     return {
       title,
@@ -186,8 +230,8 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
   }
 
   const islandImage = await buildDynamicIslandImage(s, '00:00:00', '0.00', waveFrame);
-  const title = `Parqu  ${wave}  ${plates} • $${balance}`;
-  const body = `En espera ($6.00/hr) • ${carDesc} • ${autoPayLabel}`;
+  const title = `Centro Parqu  ${wave}  ${plates} • $${balance}`;
+  const body = `Accesos Rápidos ($6.00/hr) • ${carDesc} • ${autoPayLabel}`;
 
   return {
     title,
