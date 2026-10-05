@@ -32,6 +32,7 @@ import {
   ChevronRight,
   Sliders,
   QrCode,
+  Wifi,
   Activity,
   MapPin,
   Compass
@@ -123,15 +124,15 @@ const MainContent = () => {
     },
     {
       id: 'qr-credential',
-      icon: QrCode,
-      title: 'Credencial QR',
-      subtitle: 'Inspección de tránsito',
-      badge: 'AES-256',
+      icon: Wifi,
+      title: 'Credencial NFC',
+      subtitle: 'Inspección sin contacto',
+      badge: 'NFC AES-256',
       badgeClassName: 'bg-white/50 text-slate-800 border border-slate-200/50 font-mono font-bold',
       iconBg: 'bg-white/50 border border-slate-200/50 text-black',
       borderClassName: 'border-slate-200/50 hover:border-slate-300/80 bg-white/40 hover:bg-white/60 backdrop-blur-xl shadow-none',
       glowGradient: 'from-slate-100/50 via-transparent to-transparent',
-      footerText: 'Pase Contactless Oficial',
+      footerText: 'Pase NFC Contactless Oficial',
       activeStatus: true,
       onClick: () => setShowQRQuickModal(true),
     },
@@ -240,7 +241,7 @@ const MainContent = () => {
                   Apartado de Funciones Rápidas
                 </h3>
                 <p className="text-xs text-slate-600 mt-1 font-sans">
-                  Ejecuta recargas, abre la credencial QR para tránsitos, fija tu ubicación en el mapa o administra el autocobro en 1 toque.
+                  Ejecuta recargas, abre la credencial NFC para tránsitos, fija tu ubicación en el mapa o administra el autocobro en 1 toque.
                 </p>
               </div>
 
@@ -284,7 +285,7 @@ const MainContent = () => {
               <div 
                 role="button"
                 tabIndex={0}
-                aria-label="Abrir credencial QR oficial para verificación vial"
+                aria-label="Abrir credencial NFC oficial para verificación vial"
                 onClick={() => setShowQRQuickModal(true)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -296,15 +297,15 @@ const MainContent = () => {
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-black font-sans flex items-center gap-1.5">
-                    <QrCode className="w-3.5 h-3.5 text-black" />
-                    Credencial QR Oficial
+                    <Wifi className="w-3.5 h-3.5 rotate-90 text-black" />
+                    Credencial NFC Oficial
                   </span>
                   <span className="text-[10px] font-mono text-black font-bold px-2 py-0.5 rounded-full bg-white/50 border border-slate-200/50">
-                    AES-256
+                    NFC AES-256
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-600 font-sans">
-                  Muestra tu pase contactless al oficial vial para verificar estancia.
+                  Acerca tu pase NFC contactless al lector del oficial vial para verificar tu estancia.
                 </p>
               </div>
 
@@ -664,7 +665,7 @@ const MainContent = () => {
             </div>
           )}
 
-          {/* Modal Rápido de Código QR */}
+          {/* Modal Rápido de Credencial NFC Contactless */}
           {showQRQuickModal && (
             <div 
               role="dialog"
@@ -673,43 +674,27 @@ const MainContent = () => {
               className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
             >
               <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative border-0 animate-in fade-in zoom-in-95 duration-200">
-                <h3 id="quick-qr-dialog-title" className="text-lg font-black text-black mb-1 font-sans">Credencial QR de Inspección</h3>
+                <h3 id="quick-qr-dialog-title" className="text-lg font-black text-black mb-1 font-sans">Credencial NFC de Inspección</h3>
                 <p className="text-xs text-slate-600 mb-6 font-sans">
-                  Lectura directa para agentes de tránsito vial
+                  Lectura NFC sin contacto para agentes de tránsito vial
                 </p>
 
-                <div className="bg-slate-50 p-4 rounded-2xl inline-block shadow-inner mb-4 border-0">
-                  <svg className="w-48 h-48 mx-auto" viewBox="0 0 100 100" role="img" aria-label={`Código QR para el vehículo con placas ${vehicle.plates}`}>
-                    <rect width="100" height="100" fill="#F8FAFC" />
-                    <rect x="5" y="5" width="26" height="26" fill="#000000" />
-                    <rect x="9" y="9" width="18" height="18" fill="#F8FAFC" />
-                    <rect x="13" y="13" width="10" height="10" fill="#000000" />
-                    <rect x="69" y="5" width="26" height="26" fill="#000000" />
-                    <rect x="73" y="9" width="18" height="18" fill="#F8FAFC" />
-                    <rect x="77" y="13" width="10" height="10" fill="#000000" />
-                    <rect x="5" y="69" width="26" height="26" fill="#000000" />
-                    <rect x="9" y="73" width="18" height="18" fill="#F8FAFC" />
-                    <rect x="13" y="77" width="10" height="10" fill="#000000" />
-                    <rect x="36" y="10" width="8" height="8" fill="#000000" />
-                    <rect x="48" y="10" width="6" height="6" fill="#000000" />
-                    <rect x="36" y="24" width="6" height="6" fill="#000000" />
-                    <rect x="46" y="20" width="10" height="10" fill="#000000" />
-                    <rect x="10" y="38" width="6" height="6" fill="#000000" />
-                    <rect x="20" y="44" width="8" height="8" fill="#000000" />
-                    <rect x="35" y="40" width="30" height="20" fill="#000000" />
-                    <rect x="40" y="45" width="20" height="10" fill="#F8FAFC" />
-                    <rect x="70" y="40" width="8" height="8" fill="#000000" />
-                    <rect x="82" y="48" width="6" height="6" fill="#000000" />
-                    <rect x="38" y="70" width="8" height="8" fill="#000000" />
-                    <rect x="50" y="76" width="12" height="12" fill="#000000" />
-                    <rect x="68" y="70" width="6" height="6" fill="#000000" />
-                    <rect x="78" y="80" width="10" height="10" fill="#000000" />
-                  </svg>
+                <div className="py-6 flex flex-col items-center justify-center mb-4">
+                  <div className="relative w-36 h-36 rounded-full bg-gradient-to-br from-[#01033E] to-[#0033FF] flex items-center justify-center shadow-xl">
+                    <span className="absolute inset-0 rounded-full bg-[#0033FF]/30 animate-ping" />
+                    <span className="absolute -inset-3 rounded-full border-2 border-[#0033FF]/25" />
+                    <div className="relative z-10 flex flex-col items-center justify-center text-white">
+                      <Wifi className="w-14 h-14 rotate-90 text-white" />
+                      <span className="text-xs font-mono font-black tracking-widest mt-1">
+                        NFC ACTIVO
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="bg-slate-100 rounded-xl p-2.5 mb-6 text-xs font-sans text-slate-800 flex items-center justify-between border-0 shadow-sm">
                   <span>Placas: <strong className="text-black font-mono">{vehicle.plates}</strong></span>
-                  <span className="text-emerald-700 font-bold">● Validado</span>
+                  <span className="text-emerald-700 font-bold">● NFC Validado</span>
                 </div>
 
                 <button
@@ -717,7 +702,7 @@ const MainContent = () => {
                   onClick={() => setShowQRQuickModal(false)}
                   className="w-full py-2.5 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-sans font-bold transition shadow-md border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                 >
-                  Cerrar Credencial
+                  Cerrar Credencial NFC
                 </button>
               </div>
             </div>

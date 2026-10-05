@@ -35,10 +35,10 @@ const PRESENTATION_STEPS = [
   },
   {
     id: 2,
-    badge: 'PASO 03 / 03 • BLINDAJE CERO MULTAS',
-    title: 'Verificación QR oficial en tiempo real',
+    badge: 'PASO 03 / 03 • TECNOLOGÍA NFC CONTACTLESS',
+    title: 'Verificación NFC oficial sin contacto',
     subtitle:
-      'Tu estancia queda protegida con cifrado AES-256 y credencial QR dinámica ante supervisores viales.',
+      'Tu estancia queda protegida con tecnología NFC contactless y cifrado AES-256 ante supervisores viales.',
   },
 ];
 
@@ -254,7 +254,7 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
                   2. Reloj
                 </div>
                 <div className="py-1.5 rounded-xl text-slate-600 text-center">
-                  3. Pase QR
+                  3. Pase NFC
                 </div>
               </div>
               <div className="w-20 h-1 bg-slate-300 rounded-full mx-auto mt-2" />
@@ -333,7 +333,7 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
                 <span className="text-[#D4D6E6]">
                   PLACA: <strong className="text-white">{activePlates}</strong>
                 </span>
-                <span className="text-emerald-300 font-bold">CERO MONEDAS</span>
+                <span className="text-emerald-300 font-bold">NFC ACTIVO</span>
               </div>
             </div>
 
@@ -365,7 +365,7 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
                   2. Reloj
                 </div>
                 <div className="py-1.5 rounded-xl text-slate-600 text-center">
-                  3. Pase QR
+                  3. Pase NFC
                 </div>
               </div>
               <div className="w-20 h-1 bg-slate-300 rounded-full mx-auto mt-2" />
@@ -374,7 +374,7 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
         </div>
 
         {/* ════════════════════════════════════════════════════════════
-            PANTALLA 3 (INDEX 2): PASE DIGITAL QR & CERO MULTAS
+            PANTALLA 3 (INDEX 2): TECNOLOGÍA NFC CONTACTLESS & CERO MULTAS
         ════════════════════════════════════════════════════════════ */}
         <div
           onClick={() => handleSelectPhone(2)}
@@ -403,41 +403,48 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
               </div>
             </div>
 
-            {/* Encabezado QR */}
+            {/* Encabezado NFC */}
             <div className="mt-1.5 flex items-center justify-between px-0.5">
               <div className="text-left">
                 <span className="text-[9px] font-mono uppercase tracking-wider text-emerald-600 font-bold">
-                  03 • Blindaje Vial
+                  03 • Tecnología NFC
                 </span>
                 <h4 className="text-sm font-black text-slate-900 tracking-tight">
-                  Credencial QR Oficial
+                  Pase NFC Contactless
                 </h4>
               </div>
               <ShieldCheck className="w-5 h-5 text-emerald-600" />
             </div>
 
-            {/* Tarjeta QR */}
+            {/* Tarjeta NFC Contactless con Ondas Activas */}
             <div className="bg-white rounded-2xl p-3 shadow-sm flex flex-col items-center text-center">
-              <div className="w-24 h-24 rounded-2xl bg-[#01033E] flex items-center justify-center p-3 shadow-md">
-                <QrCode className="w-full h-full text-white" />
+              <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-[#01033E] to-[#0033FF] flex items-center justify-center shadow-md">
+                <span className="absolute inset-0 rounded-full bg-[#0033FF]/30 animate-ping" />
+                <span className="absolute -inset-1.5 rounded-full border-2 border-[#807DFE]/40" />
+                <div className="relative z-10 flex flex-col items-center justify-center text-white">
+                  <Wifi className="w-9 h-9 rotate-90 text-white" />
+                  <span className="text-[9px] font-mono font-black tracking-widest mt-0.5">
+                    NFC
+                  </span>
+                </div>
               </div>
-              <div className="mt-2 text-xs font-black font-mono text-slate-900 tracking-wider">
+              <div className="mt-2.5 text-xs font-black font-mono text-slate-900 tracking-wider">
                 {activePlates}
               </div>
               <span className="mt-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-mono font-bold">
-                0 MULTAS GARANTIZADO
+                LECTURA NFC SIN CONTACTO
               </span>
             </div>
 
-            {/* Estado de Verificación */}
+            {/* Estado de Verificación NFC */}
             <div className="bg-white rounded-2xl p-2.5 shadow-sm text-left space-y-1.5">
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-slate-500">Cifrado Vial</span>
-                <span className="font-mono font-bold text-slate-900">AES-256 Oficial</span>
+                <span className="text-slate-500">Protocolo</span>
+                <span className="font-mono font-bold text-slate-900">NFC AES-256</span>
               </div>
               <div className="flex items-center justify-between text-[10px]">
                 <span className="text-slate-500">Infracciones</span>
-                <span className="font-bold text-emerald-600">0 Registradas</span>
+                <span className="font-bold text-emerald-600">0 Multas Garantizado</span>
               </div>
             </div>
 
@@ -451,7 +458,7 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
                   2. Reloj
                 </div>
                 <div className="py-1.5 rounded-xl bg-emerald-600 text-white text-center shadow-sm">
-                  3. Pase QR
+                  3. Pase NFC
                 </div>
               </div>
               <div className="w-20 h-1 bg-slate-300 rounded-full mx-auto mt-2" />

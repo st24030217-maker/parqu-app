@@ -254,19 +254,19 @@ export const DigitalCard = () => {
                     </div>
                   </div>
 
-                  {/* Botón QR Flotante en 3D */}
+                  {/* Botón NFC Flotante en 3D */}
                   <CardItem translateZ="90">
                     <button
                       type="button"
-                      aria-label="Mostrar Código QR oficial de inspección"
+                      aria-label="Mostrar Credencial NFC oficial de inspección"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowQRModal(true);
                       }}
-                      title="Mostrar Código QR para Agente"
+                      title="Mostrar Pase NFC para Agente"
                       className="w-11 h-11 rounded-2xl bg-[#0033FF] hover:bg-[#2250ff] text-white flex items-center justify-center shadow-[0_0_25px_rgba(0,51,255,0.5)] transition transform hover:scale-110 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
                     >
-                      <QrCode className="w-6 h-6 text-white" />
+                      <Wifi className="w-6 h-6 rotate-90 text-white" />
                     </button>
                   </CardItem>
                 </div>
@@ -299,17 +299,17 @@ export const DigitalCard = () => {
           )}
           <button
             type="button"
-            aria-label="Abrir credencial QR oficial para agente de tránsito"
+            aria-label="Abrir credencial NFC oficial para agente de tránsito"
             onClick={() => setShowQRModal(true)}
             className="text-[#D4D6E6] hover:text-white font-medium flex items-center gap-1 transition cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
-            <QrCode className="w-3.5 h-3.5 text-[#807DFE]" />
-            Código QR Oficial
+            <Wifi className="w-3.5 h-3.5 rotate-90 text-[#807DFE]" />
+            Credencial NFC Oficial
           </button>
         </div>
       </div>
 
-      {/* Modal QR Oficial de Inspección */}
+      {/* Modal NFC Oficial de Inspección */}
       {showQRModal && (
         <div 
           role="dialog"
@@ -318,51 +318,23 @@ export const DigitalCard = () => {
           className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4"
         >
           <div className="bg-[#01033E] rounded-3xl border-0 max-w-sm w-full p-6 text-center shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
-            <h3 id="card-qr-dialog-title" className="text-lg font-bold text-white mb-1 font-sans">Credencial QR de Inspección</h3>
+            <h3 id="card-qr-dialog-title" className="text-lg font-bold text-white mb-1 font-sans">Credencial NFC de Inspección</h3>
             <p className="text-xs text-[#D4D6E6]/80 mb-6 font-sans">
-              Escaneable por agentes de tránsito y lectores automáticos de parquímetro
+              Lectura NFC sin contacto para agentes de tránsito y lectores de parquímetro
             </p>
 
-            {/* Código QR Generado con SVG */}
-            <div className="bg-white p-4 rounded-2xl inline-block shadow-inner mb-4 border-0">
-              <svg className="w-48 h-48 mx-auto" viewBox="0 0 100 100" role="img" aria-label={`Código QR oficial para el vehículo ${vehicle.plates}`}>
-                <rect width="100" height="100" fill="#ffffff" />
-                <rect x="5" y="5" width="26" height="26" fill="#01033E" />
-                <rect x="9" y="9" width="18" height="18" fill="#ffffff" />
-                <rect x="13" y="13" width="10" height="10" fill="#01033E" />
-
-                <rect x="69" y="5" width="26" height="26" fill="#01033E" />
-                <rect x="73" y="9" width="18" height="18" fill="#ffffff" />
-                <rect x="77" y="13" width="10" height="10" fill="#01033E" />
-
-                <rect x="5" y="69" width="26" height="26" fill="#01033E" />
-                <rect x="9" y="73" width="18" height="18" fill="#ffffff" />
-                <rect x="13" y="77" width="10" height="10" fill="#01033E" />
-
-                <rect x="36" y="8" width="6" height="6" fill="#01033E" />
-                <rect x="46" y="12" width="6" height="6" fill="#01033E" />
-                <rect x="56" y="8" width="6" height="6" fill="#01033E" />
-                <rect x="36" y="24" width="6" height="6" fill="#01033E" />
-                <rect x="52" y="24" width="8" height="6" fill="#01033E" />
-
-                <rect x="10" y="38" width="80" height="4" fill="#01033E" />
-                <rect x="15" y="46" width="12" height="8" fill="#01033E" />
-                <rect x="32" y="46" width="16" height="8" fill="#01033E" />
-                <rect x="54" y="46" width="14" height="8" fill="#01033E" />
-                <rect x="74" y="46" width="12" height="8" fill="#01033E" />
-
-                <rect x="36" y="60" width="8" height="8" fill="#01033E" />
-                <rect x="48" y="60" width="8" height="8" fill="#01033E" />
-                <rect x="60" y="60" width="8" height="8" fill="#01033E" />
-                <rect x="72" y="60" width="8" height="8" fill="#01033E" />
-
-                <rect x="36" y="74" width="14" height="6" fill="#01033E" />
-                <rect x="54" y="74" width="18" height="6" fill="#01033E" />
-                <rect x="76" y="74" width="14" height="6" fill="#01033E" />
-
-                <rect x="36" y="86" width="24" height="6" fill="#01033E" />
-                <rect x="66" y="86" width="24" height="6" fill="#01033E" />
-              </svg>
+            {/* Emisor NFC Contactless Animado */}
+            <div className="py-6 flex flex-col items-center justify-center mb-4">
+              <div className="relative w-36 h-36 rounded-full bg-gradient-to-br from-[#0033FF] to-[#807DFE] flex items-center justify-center shadow-[0_0_40px_rgba(0,51,255,0.6)]">
+                <span className="absolute inset-0 rounded-full bg-[#0033FF]/40 animate-ping" />
+                <span className="absolute -inset-3 rounded-full border-2 border-[#D4D6E6]/30" />
+                <div className="relative z-10 flex flex-col items-center justify-center text-white">
+                  <Wifi className="w-14 h-14 rotate-90 text-white" />
+                  <span className="text-xs font-mono font-black tracking-widest mt-1">
+                    NFC ACTIVO
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="bg-white/10 rounded-2xl p-3 text-left font-sans text-xs space-y-1 mb-6 border-0 shadow-inner">
@@ -375,7 +347,7 @@ export const DigitalCard = () => {
                 <span className="font-bold text-white truncate max-w-[170px]">{owner.fullName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#D4D6E6]/70">Autocobro:</span>
+                <span className="text-[#D4D6E6]/70">Autocobro NFC:</span>
                 <span className="font-bold text-emerald-400 font-mono">{autoPay.enabled ? 'HABILITADO' : 'INACTIVO'}</span>
               </div>
               <div className="flex justify-between">
@@ -386,11 +358,11 @@ export const DigitalCard = () => {
 
             <button
               type="button"
-              aria-label="Cerrar credencial QR de inspección"
+              aria-label="Cerrar credencial NFC de inspección"
               onClick={() => setShowQRModal(false)}
               className="w-full py-3 bg-[#0033FF] hover:bg-[#2250ff] text-white font-bold font-sans text-xs uppercase tracking-wider rounded-xl transition shadow-xl border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
             >
-              Cerrar Visualizador
+              Cerrar Visualizador NFC
             </button>
           </div>
         </div>

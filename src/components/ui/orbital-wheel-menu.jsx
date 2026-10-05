@@ -10,7 +10,7 @@ import {
   Square,
   RefreshCw,
   Zap,
-  QrCode,
+  Wifi,
   MapPin,
   Car,
   History,
@@ -69,13 +69,13 @@ export const MENU_ITEMS = [
   },
   {
     id: 'qr-credential',
-    label: 'Credencial QR Oficial',
-    shortLabel: 'Pase Contactless',
+    label: 'Credencial NFC Oficial',
+    shortLabel: 'Pase NFC Contactless',
     category: 'INSPECCIÓN VIAL',
-    icon: QrCode,
+    icon: Wifi,
     actionTarget: 'qr-credential',
-    badge: 'AES-256',
-    description: 'Presenta tu pase de verificación oficial ante oficiales de tránsito.'
+    badge: 'NFC AES-256',
+    description: 'Presenta tu pase NFC contactless ante oficiales de tránsito.'
   },
   {
     id: 'parking-map',
