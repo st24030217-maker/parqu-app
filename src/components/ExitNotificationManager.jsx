@@ -8,7 +8,6 @@ import {
   Wifi,
   X,
   CheckCircle2,
-  MapPin,
   Play,
   Square,
   Plus,
@@ -17,6 +16,7 @@ import {
   ChevronUp,
   Activity,
 } from 'lucide-react';
+import { animate, stagger } from 'animejs';
 import { sileo } from 'sileo';
 import { useParking } from '../context/ParkingContext';
 import { triggerHaptic } from '../utils/haptics';
@@ -52,6 +52,15 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
   const [lastExitTime, setLastExitTime] = useState(null);
   const [dismissedPromptPill, setDismissedPromptPill] = useState(false);
   const [liveTick, setLiveTick] = useState(0);
+
+  // Referencias para animaciones con Anime.js v4
+  const consoleCardRef = useRef(null);
+  const minimizedPillRef = useRef(null);
+  const telemetryWaveRef = useRef(null);
+  const minimizedWaveRef = useRef(null);
+  const clockDigitsRef = useRef(null);
+  const costDigitsRef = useRef(null);
+  const timerCardRef = useRef(null);
 
   // Mantener referencia síncrona actualizada para visibilitychange / pagehide en teléfono
   const latestContextRef = useRef({
@@ -94,9 +103,124 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
   }, [isOpenExternal]);
 
   const handleCloseBanner = () => {
+    if (consoleCardRef.current) {
+      animate(consoleCardRef.current, {
+        opacity: [1, 0],
+        scale: [1, 0.92],
+        translateY: [0, -14],
+        duration: 220,
+        ease: 'inQuad',
+      });
+      setTimeout(() => {
+        setBannerOpen(false);
+        if (onCloseExternal) onCloseExternal();
+      }, 200);
+      return;
+    }
     setBannerOpen(false);
     if (onCloseExternal) onCloseExternal();
   };
+
+  const info = buildParkingNotificationPayload({
+    owner,
+    vehicle,
+    card,
+    autoPay,
+    activeSession,
+    transactions,
+  });
+
+  // 1. Animación Anime.js tipo Dynamic Island al expandir o contraer la Consola en Vivo
+  useEffect(() => {
+    if (!bannerOpen) return;
+
+    if (isMinimizedPill && minimizedPillRef.current) {
+      animate(minimizedPillRef.current, {
+        opacity: [0, 1],
+        scaleX: [1.35, 1],
+        scaleY: [1.2, 1],
+        translateY: [8, 0],
+        duration: 620,
+        ease: 'outElastic(1, .62)',
+      });
+    } else if (!isMinimizedPill && consoleCardRef.current) {
+      animate(consoleCardRef.current, {
+        opacity: [0, 1],
+        scaleX: [0.68, 1],
+        scaleY: [0.76, 1],
+        translateY: [-18, 0],
+        duration: 720,
+        ease: 'outElastic(1, .66)',
+      });
+
+      const blocks = consoleCardRef.current.querySelectorAll('.anime-console-item');
+      if (blocks.length > 0) {
+        blocks.forEach((el) => {
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(12px) scale(0.97)';
+        });
+        animate(blocks, {
+          opacity: [0, 1],
+          translateY: [12, 0],
+          scale: [0.97, 1],
+          delay: stagger(55, { start: 90 }),
+          duration: 540,
+          ease: 'outExpo',
+        });
+      }
+    }
+  }, [bannerOpen, isMinimizedPill]);
+
+  // 2. Osciloscopio / Ondas de Telemetría en Vivo con Anime.js (Modo Expandido y Modo Píldora)
+  useEffect(() => {
+    if (!bannerOpen) return undefined;
+
+    let waveAnim;
+    const targetContainer = isMinimizedPill ? minimizedWaveRef.current : telemetryWaveRef.current;
+
+    if (targetContainer) {
+      const bars = targetContainer.querySelectorAll('.anime-telemetry-bar');
+      if (bars.length > 0) {
+        waveAnim = animate(bars, {
+          scaleY: info.isActive ? [0.25, 1, 0.35, 0.9, 0.3] : [0.22, 0.55, 0.22],
+          opacity: info.isActive ? [0.55, 1, 0.65] : [0.35, 0.75, 0.35],
+          delay: stagger(55, { from: 'center' }),
+          duration: info.isActive ? 760 : 1500,
+          loop: true,
+          alternate: true,
+          ease: 'inOutSine',
+        });
+      }
+    }
+
+    return () => {
+      if (waveAnim && typeof waveAnim.pause === 'function') {
+        waveAnim.pause();
+      }
+    };
+  }, [bannerOpen, isMinimizedPill, info.isActive]);
+
+  // 3. Pulso cinético segundo a segundo en el reloj digital con Anime.js
+  useEffect(() => {
+    if (!bannerOpen || isMinimizedPill || !clockDigitsRef.current) return;
+    animate(clockDigitsRef.current, {
+      scale: info.isActive ? [1.05, 1] : [1.015, 1],
+      translateY: info.isActive ? [-1.5, 0] : [0, 0],
+      duration: 360,
+      ease: 'outExpo',
+    });
+  }, [liveTick, bannerOpen, isMinimizedPill, info.isActive]);
+
+  // 4. Rebote elástico en el monto de cobro / saldo cuando se actualiza con Anime.js
+  useEffect(() => {
+    if (!bannerOpen || isMinimizedPill || !costDigitsRef.current) return;
+    animate(costDigitsRef.current, {
+      scale: [1.22, 1],
+      translateY: [-3, 0],
+      duration: 620,
+      ease: 'outElastic(1, .52)',
+    });
+  }, [info.cost, info.balance, info.isActive, bannerOpen, isMinimizedPill]);
 
   // Escuchar acciones interactivas disparadas desde los botones de la notificación del teléfono (Service Worker)
   useEffect(() => {
@@ -203,7 +327,25 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     };
   }, [triggerExitNotificationSync]);
 
-  const handleEnableOrTestNotification = async () => {
+  const pulseInteractiveElement = (el) => {
+    if (el) {
+      animate(el, {
+        scale: [0.9, 1.06, 1],
+        duration: 500,
+        ease: 'outElastic(1, .55)',
+      });
+    }
+    if (timerCardRef.current) {
+      animate(timerCardRef.current, {
+        scale: [0.985, 1.015, 1],
+        duration: 460,
+        ease: 'outElastic(1, .6)',
+      });
+    }
+  };
+
+  const handleEnableOrTestNotification = async (e) => {
+    if (e?.currentTarget) pulseInteractiveElement(e.currentTarget);
     triggerHaptic();
     const currentPerm = await requestParkingNotificationPermission();
     setPermission(currentPerm);
@@ -230,7 +372,8 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     }
   };
 
-  const handleToggleParkingLive = () => {
+  const handleToggleParkingLive = (e) => {
+    if (e?.currentTarget) pulseInteractiveElement(e.currentTarget);
     triggerHaptic();
     if (activeSession) {
       const txn = stopParkingAndAutoCharge();
@@ -249,7 +392,8 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     }
   };
 
-  const handleQuickAddBalance = (amount) => {
+  const handleQuickAddBalance = (amount, e) => {
+    if (e?.currentTarget) pulseInteractiveElement(e.currentTarget);
     triggerHaptic();
     addBalance(amount);
     sileo.success({
@@ -258,7 +402,8 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     });
   };
 
-  const handleToggleAutoPayLive = () => {
+  const handleToggleAutoPayLive = (e) => {
+    if (e?.currentTarget) pulseInteractiveElement(e.currentTarget);
     triggerHaptic();
     const nextState = !autoPay?.enabled;
     updateAutoPay({ enabled: nextState });
@@ -270,18 +415,9 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
     });
   };
 
-  const info = buildParkingNotificationPayload({
-    owner,
-    vehicle,
-    card,
-    autoPay,
-    activeSession,
-    transactions,
-  });
-
   // Barra de progreso de la hora en curso (0 a 100%)
   const hourProgressPct = info.isActive
-    ? Math.min(100, Math.max(3, Math.round(((info.elapsedSeconds % 3600) / 3600) * 100)))
+    ? Math.min(100, Math.max(4, Math.round(((info.elapsedSeconds % 3600) / 3600) * 100)))
     : 0;
 
   return (
@@ -325,7 +461,7 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
         </div>
       )}
 
-      {/* Consola de Notificación Interactiva en Vivo (Modo Píldora Compacta o Expandida) */}
+      {/* Consola de Notificación Interactiva en Vivo animada con Anime.js v4 */}
       {bannerOpen && (
         <div
           role="region"
@@ -333,18 +469,28 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
           className="fixed top-[68px] sm:top-[76px] inset-x-0 z-50 px-3 sm:px-6 pointer-events-none flex justify-center"
         >
           {isMinimizedPill ? (
-            /* MODO PÍLDORA EN VIVO (COMPACTO INTERACTIVO) */
-            <div className="pointer-events-auto max-w-[440px] w-full rounded-full bg-white/95 backdrop-blur-2xl border border-slate-200/90 shadow-[0_14px_36px_rgba(15,23,42,0.16)] px-3.5 py-2 flex items-center justify-between gap-2 text-slate-900">
+            /* MODO PÍLDORA DYNAMIC ISLAND COMPACTA (ANIMADA CON ANIME.JS) */
+            <div
+              ref={minimizedPillRef}
+              className="pointer-events-auto max-w-[450px] w-full rounded-full bg-white/95 backdrop-blur-2xl border border-slate-200/90 shadow-[0_14px_36px_rgba(15,23,42,0.16)] px-3.5 py-2 flex items-center justify-between gap-2 text-slate-900 origin-top"
+            >
               <button
                 type="button"
                 onClick={() => setIsMinimizedPill(false)}
-                className="flex items-center gap-2.5 min-w-0 text-left cursor-pointer"
+                className="flex items-center gap-2 min-w-0 text-left cursor-pointer"
               >
-                <span
-                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                    info.isActive ? 'bg-amber-500 animate-ping' : 'bg-emerald-500'
-                  }`}
-                />
+                {/* Mini ondas de telemetría Anime.js */}
+                <div ref={minimizedWaveRef} className="flex items-center gap-0.5 h-3.5 px-1">
+                  {[0, 1, 2, 3, 4].map((idx) => (
+                    <span
+                      key={idx}
+                      className={`anime-telemetry-bar w-0.5 h-3.5 rounded-full origin-center ${
+                        info.isActive ? 'bg-amber-500' : 'bg-[#0033FF]'
+                      }`}
+                    />
+                  ))}
+                </div>
+
                 <span className="font-mono font-black text-xs text-slate-900 tracking-tight">
                   {info.clockStr}
                 </span>
@@ -388,24 +534,22 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
               </div>
             </div>
           ) : (
-            /* MODO CONSOLA EXPANDIDA EN VIVO (SIN EMOJIS, 100% INTERACTIVA) */
-            <div className="w-full max-w-[470px] pointer-events-auto rounded-[24px] bg-white/95 backdrop-blur-2xl border border-slate-200/90 shadow-[0_22px_55px_rgba(15,23,42,0.20)] p-3.5 sm:p-4 text-slate-900">
-              {/* Cabecera con indicador de enlace en vivo y controles de ventana */}
-              <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+            /* MODO CONSOLA EXPANDIDA EN VIVO (SIN EMOJIS, ANIMADA CON ANIME.JS V4) */
+            <div
+              ref={consoleCardRef}
+              className="w-full max-w-[475px] pointer-events-auto rounded-[24px] bg-white/95 backdrop-blur-2xl border border-slate-200/90 shadow-[0_22px_55px_rgba(15,23,42,0.20)] p-3.5 sm:p-4 text-slate-900 origin-top"
+            >
+              {/* Cabecera con osciloscopio de telemetría Anime.js y controles de ventana */}
+              <div className="anime-console-item flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-7 h-7 rounded-xl bg-[#0033FF] text-white flex items-center justify-center shadow-sm shrink-0">
-                    <Activity className="w-3.5 h-3.5 animate-pulse" />
+                    <Activity className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       <span className="font-mono font-black text-[10px] uppercase tracking-widest text-[#0033FF]">
                         PARQU TELEMETRIA EN VIVO
                       </span>
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          info.isActive ? 'bg-amber-500 animate-ping' : 'bg-emerald-500'
-                        }`}
-                      />
                       <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-bold">
                         {info.isActive ? 'ACTIVO' : 'EN ESPERA'}
                       </span>
@@ -418,7 +562,23 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0">
+                {/* Ecualizador de Ondas de Telemetría en Tiempo Real (Anime.js) */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <div
+                    ref={telemetryWaveRef}
+                    aria-hidden="true"
+                    className="hidden sm:flex items-center gap-[3px] h-5 px-2 py-1 rounded-lg bg-slate-100/80 border border-slate-200/60"
+                  >
+                    {Array.from({ length: 12 }).map((_, idx) => (
+                      <span
+                        key={idx}
+                        className={`anime-telemetry-bar w-[2.5px] h-3.5 rounded-full origin-center ${
+                          info.isActive ? 'bg-amber-500' : 'bg-[#0033FF]'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => setIsMinimizedPill(true)}
@@ -439,10 +599,11 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                 </div>
               </div>
 
-              {/* Cronómetro en Vivo + Barra de Progreso + Botón Directo Iniciar/Finalizar */}
+              {/* Cronómetro en Vivo + Barra de Progreso + Pulso Cinético Anime.js */}
               <div className="mt-3 space-y-2.5">
                 <div
-                  className={`rounded-2xl p-3 border transition-colors ${
+                  ref={timerCardRef}
+                  className={`anime-console-item rounded-2xl p-3 border transition-colors ${
                     info.isActive
                       ? 'bg-amber-50/80 border-amber-200/90'
                       : 'bg-slate-50/90 border-slate-200/80'
@@ -464,7 +625,10 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                           {info.isActive ? 'CRONOMETRO DE PARQUIMETRO' : 'SIN SESION EN CURSO'}
                         </span>
                         <div className="flex items-baseline gap-2">
-                          <span className="font-mono font-black text-lg sm:text-xl text-slate-900 tracking-tight">
+                          <span
+                            ref={clockDigitsRef}
+                            className="inline-block font-mono font-black text-lg sm:text-xl text-slate-900 tracking-tight origin-left"
+                          >
                             {info.clockStr}
                           </span>
                           <span className="text-[10px] font-mono font-bold text-slate-500">
@@ -480,7 +644,10 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                       <span className="text-[9px] font-mono uppercase tracking-widest text-slate-500 block">
                         {info.isActive ? 'COBRO EN VIVO' : 'TARIFA OFICIAL'}
                       </span>
-                      <span className="font-mono font-black text-lg sm:text-xl text-[#0033FF]">
+                      <span
+                        ref={costDigitsRef}
+                        className="inline-block font-mono font-black text-lg sm:text-xl text-[#0033FF] origin-right"
+                      >
                         {info.isActive ? `$${info.cost}` : '$6.00/hr'}
                       </span>
                     </div>
@@ -504,7 +671,7 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                 </div>
 
                 {/* Datos en Vivo del Conductor y Vehículo */}
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <div className="anime-console-item grid grid-cols-2 gap-2 text-[11px]">
                   <div className="rounded-xl bg-slate-50 border border-slate-200/60 p-2.5 flex items-center gap-2 min-w-0">
                     <User className="w-3.5 h-3.5 text-[#0033FF] shrink-0" />
                     <div className="min-w-0">
@@ -530,12 +697,12 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                   </div>
                 </div>
 
-                {/* Controles Interactivos en Vivo: Iniciar/Detener, Recarga Rápida y Autocobro */}
-                <div className="grid grid-cols-3 gap-1.5 pt-0.5">
+                {/* Controles Interactivos en Vivo con Física Anime.js */}
+                <div className="anime-console-item grid grid-cols-3 gap-1.5 pt-0.5">
                   <button
                     type="button"
                     onClick={handleToggleParkingLive}
-                    className={`col-span-1 py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-sm ${
+                    className={`col-span-1 py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm ${
                       info.isActive
                         ? 'bg-rose-600 hover:bg-rose-700 text-white'
                         : 'bg-[#0033FF] hover:bg-[#1e4bff] text-white'
@@ -556,8 +723,8 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
 
                   <button
                     type="button"
-                    onClick={() => handleQuickAddBalance(50)}
-                    className="col-span-1 py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-sans font-bold text-[11px] flex items-center justify-center gap-1 transition active:scale-95 cursor-pointer"
+                    onClick={(e) => handleQuickAddBalance(50, e)}
+                    className="col-span-1 py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-sans font-bold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5 text-[#0033FF]" />
                     <span>Recargar $50</span>
@@ -566,7 +733,7 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                   <button
                     type="button"
                     onClick={handleToggleAutoPayLive}
-                    className={`col-span-1 py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] flex items-center justify-center gap-1 transition active:scale-95 cursor-pointer border ${
+                    className={`col-span-1 py-2 px-2.5 rounded-xl font-sans font-bold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer border ${
                       info.autoPayEnabled
                         ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                         : 'bg-slate-100 border-slate-200 text-slate-600'
@@ -578,10 +745,13 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                 </div>
 
                 {/* Pie de Consola: Estado del Aviso al Salir y Envío al Teléfono */}
-                <div className="pt-1 border-t border-slate-100 flex items-center justify-between gap-2">
+                <div className="anime-console-item pt-1 border-t border-slate-100 flex items-center justify-between gap-2">
                   <button
                     type="button"
-                    onClick={() => setAutoNotifyOnExit((prev) => !prev)}
+                    onClick={(e) => {
+                      pulseInteractiveElement(e.currentTarget);
+                      setAutoNotifyOnExit((prev) => !prev);
+                    }}
                     className={`px-2.5 py-1.5 rounded-xl text-[10px] font-mono uppercase tracking-wider font-bold border transition cursor-pointer flex items-center gap-1.5 ${
                       autoNotifyOnExit
                         ? 'bg-slate-900 border-slate-900 text-white'
@@ -595,7 +765,7 @@ export const ExitNotificationManager = ({ isOpenExternal, onCloseExternal }) => 
                   <button
                     type="button"
                     onClick={handleEnableOrTestNotification}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-900 font-sans font-bold text-[11px] transition cursor-pointer flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-sans font-bold text-[11px] transition cursor-pointer flex items-center gap-1.5"
                   >
                     <Bell className="w-3.5 h-3.5 text-[#0033FF]" />
                     <span>
