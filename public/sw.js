@@ -1,4 +1,4 @@
-// Service Worker Oficial de Parqu - Monitor en Segundo Plano (Android / iOS / Desktop)
+// Service Worker Oficial de Parqu - Telemetría Interactiva en Vivo en Segundo Plano (Sin Emojis)
 let latestParquState = null;
 let backgroundIntervalId = null;
 
@@ -10,14 +10,21 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-function buildLiveBackgroundNotification(state) {
+function buildProgressBar(elapsedSeconds) {
+  // Barra visual de progreso por cada hora (3600s)
+  const ratio = Math.min(1, (elapsedSeconds % 3600) / 3600);
+  const filled = Math.max(1, Math.round(ratio * 10));
+  return '[' + '█'.repeat(filled) + '░'.repeat(10 - filled) + ']';
+}
+
+function buildLiveBackgroundNotification(state, isSilentUpdate = false) {
   const s = state || latestParquState || {};
   const fullName = s.fullName || 'Sebastián Salinas';
   const plates = s.plates || 'XYZ-7842';
   const carDesc = s.carDesc || 'Volkswagen Jetta Sportline';
   const balance = s.balance || '320.00';
   const rfidTag = s.rfidTag || 'NFC-MX-09142-PK';
-  const autoPayStatus = s.autoPayEnabled !== false ? 'Autocobro Activo' : 'Autocobro en Pausa';
+  const autoPayStatus = s.autoPayEnabled !== false ? 'AUTOCOBRO ON' : 'AUTOCOBRO PAUSADO';
 
   if (s.isActive && s.startTime) {
     const elapsedSeconds = Math.max(
@@ -29,18 +36,19 @@ function buildLiveBackgroundNotification(state) {
     const seconds = elapsedSeconds % 60;
     const rate = Number(s.rate || 6.0);
     const maxLimit = Number(s.maxLimit || 180.0);
-    const cost = Math.min(maxLimit, Number(((elapsedSeconds * (rate / 3600)) || 0).toFixed(2))).toFixed(2);
+    const cost = Math.min(
+      maxLimit,
+      Number(((elapsedSeconds * (rate / 3600)) || 0).toFixed(2))
+    ).toFixed(2);
 
-    const timeStr =
-      hours > 0
-        ? `${hours}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`
-        : `${minutes} min ${String(seconds).padStart(2, '0')} seg`;
+    const clockStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    const bar = buildProgressBar(elapsedSeconds);
 
-    const title = `🟢 Parqu en 2º Plano • ${timeStr} ($${cost} MXN)`;
+    const title = `PARQU EN VIVO • ${clockStr} • $${cost} MXN`;
     const body = [
-      `🚗 En Parquímetro: ${carDesc} • Placas ${plates}`,
-      `📍 ${s.zoneName || 'Centro Histórico'} • Tarifa $${rate.toFixed(2)}/hr (${autoPayStatus})`,
-      `👤 ${fullName} • 💳 Saldo NFC: $${balance} MXN`,
+      `${bar} ACTIVO • Placas ${plates} (${carDesc})`,
+      `Zona: ${s.zoneName || 'Centro Histórico'} • Tarifa $${rate.toFixed(2)}/hr • ${autoPayStatus}`,
+      `Titular: ${fullName} • Saldo NFC: $${balance} MXN`,
     ].join('\n');
 
     return {
@@ -50,13 +58,13 @@ function buildLiveBackgroundNotification(state) {
         icon: './parqu-logo-black.png',
         badge: './parqu-logo-black.png',
         tag: 'parqu-live-parking-status',
-        renotify: false,
+        renotify: !isSilentUpdate,
+        silent: isSilentUpdate,
         requireInteraction: true,
-        silent: false,
-        vibrate: [160, 70, 160],
+        vibrate: isSilentUpdate ? undefined : [140, 60, 140],
         actions: [
-          { action: 'open', title: 'Abrir Parqu' },
-          { action: 'refresh', title: 'Actualizar Tiempo' },
+          { action: 'stop_parking', title: 'Finalizar Estancia' },
+          { action: 'open_app', title: 'Abrir Panel en Vivo' },
         ],
         data: {
           url: './',
@@ -66,13 +74,12 @@ function buildLiveBackgroundNotification(state) {
     };
   }
 
-  // Cuando no hay parquímetro corriendo pero el usuario sale de la app: informa qué está pasando en Parqu
-  const histText = s.historyText || '0 hr 00 min hoy';
-  const title = `🛡️ Parqu en 2º Plano • ${plates} (${autoPayStatus})`;
+  const histText = s.historyText || '0h 00m registrados';
+  const title = `PARQU MONITOR • ${plates} • EN ESPERA`;
   const body = [
-    `🚗 ${carDesc} (${plates}) • Sin cobro activo (0h 00m)`,
-    `💳 Pase NFC ${rfidTag} listo • Saldo: $${balance} MXN • Tarifa $6.00/hr`,
-    `👤 ${fullName} • Historial: ${histText}`,
+    `[──────────] SIN COBRO ACTIVO (00:00:00) • ${autoPayStatus}`,
+    `Vehículo: ${carDesc} (${plates}) • Tarifa: $6.00/hr`,
+    `Titular: ${fullName} • Pase ${rfidTag} • Saldo: $${balance} MXN (${histText})`,
   ].join('\n');
 
   return {
@@ -82,11 +89,13 @@ function buildLiveBackgroundNotification(state) {
       icon: './parqu-logo-black.png',
       badge: './parqu-logo-black.png',
       tag: 'parqu-live-parking-status',
-      renotify: true,
+      renotify: !isSilentUpdate,
+      silent: isSilentUpdate,
       requireInteraction: false,
-      vibrate: [140, 60, 140],
+      vibrate: isSilentUpdate ? undefined : [120, 50, 120],
       actions: [
-        { action: 'open', title: 'Volver a Parqu' },
+        { action: 'start_parking', title: 'Iniciar Parquimetro ($6/hr)' },
+        { action: 'open_app', title: 'Abrir Parqu' },
       ],
       data: {
         url: './',
@@ -101,6 +110,24 @@ function stopBackgroundLoop() {
     clearInterval(backgroundIntervalId);
     backgroundIntervalId = null;
   }
+}
+
+function startBackgroundLiveLoop(resolvePromise) {
+  stopBackgroundLoop();
+  let ticks = 0;
+  // Actualizar cada 5 segundos en vivo de forma silenciosa para que el reloj avance en la barra del teléfono
+  backgroundIntervalId = setInterval(() => {
+    ticks += 1;
+    if (ticks > 60) {
+      stopBackgroundLoop();
+      if (resolvePromise) resolvePromise();
+      return;
+    }
+    const updated = buildLiveBackgroundNotification(latestParquState, true);
+    if (self.registration && self.registration.showNotification) {
+      self.registration.showNotification(updated.title, updated.options).catch(() => {});
+    }
+  }, 5000);
 }
 
 self.addEventListener('message', (event) => {
@@ -121,10 +148,9 @@ self.addEventListener('message', (event) => {
       latestParquState = event.data.payload.state;
     }
 
-    const { title, options } =
-      event.data.payload && event.data.payload.title
-        ? event.data.payload
-        : buildLiveBackgroundNotification(latestParquState);
+    const built = buildLiveBackgroundNotification(latestParquState, false);
+    const title = (event.data.payload && event.data.payload.title) || built.title;
+    const options = (event.data.payload && event.data.payload.options) || built.options;
 
     stopBackgroundLoop();
 
@@ -134,19 +160,8 @@ self.addEventListener('message', (event) => {
           .showNotification(title, options)
           .catch(() => {})
           .finally(() => {
-            // Si el usuario salió de la app con sesión activa, actualizar la notificación cada 15s en segundo plano
-            if (event.data.type === 'APP_BACKGROUNDED' && latestParquState && latestParquState.isActive) {
-              let ticks = 0;
-              backgroundIntervalId = setInterval(() => {
-                ticks += 1;
-                if (ticks > 12) {
-                  stopBackgroundLoop();
-                  resolve();
-                  return;
-                }
-                const updated = buildLiveBackgroundNotification(latestParquState);
-                self.registration.showNotification(updated.title, updated.options).catch(() => {});
-              }, 15000);
+            if (event.data.type === 'APP_BACKGROUNDED') {
+              startBackgroundLiveLoop(resolve);
             } else {
               resolve();
             }
@@ -161,9 +176,53 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('notificationclick', (event) => {
-  if (event.action === 'refresh') {
-    const updated = buildLiveBackgroundNotification(latestParquState);
-    event.waitUntil(self.registration.showNotification(updated.title, updated.options));
+  const action = event.action;
+
+  if (action === 'start_parking') {
+    latestParquState = {
+      ...(latestParquState || {}),
+      isActive: true,
+      startTime: new Date().toISOString(),
+      baseSeconds: 0,
+      zoneName: 'Espacio #1042 • Centro Histórico',
+      rate: '6.00',
+    };
+    const updated = buildLiveBackgroundNotification(latestParquState, false);
+
+    event.waitUntil(
+      Promise.all([
+        self.registration.showNotification(updated.title, updated.options),
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+          clients.forEach((client) => {
+            client.postMessage({ type: 'PARQU_SW_ACTION', action: 'START_PARKING' });
+          });
+        }),
+      ])
+    );
+    startBackgroundLiveLoop();
+    return;
+  }
+
+  if (action === 'stop_parking') {
+    latestParquState = {
+      ...(latestParquState || {}),
+      isActive: false,
+      startTime: null,
+      baseSeconds: 0,
+    };
+    stopBackgroundLoop();
+    const updated = buildLiveBackgroundNotification(latestParquState, false);
+
+    event.waitUntil(
+      Promise.all([
+        self.registration.showNotification(updated.title, updated.options),
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+          clients.forEach((client) => {
+            client.postMessage({ type: 'PARQU_SW_ACTION', action: 'STOP_PARKING' });
+          });
+        }),
+      ])
+    );
     return;
   }
 
