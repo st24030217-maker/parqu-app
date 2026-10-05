@@ -13,7 +13,7 @@ export const StaggeredGrid = memo(function StaggeredGrid({
     <div ref={containerRef} className={`relative w-full overflow-hidden text-white ${className}`}>
       
       {/* ═══ 1. HERO SECTION CON ORIGINKIT CLOUD-SKY (FONDO DE NUBES OFICIAL) Y HERO SHUTTER TEXT ═══ */}
-      <section className="relative z-10 min-h-[500px] sm:min-h-[560px] flex flex-col items-center justify-center text-center px-4 pt-12 pb-20 sm:pb-28 overflow-hidden">
+      <section className="relative z-10 min-h-[540px] sm:min-h-[600px] flex flex-col items-center justify-center text-center px-4 pt-24 sm:pt-28 pb-20 sm:pb-28 overflow-hidden">
         
         {/* Fondo Animado WebGL Cloud-Sky de OriginKit - 100% Fluido e Interactivo */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-auto">

@@ -63,10 +63,10 @@ export const Header = memo(({ onNavigateToPanel, onNavigateToOrbital }) => {
   return (
     <header 
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-      className={`sticky top-0 z-40 transition-colors duration-300 border-0 ${
+      className={`fixed top-0 inset-x-0 z-40 transition-colors duration-300 border-0 ${
         isScrolled
           ? 'bg-white/95 backdrop-blur-md shadow-sm'
-          : 'bg-slate-950/85 backdrop-blur-md shadow-none'
+          : 'bg-transparent shadow-none'
       }`}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">

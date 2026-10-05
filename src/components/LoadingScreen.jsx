@@ -274,13 +274,13 @@ export const LoadingScreen = ({ onComplete }) => {
 
       {/* 
         ══════════════════════════════════════════════════════════════
-        BARRA DE NAVEGACIÓN SUPERIOR FLOTANTE (SIN BORDES)
+        BARRA DE NAVEGACIÓN SUPERIOR TRANSPARENTE (SIN FONDO NI BORDES)
         ══════════════════════════════════════════════════════════════
       */}
       <header className="relative z-10 w-full max-w-[1340px] mx-auto pt-4 sm:pt-6 px-5 sm:px-12 lg:px-20">
         <nav
           aria-label="Navegación de bienvenida Parqu"
-          className="w-full rounded-full bg-[#060c4a]/80 backdrop-blur-md px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-2xl border-0"
+          className="w-full bg-transparent px-2 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between border-0"
         >
           {/* Marca Parqu */}
           <div
