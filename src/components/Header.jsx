@@ -1,43 +1,72 @@
-import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Clock, Zap, Sparkles, Activity, Compass } from 'lucide-react';
+import React, { useState, useEffect, memo } from 'react';
+import { Clock, Activity, Compass } from 'lucide-react';
 import { PlugConnectedIcon } from './icons';
 import { useParking } from '../context/ParkingContext';
 
-export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
-  const { activeSession, vehicle } = useParking();
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [isScrolled, setIsScrolled] = useState(false);
+const LiveClock = memo(({ isScrolled }) => {
+  const [currentTime, setCurrentTime] = useState(() => new Date());
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    const timer = setInterval(() => {
+      if (document.body.dataset.loadingActive === 'true') return;
+      setCurrentTime(new Date());
+    }, 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Detección reactiva de scroll para combinar el header con el fondo blanco y alternar el logo
+  return (
+    <div 
+      className={`hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono transition-colors duration-300 border-0 ${
+        isScrolled 
+          ? 'bg-slate-100 text-slate-800 shadow-sm' 
+          : 'bg-white/10 text-[#D4D6E6]'
+      }`}
+    >
+      <Clock className={`w-3.5 h-3.5 transition-colors duration-300 ${isScrolled ? 'text-black' : 'text-[#807DFE]'}`} />
+      <span>
+        {currentTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+      </span>
+    </div>
+  );
+});
+
+export const Header = memo(({ onNavigateToPanel, onNavigateToOrbital }) => {
+  const { activeSession, vehicle } = useParking();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Detección reactiva de scroll optimizada con requestAnimationFrame
   useEffect(() => {
-    const handleScroll = () => {
+    let ticking = false;
+    const updateScroll = () => {
       const systemEl = document.getElementById('interactive-system');
       if (systemEl) {
         const rect = systemEl.getBoundingClientRect();
-        // Cuando la sección blanca toca o se sitúa bajo el header sticky (h-16 a h-20 es ~80px)
         setIsScrolled(rect.top <= 80);
       } else {
         setIsScrolled(window.scrollY > 200);
       }
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateScroll);
+        ticking = true;
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
+    updateScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
     <header 
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-      className={`sticky top-0 z-40 transition-all duration-300 border-0 ${
+      className={`sticky top-0 z-40 transition-colors duration-300 border-0 ${
         isScrolled
-          ? 'bg-white/95 backdrop-blur-2xl shadow-sm'
-          : 'bg-slate-950/80 backdrop-blur-2xl shadow-none'
+          ? 'bg-white/95 backdrop-blur-md shadow-sm'
+          : 'bg-slate-950/85 backdrop-blur-md shadow-none'
       }`}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
@@ -119,18 +148,7 @@ export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
 
         {/* Estatus Central, Hora y Acciones en Header */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          <div 
-            className={`hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono transition-colors duration-300 border-0 ${
-              isScrolled 
-                ? 'bg-slate-100 text-slate-800 shadow-sm' 
-                : 'bg-white/10 backdrop-blur-sm text-[#D4D6E6]'
-            }`}
-          >
-            <Clock className={`w-3.5 h-3.5 transition-colors duration-300 ${isScrolled ? 'text-black' : 'text-[#807DFE]'}`} />
-            <span>
-              {currentTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-            </span>
-          </div>
+          <LiveClock isScrolled={isScrolled} />
 
           {/* Badge de Estado de Estacionamiento */}
           {activeSession ? (
@@ -208,4 +226,4 @@ export const Header = ({ onNavigateToPanel, onNavigateToOrbital }) => {
       </div>
     </header>
   );
-};
+});

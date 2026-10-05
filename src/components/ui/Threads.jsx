@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, memo } from 'react';
 import { Renderer, Program, Mesh, Triangle, Color } from 'ogl';
 
 import './Threads.css';
@@ -16,7 +16,7 @@ void main() {
 `;
 
 const fragmentShader = `
-precision highp float;
+precision mediump float;
 
 uniform float iTime;
 uniform vec3 iResolution;
@@ -27,9 +27,9 @@ uniform vec2 uMouse;
 
 #define PI 3.1415926538
 
-const int u_line_count = 40;
-const float u_line_width = 7.0;
-const float u_line_blur = 10.0;
+const int u_line_count = 18;
+const float u_line_width = 9.0;
+const float u_line_blur = 12.0;
 
 float Perlin2D(vec2 P) {
     vec2 Pi = floor(P);
@@ -56,36 +56,26 @@ float pixel(float count, vec2 resolution) {
     return (1.0 / max(resolution.x, resolution.y)) * count;
 }
 
-float lineFn(vec2 st, float width, float perc, float offset, vec2 mouse, float time, float amplitude, float distance) {
+float lineFn(vec2 st, float width, float perc, vec2 mouse, float time, float amplitude, float distance) {
     float split_offset = (perc * 0.4);
     float split_point = 0.1 + split_offset;
 
     float amplitude_normal = smoothstep(split_point, 0.7, st.x);
-    float amplitude_strength = 0.5;
-    float finalAmplitude = amplitude_normal * amplitude_strength
-                           * amplitude * (1.0 + (mouse.y - 0.5) * 0.2);
+    float finalAmplitude = amplitude_normal * 0.5 * amplitude * (1.0 + (mouse.y - 0.5) * 0.2);
 
-    float time_scaled = time / 10.0 + (mouse.x - 0.5) * 1.0;
+    float time_scaled = time / 10.0 + (mouse.x - 0.5);
+    float xnoise = Perlin2D(vec2(time_scaled, st.x + perc) * 2.5);
+
+    float y = 0.5 + (perc - 0.5) * distance + xnoise * 0.5 * finalAmplitude;
+
+    // Descarte temprano si el fragmento está lejos de la línea actual
+    if (abs(st.y - y) > 0.09) return 0.0;
+
     float blur = smoothstep(split_point, split_point + 0.05, st.x) * perc;
+    float halfW = (width * 0.5) + (u_line_blur * pixel(1.0, iResolution.xy) * blur);
 
-    float xnoise = mix(\n        Perlin2D(vec2(time_scaled, st.x + perc) * 2.5),
-        Perlin2D(vec2(time_scaled, st.x + time_scaled) * 3.5) / 1.5,
-        st.x * 0.3
-    );
-
-    float y = 0.5 + (perc - 0.5) * distance + xnoise / 2.0 * finalAmplitude;
-
-    float line_start = smoothstep(
-        y + (width / 2.0) + (u_line_blur * pixel(1.0, iResolution.xy) * blur),
-        y,
-        st.y
-    );
-
-    float line_end = smoothstep(
-        y,
-        y - (width / 2.0) - (u_line_blur * pixel(1.0, iResolution.xy) * blur),
-        st.y
-    );
+    float line_start = smoothstep(y + halfW, y, st.y);
+    float line_end = smoothstep(y, y - halfW, st.y);
 
     return clamp(
         (line_start - line_end) * (1.0 - smoothstep(0.0, 1.0, pow(perc, 0.3))),
@@ -98,13 +88,13 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
 
     float line_strength = 1.0;
+    float px = pixel(1.0, iResolution.xy);
     for (int i = 0; i < u_line_count; i++) {
         float p = float(i) / float(u_line_count);
         line_strength *= (1.0 - lineFn(
             uv,
-            u_line_width * pixel(1.0, iResolution.xy) * (1.0 - p),
+            u_line_width * px * (1.0 - p),
             p,
-            (PI * 1.0) * p,
             uMouse,
             iTime,
             uAmplitude,
@@ -121,12 +111,10 @@ void main() {
 }
 `;
 
-export const Threads = ({ color = [0.0, 0.2, 1.0], amplitude = 1, distance = 0, enableMouseInteraction = true, ...rest }) => {
+export const Threads = memo(({ color = [0.0, 0.2, 1.0], amplitude = 1, distance = 0, enableMouseInteraction = true, ...rest }) => {
   const containerRef = useRef(null);
   const animationFrameId = useRef(0);
 
-  // Keep the latest props in a ref so updating them mutates the live shader
-  // uniforms instead of tearing down and rebuilding the whole WebGL context.
   const propsRef = useRef({ color, amplitude, distance, enableMouseInteraction });
   propsRef.current = { color, amplitude, distance, enableMouseInteraction };
 
@@ -134,7 +122,13 @@ export const Threads = ({ color = [0.0, 0.2, 1.0], amplitude = 1, distance = 0, 
     const container = containerRef.current;
     if (!container) return;
 
-    const renderer = new Renderer({ alpha: true });
+    const renderer = new Renderer({
+      alpha: true,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      powerPreference: 'high-performance',
+    });
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
     gl.enable(gl.BLEND);
@@ -159,16 +153,13 @@ export const Threads = ({ color = [0.0, 0.2, 1.0], amplitude = 1, distance = 0, 
 
     const mesh = new Mesh(gl, { geometry, program });
 
-    // The fragment shader is heavy (per-pixel Perlin noise across many lines), so
-    // its cost scales with the number of rendered pixels. Cap the internal render
-    // resolution to keep large / high-DPI screens smooth; the effect is soft
-    // enough that the downscale is imperceptible.
-    const MAX_RENDER_DIM = 1920;
+    // Resolución interna optimizada (850px máx) para 60fps estables en móvil/iPad/desktop
+    const MAX_RENDER_DIM = 850;
     function resize() {
       const { clientWidth, clientHeight } = container;
-      const baseDpr = Math.min(window.devicePixelRatio || 1, 2);
-      const longestSide = Math.max(clientWidth, clientHeight) * baseDpr;
-      const dpr = longestSide > MAX_RENDER_DIM ? (baseDpr * MAX_RENDER_DIM) / longestSide : baseDpr;
+      if (!clientWidth || !clientHeight) return;
+      const longestSide = Math.max(clientWidth, clientHeight);
+      const dpr = longestSide > MAX_RENDER_DIM ? MAX_RENDER_DIM / longestSide : 1;
       renderer.dpr = dpr;
       renderer.setSize(clientWidth, clientHeight);
       program.uniforms.iResolution.value.r = gl.canvas.width;
@@ -178,7 +169,6 @@ export const Threads = ({ color = [0.0, 0.2, 1.0], amplitude = 1, distance = 0, 
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
-    window.addEventListener('resize', resize);
     resize();
 
     const currentMouse = [0.5, 0.5];
@@ -186,6 +176,7 @@ export const Threads = ({ color = [0.0, 0.2, 1.0], amplitude = 1, distance = 0, 
 
     function handleMouseMove(e) {
       const rect = container.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
       const x = (e.clientX - rect.left) / rect.width;
       const y = 1.0 - (e.clientY - rect.top) / rect.height;
       targetMouse = [x, y];
@@ -193,11 +184,9 @@ export const Threads = ({ color = [0.0, 0.2, 1.0], amplitude = 1, distance = 0, 
     function handleMouseLeave() {
       targetMouse = [0.5, 0.5];
     }
-    container.addEventListener('mousemove', handleMouseMove);
-    container.addEventListener('mouseleave', handleMouseLeave);
+    container.addEventListener('mousemove', handleMouseMove, { passive: true });
+    container.addEventListener('mouseleave', handleMouseLeave, { passive: true });
 
-    // Only animate while the canvas is on screen and the tab is visible, so the
-    // shader never burns GPU/CPU for something the user can't see.
     let isVisible = true;
     const intersectionObserver = new IntersectionObserver(
       entries => {
@@ -237,7 +226,6 @@ export const Threads = ({ color = [0.0, 0.2, 1.0], amplitude = 1, distance = 0, 
       if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
-      window.removeEventListener('resize', resize);
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mouseleave', handleMouseLeave);
       if (container.contains(gl.canvas)) container.removeChild(gl.canvas);
@@ -246,6 +234,6 @@ export const Threads = ({ color = [0.0, 0.2, 1.0], amplitude = 1, distance = 0, 
   }, []);
 
   return <div ref={containerRef} className="threads-container" {...rest} />;
-};
+});
 
 export default Threads;

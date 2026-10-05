@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 
-const MAX_DPR = 2;
+const MAX_DPR = 0.85;
 
 // Found on a parameter grid; the look depends on these, so they are named.
 const PUFF_UP = 0.34; // ellipse radius above the puff centre
@@ -38,8 +38,6 @@ uniform vec4 uGlow;
 uniform vec2 uSun;
 uniform vec2 uParallax;
 
-// No sin() in the hash: fract(sin(x) * k) quantizes hard once the argument gets
-// large, and the cell ids run far off the origin as the sky drifts.
 vec2 hash22(vec2 p){
   vec3 q = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
   q += dot(q, q.yzx + 33.33);
@@ -61,7 +59,7 @@ float vnoise(vec2 x){
 
 float fbm(vec2 p){
   float a = 0.5, s = 0.0;
-  for (int i = 0; i < 4; i++){
+  for (int i = 0; i < 3; i++){
     s += a * vnoise(p);
     p *= 2.03;
     a *= 0.5;
@@ -73,12 +71,9 @@ vec2 blobs(vec2 uv, float seed){
   vec2 id = floor(uv), f = fract(uv);
   float best = -1e4;
   float wsum = 0.0, ysum = 0.0;
-  float wMax = min(${PUFF_WMAX.toFixed(3)}, 0.72 * uSize);
-  float reach = min(2.0, ceil(wMax + 0.85) - 1.0);
-  for (int j = -2; j <= 2; j++){
-    for (int i = -2; i <= 2; i++){
+  for (int j = -1; j <= 1; j++){
+    for (int i = -1; i <= 1; i++){
       vec2 o = vec2(float(i), float(j));
-      if (max(abs(o.x), abs(o.y)) > reach) continue;
       vec2 h = hash22(id + o + seed);
       if (fract(h.x * 37.1) > uCoverage) continue;
       vec2 c = o + 0.15 + h * 0.7;
@@ -311,8 +306,28 @@ export default function CloudSky({
     let cirrusX = 0;
     let leanX = 0;
     let leanY = 0;
+    let isVisible = true;
+    let hasRenderedInitial = false;
+
+    const intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        isVisible = entries[0]?.isIntersecting ?? true;
+      },
+      { threshold: 0 }
+    );
+    intersectionObserver.observe(canvas);
 
     const render = (now) => {
+      raf = requestAnimationFrame(render);
+      if (
+        !isVisible ||
+        document.hidden ||
+        (hasRenderedInitial && document.body.dataset.loadingActive === "true")
+      ) {
+        last = now;
+        return;
+      }
+
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       const v = vRef.current;
@@ -331,8 +346,8 @@ export default function CloudSky({
       const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
       const cw = sizeRef.current.w || canvas.clientWidth || 1200;
       const ch = sizeRef.current.h || canvas.clientHeight || 800;
-      const bw = Math.max(1, Math.round(cw * dpr));
-      const bh = Math.max(1, Math.round(ch * dpr));
+      const bw = Math.min(860, Math.max(1, Math.round(cw * dpr)));
+      const bh = Math.min(480, Math.max(1, Math.round(ch * dpr)));
       if (canvas.width !== bw || canvas.height !== bh) {
         canvas.width = bw;
         canvas.height = bh;
@@ -361,10 +376,11 @@ export default function CloudSky({
       gl.uniform4f(u("uGlow"), glow[0], glow[1], glow[2], glow[3]);
 
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-      raf = requestAnimationFrame(render);
+      hasRenderedInitial = true;
     };
 
     const track = (e) => {
+      if (document.body.dataset.loadingActive === "true") return;
       const r = canvas.getBoundingClientRect();
       if (r.width <= 0 || r.height <= 0) return;
       ptrRef.current.x = ((e.clientX - r.left) / r.width) * 2 - 1;
@@ -375,14 +391,15 @@ export default function CloudSky({
       ptrRef.current.inside = false;
     };
 
-    window.addEventListener("pointermove", track);
-    canvas.addEventListener("pointerenter", track);
-    canvas.addEventListener("pointerleave", onLeave);
+    window.addEventListener("pointermove", track, { passive: true });
+    canvas.addEventListener("pointerenter", track, { passive: true });
+    canvas.addEventListener("pointerleave", onLeave, { passive: true });
 
     raf = requestAnimationFrame(render);
 
     return () => {
       cancelAnimationFrame(raf);
+      intersectionObserver.disconnect();
       window.removeEventListener("pointermove", track);
       canvas.removeEventListener("pointerenter", track);
       canvas.removeEventListener("pointerleave", onLeave);
