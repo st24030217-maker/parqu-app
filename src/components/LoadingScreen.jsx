@@ -79,28 +79,26 @@ const LiveTimerDisplay = memo(() => {
 // funciona Parqu como una presentación en vivo de la app.
 // ══════════════════════════════════════════════════════════════════════════
 const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
-  const [activeIndex, setActiveIndex] = useState(1); // Inicia con el teléfono central al frente
-  const [isPaused, setIsPaused] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const formattedBalance = Number(balance ?? 250).toFixed(2);
   const activePlates = plates || 'ABC-123-A';
 
-  // Rotación automática de la presentación cada 4.2 segundos
+  // Rotación continua y 100% automática cada 2.5 segundos sin detenerse con el mouse
   useEffect(() => {
-    if (isPaused) return;
     const rotation = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % 3);
-    }, 4200);
+    }, 2500);
     return () => clearInterval(rotation);
-  }, [isPaused]);
+  }, []);
 
-  // Calcula la posición en el abanico (izquierda, centro-frente, derecha) para cada teléfono
+  // Calcula la posición dinámica en el abanico (izquierda, centro-frente, derecha) para cada teléfono
   const getPhonePositionStyle = (phoneIndex) => {
     const diff = (phoneIndex - activeIndex + 3) % 3;
     // diff === 0 -> Teléfono activo al frente en el centro
     if (diff === 0) {
       return {
-        transform: 'translateX(0px) translateY(0px) rotate(0deg) scale(1)',
+        transform: 'translate3d(0px, -6px, 0px) rotate(0deg) scale(1.02)',
         zIndex: 30,
         opacity: 1,
         filter: 'brightness(1)',
@@ -109,24 +107,23 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
     // diff === 1 -> Teléfono a la derecha en el abanico
     if (diff === 1) {
       return {
-        transform: 'translateX(118px) translateY(24px) rotate(10deg) scale(0.86)',
+        transform: 'translate3d(122px, 26px, 0px) rotate(11deg) scale(0.85)',
         zIndex: 20,
-        opacity: 0.92,
-        filter: 'brightness(0.92)',
+        opacity: 0.9,
+        filter: 'brightness(0.9)',
       };
     }
     // diff === 2 -> Teléfono a la izquierda en el abanico
     return {
-      transform: 'translateX(-118px) translateY(24px) rotate(-10deg) scale(0.86)',
+      transform: 'translate3d(-122px, 26px, 0px) rotate(-11deg) scale(0.85)',
       zIndex: 20,
-      opacity: 0.92,
-      filter: 'brightness(0.92)',
+      opacity: 0.9,
+      filter: 'brightness(0.9)',
     };
   };
 
   const handleSelectPhone = (index) => {
     if (index === activeIndex) {
-      // Si ya está al frente, avanza al siguiente paso de la presentación
       setActiveIndex((prev) => (prev + 1) % 3);
     } else {
       setActiveIndex(index);
@@ -136,13 +133,18 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
   const currentStep = PRESENTATION_STEPS[activeIndex];
 
   return (
-    <div
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      className="relative w-full max-w-[580px] flex flex-col items-center select-none"
-    >
-      {/* ── ABANICO INTERACTIVO DE LOS 3 TELÉFONOS ── */}
-      <div className="relative w-full h-[465px] sm:h-[510px] flex items-center justify-center">
+    <div className="relative w-full max-w-[580px] flex flex-col items-center select-none">
+      <style>{`
+        @keyframes parquFanFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+      `}</style>
+      {/* ── ABANICO INTERACTIVO DE LOS 3 TELÉFONOS CON MOVIMIENTO CONTINUO ── */}
+      <div
+        style={{ animation: 'parquFanFloat 4s ease-in-out infinite' }}
+        className="relative w-full h-[465px] sm:h-[510px] flex items-center justify-center"
+      >
         {/* Resplandor atmosférico detrás de la presentación */}
         <div
           className="absolute inset-0 rounded-full blur-3xl pointer-events-none opacity-70"
