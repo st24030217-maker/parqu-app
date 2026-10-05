@@ -120,16 +120,16 @@ export const Header = memo(({
       className="fixed top-3 sm:top-4 inset-x-0 z-40 px-3 sm:px-6 pointer-events-none"
     >
       <div className="max-w-[760px] mx-auto pointer-events-auto">
-        {/* Píldora flotante principal estilo NotchPop (#090a0d, radio 22px, borde 1px translúcido) */}
+        {/* Píldora flotante estilo NotchPop con la paleta clara/cristal de Parqu */}
         <nav
           aria-label="Navegación principal del sistema Parqu"
-          className={`w-full rounded-[22px] bg-[#090a0d]/95 backdrop-blur-xl border border-white/[0.11] px-3.5 sm:px-5 h-12 sm:h-[52px] flex items-center justify-between gap-2 transition-shadow duration-300 ${
+          className={`w-full rounded-[22px] backdrop-blur-xl border px-3.5 sm:px-5 h-12 sm:h-[52px] flex items-center justify-between gap-2 transition-all duration-300 ${
             isScrolled
-              ? 'shadow-[0_14px_38px_rgba(0,0,0,0.45)]'
-              : 'shadow-[0_10px_28px_rgba(0,0,0,0.28)]'
+              ? 'bg-white/95 border-slate-200/90 shadow-[0_12px_34px_rgba(15,23,42,0.10)]'
+              : 'bg-white/15 border-white/25 shadow-[0_10px_28px_rgba(0,20,80,0.15)]'
           }`}
         >
-          {/* Izquierda: Logotipo y Nombre Parqu */}
+          {/* Izquierda: Logotipo Oficial PARQU con transición fluida blanco/negro */}
           <button
             type="button"
             aria-label="Parqu - Volver arriba"
@@ -139,23 +139,40 @@ export const Header = memo(({
             }}
             className="flex items-center gap-2.5 cursor-pointer group shrink-0 text-left focus-visible:outline-none"
           >
-            <img
-              src="./parqu-logo-white.png"
-              alt="Parqu"
-              className="h-5 sm:h-6 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
-            />
-            <span className="font-sans font-bold text-[13px] sm:text-sm text-white tracking-tight">
+            <div className="relative h-5 sm:h-6 w-auto flex items-center">
+              <img
+                src="./parqu-logo-white.png"
+                alt="Parqu"
+                className={`h-5 sm:h-6 w-auto object-contain drop-shadow-[0_0_12px_rgba(212,214,230,0.35)] transition-all duration-300 ${
+                  isScrolled ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'
+                }`}
+              />
+              <img
+                src="./parqu-logo-black.png"
+                alt="Parqu"
+                className={`absolute inset-0 h-5 sm:h-6 w-auto object-contain transition-all duration-300 ${
+                  isScrolled ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+                }`}
+              />
+            </div>
+
+            <span
+              className={`font-sans font-black text-[13px] sm:text-sm tracking-tight transition-colors duration-300 ${
+                isScrolled ? 'text-black group-hover:text-slate-700' : 'text-white'
+              }`}
+            >
               Parqu
             </span>
+
             {activeSession && (
               <span
                 title={`Estacionado: ${vehicle?.plates || ''}`}
-                className="w-2 h-2 rounded-full bg-amber-400 animate-ping"
+                className="w-2 h-2 rounded-full bg-amber-500 animate-ping"
               />
             )}
           </button>
 
-          {/* Centro: Enlaces compactos en gris frío (#8d929d), 12px sans, gap de 8px */}
+          {/* Centro: Enlaces compactos con gap de 8px */}
           <div className="hidden md:flex items-center gap-2 px-3">
             {navItems.map((item) => (
               <button
@@ -163,9 +180,13 @@ export const Header = memo(({
                 type="button"
                 onClick={item.onClick}
                 className={`px-2.5 py-1 rounded-lg font-sans text-[12px] font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap ${
-                  item.active
-                    ? 'text-white bg-white/[0.08]'
-                    : 'text-[#8d929d] hover:text-white hover:bg-white/[0.04]'
+                  isScrolled
+                    ? item.active
+                      ? 'text-black bg-slate-100 font-semibold'
+                      : 'text-slate-500 hover:text-black hover:bg-slate-100/80'
+                    : item.active
+                      ? 'text-white bg-white/20 font-semibold'
+                      : 'text-[#D4D6E6] hover:text-white hover:bg-white/15'
                 }`}
               >
                 {item.label}
@@ -173,12 +194,16 @@ export const Header = memo(({
             ))}
           </div>
 
-          {/* Derecha: Botón blanco pequeño redondeado + botón de menú colapsable en móvil */}
+          {/* Derecha: Botón de acción principal + botón de menú colapsable en móvil */}
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={handlePrimaryAction}
-              className="px-3 sm:px-3.5 py-1.5 rounded-[12px] bg-white hover:bg-neutral-200 active:scale-95 text-[#090a0d] font-sans font-bold text-[11px] sm:text-[12px] tracking-tight transition-all cursor-pointer shadow-sm whitespace-nowrap"
+              className={`px-3 sm:px-3.5 py-1.5 rounded-[12px] active:scale-95 font-sans font-bold text-[11px] sm:text-[12px] tracking-tight transition-all duration-300 cursor-pointer shadow-sm whitespace-nowrap ${
+                isScrolled
+                  ? 'bg-black hover:bg-neutral-800 text-white'
+                  : 'bg-[#0033FF] hover:bg-[#2250ff] text-white'
+              }`}
             >
               {activeSession
                 ? `En Vivo • ${vehicle?.plates || ''}`
@@ -191,7 +216,11 @@ export const Header = memo(({
               aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
               aria-expanded={mobileMenuOpen}
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="md:hidden w-8 h-8 rounded-[11px] bg-white/[0.07] hover:bg-white/[0.14] text-[#8d929d] hover:text-white flex items-center justify-center transition cursor-pointer"
+              className={`md:hidden w-8 h-8 rounded-[11px] flex items-center justify-center transition cursor-pointer ${
+                isScrolled
+                  ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-black'
+                  : 'bg-white/15 hover:bg-white/25 text-white'
+              }`}
             >
               {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
@@ -200,20 +229,36 @@ export const Header = memo(({
 
         {/* Menú desplegable compacto en pantallas pequeñas (< md) */}
         {mobileMenuOpen && (
-          <div className="md:hidden mt-2 rounded-[20px] bg-[#090a0d]/95 backdrop-blur-xl border border-white/[0.11] p-2.5 shadow-[0_16px_40px_rgba(0,0,0,0.5)] grid grid-cols-2 gap-1.5">
+          <div
+            className={`md:hidden mt-2 rounded-[20px] backdrop-blur-xl border p-2.5 grid grid-cols-2 gap-1.5 transition-all duration-300 ${
+              isScrolled
+                ? 'bg-white/95 border-slate-200/90 shadow-[0_16px_40px_rgba(15,23,42,0.12)]'
+                : 'bg-white/20 border-white/30 shadow-[0_16px_40px_rgba(0,20,80,0.22)]'
+            }`}
+          >
             {navItems.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={item.onClick}
                 className={`px-3 py-2 rounded-xl text-left font-sans text-[12px] font-medium transition-colors cursor-pointer flex items-center justify-between ${
-                  item.active
-                    ? 'bg-white/[0.1] text-white font-semibold'
-                    : 'text-[#8d929d] hover:text-white hover:bg-white/[0.05]'
+                  isScrolled
+                    ? item.active
+                      ? 'bg-slate-100 text-black font-semibold'
+                      : 'text-slate-600 hover:text-black hover:bg-slate-50'
+                    : item.active
+                      ? 'bg-white/25 text-white font-semibold'
+                      : 'text-white/90 hover:text-white hover:bg-white/15'
                 }`}
               >
                 <span>{item.label}</span>
-                {item.id === 'nfc' && <Wifi className="w-3 h-3 rotate-90 text-[#807DFE]" />}
+                {item.id === 'nfc' && (
+                  <Wifi
+                    className={`w-3 h-3 rotate-90 ${
+                      isScrolled ? 'text-[#0033FF]' : 'text-white'
+                    }`}
+                  />
+                )}
               </button>
             ))}
           </div>
