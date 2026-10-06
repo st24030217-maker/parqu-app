@@ -1,11 +1,8 @@
-// Service Worker Oficial de Parqu - Bloque de Monitoreo y Control en Barra de Notificaciones
+// Service Worker Oficial de Parqu - Notificacion Unica Estructurada (Cero Spam, Sin Bucles)
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
-const WAVE_CHARS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
 
 let latestParquState = null;
 let pendingActionsQueue = [];
-let backgroundIntervalId = null;
-let waveFrame = 0;
 let isShowingLock = false;
 
 self.addEventListener('install', () => {
@@ -15,21 +12,6 @@ self.addEventListener('install', () => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
-
-// Mini onda compacta tipo Dynamic Island (solo 5 barras, cero emojis)
-function buildIslandWave(frame, isActive = true) {
-  let out = '';
-  for (let i = 0; i < 5; i += 1) {
-    const speed = isActive ? 0.85 : 0.45;
-    const val = (Math.sin(frame * speed + i * 0.75) + 1) / 2;
-    const idx = Math.min(
-      WAVE_CHARS.length - 1,
-      Math.max(0, Math.floor(val * WAVE_CHARS.length))
-    );
-    out += WAVE_CHARS[idx];
-  }
-  return out;
-}
 
 function arrayBufferToBase64DataUrl(buffer, mime = 'image/png') {
   let binary = '';
@@ -55,12 +37,11 @@ function drawRoundedPill(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-// Genera el bloque visual de monitoreo y controles para la barra de notificaciones
-async function buildControlBlockImage(s, clockStr, cost, frame) {
+async function buildControlBlockImage(s, clockStr, cost) {
   if (typeof OffscreenCanvas === 'undefined') return undefined;
   try {
     const width = 600;
-    const height = 224;
+    const height = 220;
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
     if (!ctx) return undefined;
@@ -71,21 +52,19 @@ async function buildControlBlockImage(s, clockStr, cost, frame) {
     const plates = s.plates || 'XYZ-7842';
     const balance = Number(s.balance ?? 320).toFixed(2);
 
-    // Capsula superior de Monitoreo del Parquimetro (Dynamic Island)
     const pillW = 520;
-    const pillH = 128;
+    const pillH = 126;
     const pillX = Math.round((width - pillW) / 2);
     const pillY = 12;
 
     ctx.fillStyle = '#07080c';
-    drawRoundedPill(ctx, pillX, pillY, pillW, pillH, 64);
+    drawRoundedPill(ctx, pillX, pillY, pillW, pillH, 63);
     ctx.fill();
 
     ctx.lineWidth = 2;
     ctx.strokeStyle = s.isActive ? '#38bdf8' : 'rgba(255,255,255,0.24)';
     ctx.stroke();
 
-    // Izquierda: Estado de monitoreo + Cronometro en vivo
     ctx.textAlign = 'left';
     ctx.fillStyle = s.isActive ? '#38bdf8' : '#34d399';
     ctx.font = 'bold 13px monospace';
@@ -99,48 +78,35 @@ async function buildControlBlockImage(s, clockStr, cost, frame) {
 
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 36px monospace';
-    ctx.fillText(s.isActive ? clockStr : '00:00:00', pillX + 32, pillY + 86);
+    ctx.fillText(s.isActive ? clockStr : '00:00:00', pillX + 32, pillY + 84);
 
     ctx.fillStyle = '#94a3b8';
     ctx.font = 'bold 11px monospace';
     ctx.fillText(
       s.isActive
-        ? `TIEMPO PROGRAMADO: ${scheduledHours} HORA${scheduledHours > 1 ? 'S' : ''} ($${(scheduledHours * 6).toFixed(2)})`
+        ? `TIEMPO: ${scheduledHours} HORA${scheduledHours > 1 ? 'S' : ''} ($${(scheduledHours * 6).toFixed(2)} MXN)`
         : 'TARIFA OFICIAL: $6.00 MXN / HORA',
       pillX + 32,
-      pillY + 110
+      pillY + 108
     );
 
-    // Centro: Mini ondas en vivo
-    const waveX = pillX + 278;
-    for (let i = 0; i < 6; i += 1) {
-      const amp = (Math.sin(frame * 0.85 + i * 0.7) + 1) / 2;
-      const barH = Math.max(8, Math.round(amp * 34));
-      const barY = pillY + Math.round((pillH - barH) / 2) - 4;
-      ctx.fillStyle = s.isActive ? '#f59e0b' : '#38bdf8';
-      drawRoundedPill(ctx, waveX + i * 9, barY, 5, barH, 2.5);
-      ctx.fill();
-    }
-
-    // Derecha: Cobro actual y Saldo disponible
     ctx.textAlign = 'right';
     ctx.fillStyle = '#94a3b8';
     ctx.font = 'bold 12px monospace';
-    ctx.fillText(s.isActive ? 'COBRO ACTUAL' : 'SALDO DISPONIBLE', pillX + pillW - 32, pillY + 40);
+    ctx.fillText(s.isActive ? 'COBRO ACTUAL' : 'SALDO NFC', pillX + pillW - 32, pillY + 40);
 
     ctx.fillStyle = '#38bdf8';
     ctx.font = 'bold 28px sans-serif';
     ctx.fillText(
       s.isActive ? `$${cost}` : `$${balance}`,
       pillX + pillW - 32,
-      pillY + 82
+      pillY + 80
     );
 
     ctx.fillStyle = '#34d399';
     ctx.font = 'bold 11px monospace';
-    ctx.fillText(`SALDO: $${balance} MXN`, pillX + pillW - 32, pillY + 110);
+    ctx.fillText(`SALDO: $${balance} MXN`, pillX + pillW - 32, pillY + 108);
 
-    // Fila inferior: Bloque de 3 Controles Rapidos (Aumentar Horas, Recargar, Cancelar/Iniciar)
     const pills = [
       {
         label: '+1 HORA ($6.00)',
@@ -161,7 +127,7 @@ async function buildControlBlockImage(s, clockStr, cost, frame) {
 
     const dockW = 520;
     const dockX = pillX;
-    const dockY = 154;
+    const dockY = 152;
     const gap = 8;
     const itemW = Math.floor((dockW - gap * 2) / 3);
     const itemH = 48;
@@ -190,13 +156,12 @@ async function buildControlBlockImage(s, clockStr, cost, frame) {
   }
 }
 
-async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
+async function buildSingleStructuredNotification(state) {
   const s = state || latestParquState || {};
   const plates = s.plates || 'XYZ-7842';
   const carDesc = s.carDesc || 'Volkswagen Jetta';
   const balance = Number(s.balance ?? 320).toFixed(2);
   const scheduledHours = Math.max(1, Number(s.scheduledHours) || 1);
-  const wave = buildIslandWave(waveFrame, Boolean(s.isActive));
 
   if (s.isActive && s.startTime) {
     const elapsedSeconds = Math.max(
@@ -214,10 +179,10 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
     ).toFixed(2);
 
     const clockStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    const islandImage = await buildControlBlockImage(s, clockStr, cost, waveFrame);
+    const islandImage = await buildControlBlockImage(s, clockStr, cost);
 
-    const title = `Parqu  ${wave}  ${clockStr} • ${scheduledHours}h ($${cost})`;
-    const body = `Monitoreo: ${plates} • Tiempo: ${scheduledHours}h ($6/h) • Saldo: $${balance} MXN`;
+    const title = `Parquímetro Activo • ${plates}`;
+    const body = `Tiempo: ${scheduledHours}h ($6.00/hr)  |  Cobro: $${cost} MXN\nSaldo NFC: $${balance} MXN  |  Controles activos`;
 
     return {
       title,
@@ -227,9 +192,8 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
         badge: './parqu-logo-black.png',
         image: islandImage,
         tag: SINGLE_NOTIFICATION_TAG,
-        renotify: !isSilentUpdate,
-        silent: isSilentUpdate,
-        vibrate: isSilentUpdate ? undefined : [180, 80, 180],
+        renotify: false,
+        silent: false,
         requireInteraction: true,
         actions: [
           { action: 'add_hour', title: '+1 Hora ($6)' },
@@ -244,9 +208,9 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
     };
   }
 
-  const islandImage = await buildControlBlockImage(s, '00:00:00', '0.00', waveFrame);
-  const title = `Parqu  ${wave}  ${plates} • Saldo $${balance}`;
-  const body = `Control Parquímetro ($6.00/hr) • ${carDesc} • Listo para iniciar`;
+  const islandImage = await buildControlBlockImage(s, '00:00:00', '0.00');
+  const title = `Parqu Digital • ${plates}`;
+  const body = `En espera ($6.00/hr)  |  ${carDesc}\nSaldo NFC: $${balance} MXN  |  Controles listos`;
 
   return {
     title,
@@ -256,9 +220,8 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
       badge: './parqu-logo-black.png',
       image: islandImage,
       tag: SINGLE_NOTIFICATION_TAG,
-      renotify: !isSilentUpdate,
-      silent: isSilentUpdate,
-      vibrate: isSilentUpdate ? undefined : [180, 80, 180],
+      renotify: false,
+      silent: false,
       requireInteraction: true,
       actions: [
         { action: 'start_parking', title: 'Iniciar Parqu' },
@@ -273,57 +236,29 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
   };
 }
 
-function stopBackgroundLoop() {
-  if (backgroundIntervalId) {
-    clearInterval(backgroundIntervalId);
-    backgroundIntervalId = null;
-  }
-}
-
-async function closeOldDuplicateNotifications() {
+async function closeAllPreviousNotifications() {
   if (!self.registration || typeof self.registration.getNotifications !== 'function') return;
   try {
     const notifications = await self.registration.getNotifications();
-    notifications.forEach((n) => {
-      if (n.tag !== SINGLE_NOTIFICATION_TAG) {
-        n.close();
-      }
-    });
+    notifications.forEach((n) => n.close());
   } catch {
     // ignore
   }
 }
 
-async function renderSingleNotificationFrame(isSilentUpdate = true) {
+// Muestra ESTRICTAMENTE 1 sola notificacion (sin intervalos ni repeticiones)
+async function renderSingleNotificationOnce() {
   if (isShowingLock || !self.registration || !self.registration.showNotification) return;
   isShowingLock = true;
   try {
-    await closeOldDuplicateNotifications();
-    waveFrame += 1;
-    const { title, options } = await buildLiveBackgroundNotification(
-      latestParquState,
-      isSilentUpdate
-    );
+    await closeAllPreviousNotifications();
+    const { title, options } = await buildSingleStructuredNotification(latestParquState);
     await self.registration.showNotification(title, options);
   } catch {
     // ignore
   } finally {
     isShowingLock = false;
   }
-}
-
-function startBackgroundLiveLoop(resolvePromise) {
-  stopBackgroundLoop();
-  let ticks = 0;
-  backgroundIntervalId = setInterval(() => {
-    ticks += 1;
-    if (ticks > 120) {
-      stopBackgroundLoop();
-      if (resolvePromise) resolvePromise();
-      return;
-    }
-    renderSingleNotificationFrame(true);
-  }, 1500);
 }
 
 async function broadcastActionToClients(actionObj) {
@@ -357,7 +292,6 @@ self.addEventListener('message', (event) => {
   }
 
   if (event.data.type === 'APP_FOREGROUNDED') {
-    stopBackgroundLoop();
     if (pendingActionsQueue.length > 0 && event.source) {
       pendingActionsQueue.forEach((act) => {
         event.source.postMessage({
@@ -368,14 +302,7 @@ self.addEventListener('message', (event) => {
       });
       pendingActionsQueue = [];
     }
-    if (self.registration && typeof self.registration.getNotifications === 'function') {
-      event.waitUntil(
-        self.registration
-          .getNotifications()
-          .then((list) => list.forEach((n) => n.close()))
-          .catch(() => {})
-      );
-    }
+    event.waitUntil(closeAllPreviousNotifications());
     return;
   }
 
@@ -386,17 +313,8 @@ self.addEventListener('message', (event) => {
       latestParquState = event.data.payload;
     }
 
-    stopBackgroundLoop();
-
-    // El primer bloque al salir de la app se lanza con alerta activa (isSilentUpdate = false)
-    // para que se desprenda automaticamente en la barra de notificaciones del telefono
-    const showAndMonitorPromise = new Promise((resolve) => {
-      renderSingleNotificationFrame(false).finally(() => {
-        startBackgroundLiveLoop(resolve);
-      });
-    });
-
-    event.waitUntil(showAndMonitorPromise);
+    // Dispara UNICAMENTE 1 notificacion limpia al salir (cero bucles setInterval)
+    event.waitUntil(renderSingleNotificationOnce());
   }
 });
 
@@ -417,11 +335,10 @@ self.addEventListener('notificationclick', (event) => {
 
     event.waitUntil(
       Promise.all([
-        renderSingleNotificationFrame(true),
+        renderSingleNotificationOnce(),
         broadcastActionToClients({ action: 'START_PARKING', startTime: nowIso }),
       ])
     );
-    startBackgroundLiveLoop();
     return;
   }
 
@@ -441,11 +358,10 @@ self.addEventListener('notificationclick', (event) => {
 
     event.waitUntil(
       Promise.all([
-        renderSingleNotificationFrame(true),
+        renderSingleNotificationOnce(),
         broadcastActionToClients({ action: 'ADD_HOUR', hoursAdded: 1, scheduledHours: nextHours }),
       ])
     );
-    startBackgroundLiveLoop();
     return;
   }
 
@@ -470,7 +386,7 @@ self.addEventListener('notificationclick', (event) => {
 
     event.waitUntil(
       Promise.all([
-        renderSingleNotificationFrame(true),
+        renderSingleNotificationOnce(),
         broadcastActionToClients({ action: 'CANCEL_PARKING', amount: finalCharge }),
       ])
     );
@@ -487,7 +403,7 @@ self.addEventListener('notificationclick', (event) => {
 
     event.waitUntil(
       Promise.all([
-        renderSingleNotificationFrame(true),
+        renderSingleNotificationOnce(),
         broadcastActionToClients({ action: 'ADD_BALANCE', amount: 50 }),
       ])
     );
@@ -495,7 +411,6 @@ self.addEventListener('notificationclick', (event) => {
   }
 
   event.notification.close();
-  stopBackgroundLoop();
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {

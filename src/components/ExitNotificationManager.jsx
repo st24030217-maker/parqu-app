@@ -8,17 +8,18 @@ import {
   syncParquStateToServiceWorker,
   notifyAppForegrounded,
   dispatchBackgroundNotificationImmediate,
+  unlockParquLiveControlBlock,
+  syncParquLiveControlBlock,
 } from '../utils/parkingNotification';
 
 /**
- * ExitNotificationManager (100% Invisible en la interfaz del sistema)
- * Al cerrar o salirse de la aplicación (visibilitychange === 'hidden' / pagehide),
- * desprende automáticamente el bloque de monitoreo y control en la barra de notificaciones
- * con controles para:
- *  - Monitorear el parquímetro en vivo
- *  - Aumentar las horas (+1 Hora)
- *  - Recargar saldo (Recargar +$50)
- *  - Cancelar o iniciar el parquímetro
+ * ExitNotificationManager (100% Invisible dentro del sistema web)
+ * - Cero spam de notificaciones: envía ESTRICTAMENTE 1 sola notificación al salir de la app.
+ * - Activa el Bloque Interactivo de Control en la Barra de Notificaciones / Pantalla de Bloqueo
+ *   con cronómetro en vivo y botones físicos/táctiles para:
+ *   1. |<< Recargar +$50 MXN
+ *   2. Pausa/Play: Cancelar o Iniciar Parquímetro
+ *   3. >>| Aumentar +1 Hora ($6.00)
  */
 export const ExitNotificationManager = ({ onOpenNFC }) => {
   const {
@@ -44,15 +45,68 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     transactions,
   });
 
+  const handleLockScreenRecharge50 = useCallback(() => {
+    addBalance(50);
+    sileo.success({
+      title: 'Recarga +$50.00 Aplicada',
+      description: 'Saldo actualizado desde tu bloque de notificaciones.',
+    });
+  }, [addBalance]);
+
+  const handleLockScreenAddHour = useCallback(() => {
+    if (typeof addParkingHours === 'function') {
+      addParkingHours(1);
+    } else if (!latestContextRef.current.activeSession) {
+      startParking('Espacio #1042 • Centro Histórico', 6.0, null, 1);
+    }
+    sileo.success({
+      title: '+1 Hora Agregada ($6.00)',
+      description: 'Tiempo del parquímetro aumentado desde tus controles.',
+    });
+  }, [addParkingHours, startParking]);
+
+  const handleLockScreenToggleParking = useCallback(() => {
+    if (latestContextRef.current.activeSession) {
+      const txn = stopParkingAndAutoCharge();
+      if (txn) {
+        sileo.success({
+          title: 'Parquímetro Cancelado / Finalizado',
+          description: `Folio ${txn.folio} • Cobrado: $${txn.amount.toFixed(2)} MXN`,
+        });
+      }
+    } else {
+      startParking('Espacio #1042 • Centro Histórico', 6.0, null, 1);
+      sileo.success({
+        title: 'Parquímetro Iniciado',
+        description: 'Monitoreo activado desde tu bloque de control ($6.00/hr).',
+      });
+    }
+  }, [stopParkingAndAutoCharge, startParking]);
+
   useEffect(() => {
     const ctx = { owner, vehicle, card, autoPay, activeSession, transactions };
     latestContextRef.current = ctx;
     syncParquStateToServiceWorker(ctx);
-  }, [owner, vehicle, card, autoPay, activeSession, transactions]);
+    syncParquLiveControlBlock(ctx, {
+      onRecharge50: handleLockScreenRecharge50,
+      onAddHour: handleLockScreenAddHour,
+      onToggleParking: handleLockScreenToggleParking,
+    });
+  }, [
+    owner,
+    vehicle,
+    card,
+    autoPay,
+    activeSession,
+    transactions,
+    handleLockScreenRecharge50,
+    handleLockScreenAddHour,
+    handleLockScreenToggleParking,
+  ]);
 
   const lastNotificationSentAtRef = useRef(0);
 
-  // Escuchar los controles ejecutados desde el bloque en la barra de notificaciones
+  // Escuchar los botones de acción del Service Worker
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return undefined;
 
@@ -111,36 +165,18 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     return () => navigator.serviceWorker.removeEventListener('message', handleSwMessage);
   }, [startParking, addParkingHours, stopParkingAndAutoCharge, addBalance, updateAutoPay, onOpenNFC]);
 
-  // Integración con los controles del sistema móvil (MediaSession)
-  useEffect(() => {
-    if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
-    try {
-      navigator.mediaSession.setActionHandler('play', () => {
-        if (!latestContextRef.current.activeSession) {
-          startParking('Espacio #1042 • Centro Histórico', 6.0, null, 1);
-        }
-      });
-      navigator.mediaSession.setActionHandler('pause', () => {
-        if (latestContextRef.current.activeSession) {
-          stopParkingAndAutoCharge();
-        }
-      });
-      navigator.mediaSession.setActionHandler('nexttrack', () => {
-        if (typeof addParkingHours === 'function') addParkingHours(1);
-      });
-      navigator.mediaSession.setActionHandler('previoustrack', () => {
-        addBalance(50);
-      });
-    } catch {
-      // ignore
-    }
-  }, [startParking, addParkingHours, stopParkingAndAutoCharge, addBalance]);
-
-  // Registrar Service Worker y asegurar el permiso de notificaciones en cualquier toque del usuario
+  // Registrar Service Worker y desbloquear el Bloque Interactivo de Control al tocar la pantalla
   useEffect(() => {
     registerParquServiceWorker();
 
-    const ensureNotificationPermission = async () => {
+    const handleUserInteraction = async () => {
+      unlockParquLiveControlBlock();
+      syncParquLiveControlBlock(latestContextRef.current, {
+        onRecharge50: handleLockScreenRecharge50,
+        onAddHour: handleLockScreenAddHour,
+        onToggleParking: handleLockScreenToggleParking,
+      });
+
       if (getNotificationPermissionState() === 'default') {
         const res = await requestParkingNotificationPermission();
         if (res === 'granted') {
@@ -149,18 +185,18 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
       }
     };
 
-    window.addEventListener('click', ensureNotificationPermission);
-    window.addEventListener('touchend', ensureNotificationPermission);
+    window.addEventListener('click', handleUserInteraction);
+    window.addEventListener('touchend', handleUserInteraction);
     return () => {
-      window.removeEventListener('click', ensureNotificationPermission);
-      window.removeEventListener('touchend', ensureNotificationPermission);
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('touchend', handleUserInteraction);
     };
-  }, []);
+  }, [handleLockScreenRecharge50, handleLockScreenAddHour, handleLockScreenToggleParking]);
 
-  // Desprender el bloque en la barra de notificaciones automáticamente al salir o cerrar la aplicación
-  const triggerExitNotificationSync = useCallback(() => {
+  // Enviar ESTRICTAMENTE 1 sola notificación cuando el usuario se sale de la app
+  const triggerExitNotificationOnce = useCallback(() => {
     const now = Date.now();
-    if (now - lastNotificationSentAtRef.current < 3000) {
+    if (now - lastNotificationSentAtRef.current < 4000) {
       return null;
     }
     lastNotificationSentAtRef.current = now;
@@ -170,32 +206,17 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        triggerExitNotificationSync();
+        triggerExitNotificationOnce();
       } else if (document.visibilityState === 'visible') {
         notifyAppForegrounded();
       }
     };
 
-    const handlePageHide = () => {
-      triggerExitNotificationSync();
-    };
-
-    const handlePageShow = () => {
-      if (document.visibilityState === 'visible') {
-        notifyAppForegrounded();
-      }
-    };
-
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('pagehide', handlePageHide);
-    window.addEventListener('pageshow', handlePageShow);
-
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('pagehide', handlePageHide);
-      window.removeEventListener('pageshow', handlePageShow);
     };
-  }, [triggerExitNotificationSync]);
+  }, [triggerExitNotificationOnce]);
 
   return null;
 };
