@@ -1,4 +1,4 @@
-// Service Worker Oficial de Parqu - Notificacion Unica Estructurada (Cero Spam, Sin Bucles)
+// Service Worker Oficial de Parqu - Notificacion Unica Estilo Uber Live Activity (Sin Reproductor de Musica, Sin Spam)
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 
 let latestParquState = null;
@@ -23,7 +23,7 @@ function arrayBufferToBase64DataUrl(buffer, mime = 'image/png') {
   return `data:${mime};base64,${self.btoa(binary)}`;
 }
 
-function drawRoundedPill(ctx, x, y, w, h, r) {
+function drawRoundedRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.lineTo(x + w - r, y);
@@ -37,11 +37,55 @@ function drawRoundedPill(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-async function buildControlBlockImage(s, clockStr, cost) {
+// Dibuja el auto blanco visto desde arriba sobre la barra de progreso (exactamente como Uber Live Activity)
+function drawTopDownCar(ctx, centerX, centerY) {
+  const carW = 46;
+  const carH = 22;
+  const x = centerX - carW / 2;
+  const y = centerY - carH / 2;
+
+  // Sombra suave del auto
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+  drawRoundedRect(ctx, x + 2, y + 3, carW, carH, 8);
+  ctx.fill();
+
+  // Carroceria blanca
+  ctx.fillStyle = '#ffffff';
+  drawRoundedRect(ctx, x, y, carW, carH, 8);
+  ctx.fill();
+
+  // Parabrisas delantero (derecha)
+  ctx.fillStyle = '#374151';
+  drawRoundedRect(ctx, x + 28, y + 3, 9, carH - 6, 3);
+  ctx.fill();
+
+  // Medallon trasero (izquierda)
+  ctx.fillStyle = '#4b5563';
+  drawRoundedRect(ctx, x + 6, y + 4, 6, carH - 8, 2);
+  ctx.fill();
+
+  // Techo / detalle ambar tipo Uber
+  ctx.fillStyle = '#d97706';
+  drawRoundedRect(ctx, x + 15, y + 4, 10, carH - 8, 2);
+  ctx.fill();
+}
+
+// Barra de progreso limpia en texto para iOS/Android: ━━━━━━━━●────
+function buildCleanProgressTrack(progressRatio) {
+  const totalSegments = 14;
+  const clamped = Math.min(1, Math.max(0.08, Number(progressRatio) || 0.15));
+  const filled = Math.min(totalSegments - 1, Math.max(1, Math.round(clamped * totalSegments)));
+  const left = '━'.repeat(filled);
+  const right = '─'.repeat(Math.max(1, totalSegments - filled - 1));
+  return `${left}●${right}`;
+}
+
+// Genera la tarjeta oscura estilo Uber Live Activity (Pickup in 2 min / barra con auto)
+async function buildUberStyleCardImage(s, remainingMinutes, cost, progressRatio) {
   if (typeof OffscreenCanvas === 'undefined') return undefined;
   try {
-    const width = 600;
-    const height = 220;
+    const width = 640;
+    const height = 250;
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
     if (!ctx) return undefined;
@@ -50,102 +94,119 @@ async function buildControlBlockImage(s, clockStr, cost) {
 
     const scheduledHours = Math.max(1, Number(s.scheduledHours) || 1);
     const plates = s.plates || 'XYZ-7842';
-    const balance = Number(s.balance ?? 320).toFixed(2);
+    const carDesc = s.carDesc || 'Volkswagen Jetta';
+    const balance = Number(s.balance ?? 320).toFixed(0);
 
-    const pillW = 520;
-    const pillH = 126;
-    const pillX = Math.round((width - pillW) / 2);
-    const pillY = 12;
+    // Tarjeta oscura redondeada estilo Uber Lock Screen
+    const cardX = 16;
+    const cardY = 10;
+    const cardW = width - 32;
+    const cardH = height - 20;
 
-    ctx.fillStyle = '#07080c';
-    drawRoundedPill(ctx, pillX, pillY, pillW, pillH, 63);
+    const grad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
+    grad.addColorStop(0, '#18191c');
+    grad.addColorStop(1, '#101114');
+    ctx.fillStyle = grad;
+    drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 36);
     ctx.fill();
 
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = s.isActive ? '#38bdf8' : 'rgba(255,255,255,0.24)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
     ctx.stroke();
 
+    // Marca arriba a la izquierda ("Parqu" como "Uber")
     ctx.textAlign = 'left';
-    ctx.fillStyle = s.isActive ? '#38bdf8' : '#34d399';
-    ctx.font = 'bold 13px monospace';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillText('Parqu', cardX + 32, cardY + 42);
+
+    // Estado derecha superior (Saldo NFC)
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.fillText(`Saldo $${balance} MXN`, cardX + cardW - 32, cardY + 42);
+
+    // Titulo principal grande ("Estancia: 58 min" como "Pickup in 2 min")
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 34px sans-serif';
     ctx.fillText(
       s.isActive
-        ? `MONITOREO • ${plates} • ${scheduledHours}H`
-        : `EN ESPERA • ${plates}`,
-      pillX + 32,
-      pillY + 40
+        ? `Tiempo restante: ${remainingMinutes} min`
+        : 'Listo para estacionar',
+      cardX + 32,
+      cardY + 92
     );
+
+    // Subtitulo ("XYZ-7842 • Volkswagen Jetta" como "3XFH2C • Silver Honda Civic")
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '21px sans-serif';
+    ctx.fillText(
+      `${plates} • ${carDesc} • ${scheduledHours}h ($${cost})`,
+      cardX + 32,
+      cardY + 124
+    );
+
+    // Barra de progreso horizontal con el auto blanco avanzando hacia el punto final
+    const barLeft = cardX + 32;
+    const barRight = cardX + cardW - 36;
+    const barWidth = barRight - barLeft;
+    const barY = cardY + 162;
+
+    // Linea gris de fondo
+    ctx.fillStyle = '#4b5563';
+    drawRoundedRect(ctx, barLeft, barY - 3, barWidth, 6, 3);
+    ctx.fill();
+
+    // Linea blanca de avance
+    const clampedRatio = s.isActive
+      ? Math.min(0.92, Math.max(0.12, Number(progressRatio) || 0.2))
+      : 0.12;
+    const carX = barLeft + Math.round(barWidth * clampedRatio);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 36px monospace';
-    ctx.fillText(s.isActive ? clockStr : '00:00:00', pillX + 32, pillY + 84);
+    drawRoundedRect(ctx, barLeft, barY - 3, Math.max(12, carX - barLeft), 6, 3);
+    ctx.fill();
 
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 11px monospace';
-    ctx.fillText(
-      s.isActive
-        ? `TIEMPO: ${scheduledHours} HORA${scheduledHours > 1 ? 'S' : ''} ($${(scheduledHours * 6).toFixed(2)} MXN)`
-        : 'TARIFA OFICIAL: $6.00 MXN / HORA',
-      pillX + 32,
-      pillY + 108
-    );
+    // Circulo destino al final de la barra (derecha)
+    ctx.beginPath();
+    ctx.arc(barRight, barY, 9, 0, Math.PI * 2);
+    ctx.fillStyle = '#4b5563';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(barRight, barY, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#101114';
+    ctx.fill();
 
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 12px monospace';
-    ctx.fillText(s.isActive ? 'COBRO ACTUAL' : 'SALDO NFC', pillX + pillW - 32, pillY + 40);
+    // Auto blanco visto desde arriba sobre la barra
+    drawTopDownCar(ctx, carX, barY);
 
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 28px sans-serif';
-    ctx.fillText(
-      s.isActive ? `$${cost}` : `$${balance}`,
-      pillX + pillW - 32,
-      pillY + 80
-    );
-
-    ctx.fillStyle = '#34d399';
-    ctx.font = 'bold 11px monospace';
-    ctx.fillText(`SALDO: $${balance} MXN`, pillX + pillW - 32, pillY + 108);
-
-    const pills = [
+    // Fila inferior de los 3 controles dentro del bloque
+    const controls = [
+      { label: '+1 Hora ($6)', bg: '#262930', fg: '#ffffff' },
+      { label: 'Recargar +$50', bg: '#262930', fg: '#38bdf8' },
       {
-        label: '+1 HORA ($6.00)',
-        bg: '#0033ff',
-        fg: '#ffffff',
-      },
-      {
-        label: 'RECARGAR +$50',
-        bg: '#111827',
-        fg: '#38bdf8',
-      },
-      {
-        label: s.isActive ? 'CANCELAR PARQU' : 'INICIAR PARQU',
-        bg: s.isActive ? '#dc2626' : '#059669',
-        fg: '#ffffff',
+        label: s.isActive ? 'Cancelar Parqu' : 'Iniciar Parqu',
+        bg: s.isActive ? '#3f1d24' : '#143829',
+        fg: s.isActive ? '#fca5a5' : '#6ee7b7',
       },
     ];
 
-    const dockW = 520;
-    const dockX = pillX;
-    const dockY = 152;
-    const gap = 8;
-    const itemW = Math.floor((dockW - gap * 2) / 3);
-    const itemH = 48;
+    const btnGap = 10;
+    const btnW = Math.floor((barWidth - btnGap * 2) / 3);
+    const btnH = 34;
+    const btnY = cardY + 186;
 
-    pills.forEach((p, idx) => {
-      const x = dockX + idx * (itemW + gap);
-      ctx.fillStyle = p.bg;
-      drawRoundedPill(ctx, x, dockY, itemW, itemH, 24);
+    controls.forEach((c, idx) => {
+      const bx = barLeft + idx * (btnW + btnGap);
+      ctx.fillStyle = c.bg;
+      drawRoundedRect(ctx, bx, btnY, btnW, btnH, 17);
       ctx.fill();
 
-      ctx.lineWidth = 1.5;
-      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-      ctx.stroke();
-
       ctx.textAlign = 'center';
-      ctx.fillStyle = p.fg;
-      ctx.font = 'bold 12px monospace';
-      ctx.fillText(p.label, x + Math.round(itemW / 2), dockY + 29);
+      ctx.fillStyle = c.fg;
+      ctx.font = 'bold 13px sans-serif';
+      ctx.fillText(c.label, bx + Math.round(btnW / 2), btnY + 22);
     });
 
     const blob = await canvas.convertToBlob({ type: 'image/png' });
@@ -156,11 +217,11 @@ async function buildControlBlockImage(s, clockStr, cost) {
   }
 }
 
-async function buildSingleStructuredNotification(state) {
+async function buildSingleUberStyleNotification(state) {
   const s = state || latestParquState || {};
   const plates = s.plates || 'XYZ-7842';
   const carDesc = s.carDesc || 'Volkswagen Jetta';
-  const balance = Number(s.balance ?? 320).toFixed(2);
+  const balance = Number(s.balance ?? 320).toFixed(0);
   const scheduledHours = Math.max(1, Number(s.scheduledHours) || 1);
 
   if (s.isActive && s.startTime) {
@@ -168,9 +229,11 @@ async function buildSingleStructuredNotification(state) {
       Number(s.baseSeconds) || 0,
       Math.floor((Date.now() - new Date(s.startTime).getTime()) / 1000)
     );
-    const hours = Math.floor(elapsedSeconds / 3600);
-    const minutes = Math.floor((elapsedSeconds % 3600) / 60);
-    const seconds = elapsedSeconds % 60;
+    const totalScheduledSeconds = scheduledHours * 3600;
+    const remainingSeconds = Math.max(60, totalScheduledSeconds - elapsedSeconds);
+    const remainingMinutes = Math.ceil(remainingSeconds / 60);
+    const progressRatio = Math.min(0.95, Math.max(0.1, elapsedSeconds / totalScheduledSeconds));
+
     const rate = Number(s.rate || 6.0);
     const maxLimit = Number(s.maxLimit || 180.0);
     const cost = Math.min(
@@ -178,11 +241,20 @@ async function buildSingleStructuredNotification(state) {
       Number(((elapsedSeconds * (rate / 3600)) || 0).toFixed(2))
     ).toFixed(2);
 
-    const clockStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    const islandImage = await buildControlBlockImage(s, clockStr, cost);
+    const trackBar = buildCleanProgressTrack(progressRatio);
+    const cardImage = await buildUberStyleCardImage(s, remainingMinutes, cost, progressRatio);
 
-    const title = `Parquímetro Activo • ${plates}`;
-    const body = `Tiempo: ${scheduledHours}h ($6.00/hr)  |  Cobro: $${cost} MXN\nSaldo NFC: $${balance} MXN  |  Controles activos`;
+    // Estructura identica a Uber:
+    // Titulo: Tiempo restante: 59 min (o Xh Ym)
+    // Subtitulo: XYZ-7842 • Volkswagen Jetta • Saldo $320
+    // Barra: ━━━━━━━━●────  1h ($6.00/hr)
+    const timeHeadline =
+      remainingMinutes >= 60
+        ? `Estancia activa • ${Math.floor(remainingMinutes / 60)}h ${remainingMinutes % 60}m`
+        : `Estancia activa • ${remainingMinutes} min`;
+
+    const title = timeHeadline;
+    const body = `${plates} • ${carDesc} • Saldo $${balance}\n${trackBar}  ${scheduledHours}h ($${(scheduledHours * 6).toFixed(0)} MXN)`;
 
     return {
       title,
@@ -190,7 +262,7 @@ async function buildSingleStructuredNotification(state) {
         body,
         icon: './parqu-logo-black.png',
         badge: './parqu-logo-black.png',
-        image: islandImage,
+        image: cardImage,
         tag: SINGLE_NOTIFICATION_TAG,
         renotify: false,
         silent: false,
@@ -208,9 +280,10 @@ async function buildSingleStructuredNotification(state) {
     };
   }
 
-  const islandImage = await buildControlBlockImage(s, '00:00:00', '0.00');
-  const title = `Parqu Digital • ${plates}`;
-  const body = `En espera ($6.00/hr)  |  ${carDesc}\nSaldo NFC: $${balance} MXN  |  Controles listos`;
+  const trackBar = buildCleanProgressTrack(0.1);
+  const cardImage = await buildUberStyleCardImage(s, 60, '0.00', 0.1);
+  const title = 'Parqu listo • $6.00/hr';
+  const body = `${plates} • ${carDesc} • Saldo $${balance}\n${trackBar}  En espera`;
 
   return {
     title,
@@ -218,7 +291,7 @@ async function buildSingleStructuredNotification(state) {
       body,
       icon: './parqu-logo-black.png',
       badge: './parqu-logo-black.png',
-      image: islandImage,
+      image: cardImage,
       tag: SINGLE_NOTIFICATION_TAG,
       renotify: false,
       silent: false,
@@ -246,13 +319,12 @@ async function closeAllPreviousNotifications() {
   }
 }
 
-// Muestra ESTRICTAMENTE 1 sola notificacion (sin intervalos ni repeticiones)
 async function renderSingleNotificationOnce() {
   if (isShowingLock || !self.registration || !self.registration.showNotification) return;
   isShowingLock = true;
   try {
     await closeAllPreviousNotifications();
-    const { title, options } = await buildSingleStructuredNotification(latestParquState);
+    const { title, options } = await buildSingleUberStyleNotification(latestParquState);
     await self.registration.showNotification(title, options);
   } catch {
     // ignore
@@ -313,7 +385,6 @@ self.addEventListener('message', (event) => {
       latestParquState = event.data.payload;
     }
 
-    // Dispara UNICAMENTE 1 notificacion limpia al salir (cero bucles setInterval)
     event.waitUntil(renderSingleNotificationOnce());
   }
 });

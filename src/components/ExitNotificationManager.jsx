@@ -8,18 +8,13 @@ import {
   syncParquStateToServiceWorker,
   notifyAppForegrounded,
   dispatchBackgroundNotificationImmediate,
-  unlockParquLiveControlBlock,
-  syncParquLiveControlBlock,
 } from '../utils/parkingNotification';
 
 /**
  * ExitNotificationManager (100% Invisible dentro del sistema web)
- * - Cero spam de notificaciones: envía ESTRICTAMENTE 1 sola notificación al salir de la app.
- * - Activa el Bloque Interactivo de Control en la Barra de Notificaciones / Pantalla de Bloqueo
- *   con cronómetro en vivo y botones físicos/táctiles para:
- *   1. |<< Recargar +$50 MXN
- *   2. Pausa/Play: Cancelar o Iniciar Parquímetro
- *   3. >>| Aumentar +1 Hora ($6.00)
+ * - Sin reproductor de música (cero audio / cero MediaSession).
+ * - Cero spam: envía ESTRICTAMENTE 1 sola notificación estilo Uber Live Activity al salir de la app.
+ * - Incluye barra de progreso y controles de acción: +1 Hora ($6), Recargar +$50 y Cancelar Parqu.
  */
 export const ExitNotificationManager = ({ onOpenNFC }) => {
   const {
@@ -45,68 +40,15 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     transactions,
   });
 
-  const handleLockScreenRecharge50 = useCallback(() => {
-    addBalance(50);
-    sileo.success({
-      title: 'Recarga +$50.00 Aplicada',
-      description: 'Saldo actualizado desde tu bloque de notificaciones.',
-    });
-  }, [addBalance]);
-
-  const handleLockScreenAddHour = useCallback(() => {
-    if (typeof addParkingHours === 'function') {
-      addParkingHours(1);
-    } else if (!latestContextRef.current.activeSession) {
-      startParking('Espacio #1042 • Centro Histórico', 6.0, null, 1);
-    }
-    sileo.success({
-      title: '+1 Hora Agregada ($6.00)',
-      description: 'Tiempo del parquímetro aumentado desde tus controles.',
-    });
-  }, [addParkingHours, startParking]);
-
-  const handleLockScreenToggleParking = useCallback(() => {
-    if (latestContextRef.current.activeSession) {
-      const txn = stopParkingAndAutoCharge();
-      if (txn) {
-        sileo.success({
-          title: 'Parquímetro Cancelado / Finalizado',
-          description: `Folio ${txn.folio} • Cobrado: $${txn.amount.toFixed(2)} MXN`,
-        });
-      }
-    } else {
-      startParking('Espacio #1042 • Centro Histórico', 6.0, null, 1);
-      sileo.success({
-        title: 'Parquímetro Iniciado',
-        description: 'Monitoreo activado desde tu bloque de control ($6.00/hr).',
-      });
-    }
-  }, [stopParkingAndAutoCharge, startParking]);
-
   useEffect(() => {
     const ctx = { owner, vehicle, card, autoPay, activeSession, transactions };
     latestContextRef.current = ctx;
     syncParquStateToServiceWorker(ctx);
-    syncParquLiveControlBlock(ctx, {
-      onRecharge50: handleLockScreenRecharge50,
-      onAddHour: handleLockScreenAddHour,
-      onToggleParking: handleLockScreenToggleParking,
-    });
-  }, [
-    owner,
-    vehicle,
-    card,
-    autoPay,
-    activeSession,
-    transactions,
-    handleLockScreenRecharge50,
-    handleLockScreenAddHour,
-    handleLockScreenToggleParking,
-  ]);
+  }, [owner, vehicle, card, autoPay, activeSession, transactions]);
 
   const lastNotificationSentAtRef = useRef(0);
 
-  // Escuchar los botones de acción del Service Worker
+  // Escuchar los controles ejecutados desde la notificación (+1 Hora, Recargar +$50, Cancelar Parqu)
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return undefined;
 
@@ -118,7 +60,7 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
         startParking('Espacio #1042 • Centro Histórico', 6.0, null, 1);
         sileo.success({
           title: 'Parquímetro Iniciado',
-          description: 'Monitoreo activado desde la barra de notificaciones ($6.00/hr).',
+          description: 'Monitoreo activado desde la notificación ($6.00/hr).',
         });
       } else if (action === 'ADD_HOUR') {
         const extra = Number(hoursAdded) || 1;
@@ -150,7 +92,7 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
         addBalance(addAmt);
         sileo.success({
           title: `Recarga +$${addAmt}.00 Aplicada`,
-          description: 'Saldo actualizado desde el bloque de notificaciones.',
+          description: 'Saldo actualizado desde la notificación.',
         });
       } else if (action === 'TOGGLE_AUTOPAY') {
         const nextEnabled =
@@ -165,18 +107,11 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     return () => navigator.serviceWorker.removeEventListener('message', handleSwMessage);
   }, [startParking, addParkingHours, stopParkingAndAutoCharge, addBalance, updateAutoPay, onOpenNFC]);
 
-  // Registrar Service Worker y desbloquear el Bloque Interactivo de Control al tocar la pantalla
+  // Registrar Service Worker y solicitar permiso de notificaciones al tocar la pantalla
   useEffect(() => {
     registerParquServiceWorker();
 
     const handleUserInteraction = async () => {
-      unlockParquLiveControlBlock();
-      syncParquLiveControlBlock(latestContextRef.current, {
-        onRecharge50: handleLockScreenRecharge50,
-        onAddHour: handleLockScreenAddHour,
-        onToggleParking: handleLockScreenToggleParking,
-      });
-
       if (getNotificationPermissionState() === 'default') {
         const res = await requestParkingNotificationPermission();
         if (res === 'granted') {
@@ -191,9 +126,9 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
       window.removeEventListener('click', handleUserInteraction);
       window.removeEventListener('touchend', handleUserInteraction);
     };
-  }, [handleLockScreenRecharge50, handleLockScreenAddHour, handleLockScreenToggleParking]);
+  }, []);
 
-  // Enviar ESTRICTAMENTE 1 sola notificación cuando el usuario se sale de la app
+  // Enviar ESTRICTAMENTE 1 sola notificación estilo Uber al salir de la aplicación
   const triggerExitNotificationOnce = useCallback(() => {
     const now = Date.now();
     if (now - lastNotificationSentAtRef.current < 4000) {
