@@ -876,52 +876,20 @@ export const LoadingScreen = ({ onComplete }) => {
                   {authMode === 'login' ? 'Bienvenido de vuelta' : 'Bienvenido a Parqu'}
                 </h2>
 
-                {/* Animación FlipFadeText 3D letra por letra */}
+                {/* Animación FlipFadeText 3D más lenta y con letras blancas */}
                 <FlipFadeText
                   words={
                     authMode === 'login'
-                      ? ['ACCESO DIGITAL NFC', 'AUTOCOBRO EN VIVO', 'TARIFA $6.00 / HR', 'SIN FILAS NI MONEDAS']
-                      : ['CREA TU CUENTA NFC', 'REGISTRO EN SEGUNDOS', 'CIFRADO AES-256', 'PARQU METROPOLITANO']
+                      ? ['ACCESO DIGITAL NFC', 'AUTOCOBRO EN VIVO', 'SIN FILAS NI MONEDAS']
+                      : ['CREA TU CUENTA NFC', 'REGISTRO EN SEGUNDOS', 'PARQU METROPOLITANO']
                   }
-                  interval={2400}
-                  className="min-h-[22px] sm:min-h-[24px] mt-0.5"
-                  textClassName="text-[10px] sm:text-[11px] font-mono text-[#807DFE] tracking-widest"
+                  interval={4500}
+                  letterDuration={0.9}
+                  staggerDelay={0.095}
+                  exitStaggerDelay={0.055}
+                  className="min-h-[26px] sm:min-h-[28px] mt-1.5"
+                  textClassName="text-xs sm:text-[13px] font-mono font-bold text-white tracking-widest"
                 />
-              </div>
-
-              {/* Barra de Telemetría Animada (AnimeCounter + Ondas Anime.js) */}
-              <div className="login-stagger-item relative z-10 flex items-center justify-between px-3 py-2 rounded-2xl bg-white/[0.06] border border-white/10 mb-3.5 text-[10px] font-mono">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-end gap-0.5 h-3.5">
-                    {[0, 1, 2, 3, 4].map((bar) => (
-                      <span
-                        key={bar}
-                        className="login-wave-bar w-0.5 h-3.5 rounded-full bg-emerald-400 inline-block origin-bottom"
-                      />
-                    ))}
-                  </div>
-                  <span className="text-[#D4D6E6]">
-                    Tarifa:{' '}
-                    <AnimeCounter
-                      value={6}
-                      prefix="$"
-                      decimals={2}
-                      suffix="/hr"
-                      className="text-white font-bold"
-                    />
-                  </span>
-                </div>
-
-                <div className="text-emerald-300 font-bold">
-                  Saldo:{' '}
-                  <AnimeCounter
-                    value={Number(card?.balance ?? 320)}
-                    prefix="$"
-                    decimals={0}
-                    suffix=" MXN"
-                    className="text-emerald-300 font-bold"
-                  />
-                </div>
               </div>
 
               {/* Selector Iniciar Sesión / Registrarse */}
