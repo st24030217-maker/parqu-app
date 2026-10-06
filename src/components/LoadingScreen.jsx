@@ -28,6 +28,7 @@ import { AnimeCounter } from './ui/anime-counter';
 import { FlipFadeText } from './ui/flip-fade-text';
 import CurvedLoop from './ui/CurvedLoop';
 import { RadialGlowButton } from './ui/radial-glow-button';
+import { Button as StatefulButton } from './ui/stateful-button';
 import { useParking } from '../context/ParkingContext';
 import { requestParkingNotificationPermission } from '../utils/parkingNotification';
 
@@ -651,9 +652,11 @@ export const LoadingScreen = ({ onComplete }) => {
     setShowAuthModal(true);
   }, []);
 
-  // Procesar inicio de sesión o registro de usuario y entrar al sistema
-  const handleAuthSubmit = (e) => {
-    e.preventDefault();
+  // Procesar inicio de sesión o registro con la animación StatefulButton (Loader -> Checkmark -> Entrar al sistema)
+  const handleAuthSubmit = async (e) => {
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
     setAuthError('');
 
     const cleanEmail = (formData.email || '').trim();
@@ -663,13 +666,16 @@ export const LoadingScreen = ({ onComplete }) => {
 
     if (!cleanEmail || !cleanPassword) {
       setAuthError('Por favor ingresa tu correo y contraseña para continuar.');
-      return;
+      return false;
     }
 
     if (authMode === 'register' && !cleanName) {
       setAuthError('Por favor ingresa tu nombre completo para registrarte.');
-      return;
+      return false;
     }
+
+    // Pausa breve para mostrar el estado de carga (loader) del StatefulButton
+    await new Promise((resolve) => setTimeout(resolve, 750));
 
     if (typeof updateOwner === 'function') {
       updateOwner({
@@ -685,8 +691,13 @@ export const LoadingScreen = ({ onComplete }) => {
       updateVehicle({ plates: cleanPlates });
     }
 
-    setShowAuthModal(false);
-    handleTriggerExit();
+    // Mostrar el check de éxito del StatefulButton antes de entrar al sistema
+    setTimeout(() => {
+      setShowAuthModal(false);
+      handleTriggerExit();
+    }, 550);
+
+    return true;
   };
 
   // Cerrar el modal de login con Escape
@@ -1020,16 +1031,17 @@ export const LoadingScreen = ({ onComplete }) => {
                   </p>
                 )}
 
-                <div className="login-stagger-item pt-1.5">
-                  <RadialGlowButton
-                    type="submit"
-                    className="w-full py-3 rounded-xl text-xs sm:text-sm"
+                <div className="login-stagger-item pt-1.5 flex justify-center">
+                  <StatefulButton
+                    type="button"
+                    onClick={handleAuthSubmit}
+                    className="w-full py-3 rounded-full text-xs sm:text-sm font-bold"
                   >
                     <span>
                       {authMode === 'login' ? 'Iniciar Sesión y Entrar' : 'Registrarse y Entrar'}
                     </span>
                     <ArrowRight className="w-4 h-4" />
-                  </RadialGlowButton>
+                  </StatefulButton>
                 </div>
 
                 {/* Pie del Login con Logo SSS.Solutions 100% Transparente */}
