@@ -21,7 +21,12 @@ import {
   EyeOff,
   X,
 } from 'lucide-react';
+import { animate, stagger } from 'animejs';
 import CloudSky from './ui/cloud-sky';
+import { AnimeCardSheen } from './ui/anime-card-sheen';
+import { AnimeCounter } from './ui/anime-counter';
+import { FlipFadeText } from './ui/flip-fade-text';
+import { RadialGlowButton } from './ui/radial-glow-button';
 import { useParking } from '../context/ParkingContext';
 import { requestParkingNotificationPermission } from '../utils/parkingNotification';
 
@@ -215,8 +220,8 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
                   Tarjeta Digital Parqu
                 </h4>
               </div>
-              <div className="w-7 h-7 rounded-xl bg-[#01033E] flex items-center justify-center">
-                <img src="./parqu-logo-white.png" alt="Parqu" className="h-3.5 w-auto object-contain" />
+              <div className="flex items-center justify-center bg-transparent">
+                <img src="./parqu-logo-black.png" alt="Parqu" className="h-5 w-auto object-contain bg-transparent" />
               </div>
             </div>
 
@@ -549,7 +554,7 @@ export const LoadingScreen = ({ onComplete }) => {
   const [isBootLoading, setIsBootLoading] = useState(true);
   const [bootProgress, setBootProgress] = useState(0);
 
-  // Fase 2 y 3: Pantalla inicial con botón "Empecemos" -> Login / Registro compacto -> Entrar al sistema
+  // Fase 2 y 3: Pantalla inicial con botón "Empecemos" -> Login / Registro compacto animado -> Entrar al sistema
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
   const [showPassword, setShowPassword] = useState(false);
@@ -563,6 +568,7 @@ export const LoadingScreen = ({ onComplete }) => {
 
   const [isExiting, setIsExiting] = useState(false);
   const hasExitedRef = useRef(false);
+  const authCardRef = useRef(null);
 
   // Animación de la pantalla de carga inicial al abrir la aplicación
   useEffect(() => {
@@ -581,6 +587,49 @@ export const LoadingScreen = ({ onComplete }) => {
     }, 38);
     return () => clearInterval(interval);
   }, []);
+
+  // Animaciones Anime.js en el Login (Entrada elástica, Stagger de campos y Ondas en vivo)
+  useEffect(() => {
+    if (!showAuthModal || !authCardRef.current) return undefined;
+
+    animate(authCardRef.current, {
+      opacity: [0, 1],
+      translateY: [28, 0],
+      scale: [0.92, 1],
+      duration: 720,
+      ease: 'outElastic(1, .65)',
+    });
+
+    const items = authCardRef.current.querySelectorAll('.login-stagger-item');
+    if (items.length > 0) {
+      animate(items, {
+        opacity: [0, 1],
+        translateY: [16, 0],
+        delay: stagger(60, { start: 90 }),
+        duration: 520,
+        ease: 'outCubic',
+      });
+    }
+
+    const waveBars = authCardRef.current.querySelectorAll('.login-wave-bar');
+    let waveAnim = null;
+    if (waveBars.length > 0) {
+      waveAnim = animate(waveBars, {
+        scaleY: [0.35, 1, 0.4],
+        opacity: [0.55, 1, 0.55],
+        delay: stagger(90),
+        duration: 950,
+        loop: true,
+        ease: 'inOutSine',
+      });
+    }
+
+    return () => {
+      if (waveAnim && typeof waveAnim.pause === 'function') {
+        waveAnim.pause();
+      }
+    };
+  }, [showAuthModal, authMode]);
 
   // Ejecuta la animación de salida suave hacia el sistema principal después de iniciar sesión o registrarse
   const handleTriggerExit = useCallback(() => {
@@ -700,12 +749,11 @@ export const LoadingScreen = ({ onComplete }) => {
       */}
       {isBootLoading ? (
         <div className="relative z-20 flex flex-col items-center justify-center text-center px-6 max-w-sm w-full animate-in fade-in duration-300">
-          <div className="relative flex items-center justify-center mb-6">
-            <div className="absolute -inset-8 bg-gradient-to-r from-[#0033FF]/40 via-[#807DFE]/35 to-[#0033FF]/40 rounded-full blur-3xl animate-pulse pointer-events-none" />
+          <div className="relative flex items-center justify-center mb-6 bg-transparent">
             <img
               src="./parqu-logo-white.png"
               alt="Parqu Logo"
-              className="h-20 sm:h-28 w-auto object-contain relative z-10 drop-shadow-[0_0_40px_rgba(128,125,254,0.6)]"
+              className="h-20 sm:h-28 w-auto object-contain bg-transparent relative z-10 drop-shadow-[0_0_40px_rgba(128,125,254,0.6)]"
             />
           </div>
 
@@ -738,15 +786,14 @@ export const LoadingScreen = ({ onComplete }) => {
         */
         <div className="relative z-10 w-full max-w-[1280px] mx-auto py-3 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-8 lg:gap-6 items-center animate-in fade-in duration-500">
           
-          {/* COLUMNA IZQUIERDA: LOGO DE PARQU, SLOGAN Y ÚNICAMENTE EL BOTÓN "EMPECEMOS" */}
+          {/* COLUMNA IZQUIERDA: LOGO DE PARQU 100% TRANSPARENTE, SLOGAN Y ÚNICAMENTE EL BOTÓN "EMPECEMOS" */}
           <div className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2.5 sm:space-y-7">
-            {/* Logotipo Oficial Parqu */}
-            <div className="relative flex items-center justify-center">
-              <div className="absolute -inset-6 sm:-inset-8 bg-gradient-to-r from-[#0033FF]/25 via-[#807DFE]/20 to-[#0033FF]/25 rounded-full blur-2xl sm:blur-3xl pointer-events-none" />
+            {/* Logotipo Oficial Parqu 100% Transparente */}
+            <div className="relative flex items-center justify-center bg-transparent">
               <img
                 src="./parqu-logo-white.png"
                 alt="Parqu Logo"
-                className="h-14 sm:h-28 md:h-32 w-auto object-contain relative z-10 drop-shadow-[0_0_35px_rgba(128,125,254,0.45)]"
+                className="h-14 sm:h-28 md:h-32 w-auto object-contain bg-transparent relative z-10 drop-shadow-[0_0_35px_rgba(128,125,254,0.45)]"
               />
             </div>
 
@@ -755,16 +802,15 @@ export const LoadingScreen = ({ onComplete }) => {
               Sistema Inteligente de <span className="text-white font-bold">Parquímetros</span> y Autocobro Digital
             </p>
 
-            {/* Único Botón "Empecemos" (abre el pequeño login de usuario) */}
+            {/* Único Botón "Empecemos" con RadialGlowButton */}
             <div className="pt-0.5 sm:pt-1">
-              <button
+              <RadialGlowButton
                 type="button"
                 onClick={handleOpenAuthModal}
-                className="font-sans text-xs sm:text-base font-bold text-white px-7 py-2.5 sm:px-10 sm:py-4 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 transition-all duration-300 backdrop-blur-md border-0 shadow-[0_0_35px_rgba(128,125,254,0.45)] flex items-center justify-center gap-2 cursor-pointer group"
               >
                 <span>Empecemos</span>
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white inline transition-transform duration-300 group-hover:translate-x-1.5" />
-              </button>
+              </RadialGlowButton>
             </div>
           </div>
 
@@ -782,8 +828,9 @@ export const LoadingScreen = ({ onComplete }) => {
 
       {/* 
         ══════════════════════════════════════════════════════════════
-        FASE 3: PEQUEÑO LOGIN / REGISTRO AL PRESIONAR "EMPECEMOS"
-        Con bienvenida arriba ("Bienvenido de vuelta" / "Bienvenido a Parqu")
+        FASE 3: PEQUEÑO LOGIN / REGISTRO CON TODAS LAS ANIMACIONES Y LOGOS 100% TRANSPARENTES
+        Incluye: AnimeCardSheen (3D Tilt + Haz Holográfico), Anime.js Elastic + Stagger,
+        FlipFadeText 3D, AnimeCounter, Ondas en Vivo y RadialGlowButton
         ══════════════════════════════════════════════════════════════
       */}
       {showAuthModal && (
@@ -791,182 +838,248 @@ export const LoadingScreen = ({ onComplete }) => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="parqu-auth-title"
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
         >
-          <div className="relative w-full max-w-[360px] rounded-3xl bg-[#070B2E]/95 border border-white/15 p-5 sm:p-6 text-white shadow-[0_25px_70px_rgba(0,0,0,0.85)] backdrop-blur-2xl">
-            {/* Botón cerrar */}
-            <button
-              type="button"
-              aria-label="Cerrar ventana de acceso"
-              onClick={() => setShowAuthModal(false)}
-              className="absolute top-4 right-4 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-[#D4D6E6] hover:text-white transition cursor-pointer border-0"
+          <AnimeCardSheen className="w-full max-w-[380px]">
+            <div
+              ref={authCardRef}
+              className="relative w-full rounded-3xl bg-[#070B2E]/90 border border-white/15 p-5 sm:p-6 text-white shadow-[0_28px_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl overflow-hidden"
             >
-              <X className="w-4 h-4" />
-            </button>
+              {/* Resplandor ambiental interno */}
+              <div className="absolute -top-20 -left-20 w-52 h-52 bg-[#0033FF]/30 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-20 -right-20 w-52 h-52 bg-[#807DFE]/25 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Encabezado de Bienvenida */}
-            <div className="text-center mb-4">
-              <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-[#0033FF]/30 border border-[#807DFE]/30 mb-2.5 shadow-md">
-                <img
-                  src="./parqu-logo-white.png"
-                  alt="Parqu"
-                  className="h-5 w-auto object-contain"
+              {/* Botón cerrar */}
+              <button
+                type="button"
+                aria-label="Cerrar ventana de acceso"
+                onClick={() => setShowAuthModal(false)}
+                className="absolute top-4 right-4 z-20 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-[#D4D6E6] hover:text-white transition cursor-pointer border-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              {/* Encabezado de Bienvenida con Logo 100% Transparente (sin recuadro ni bordes) */}
+              <div className="login-stagger-item relative z-10 text-center mb-3">
+                <div className="flex items-center justify-center mb-2 bg-transparent border-0 shadow-none">
+                  <img
+                    src="./parqu-logo-white.png"
+                    alt="Parqu"
+                    className="h-9 sm:h-11 w-auto object-contain bg-transparent border-0 shadow-none drop-shadow-[0_0_20px_rgba(128,125,254,0.55)]"
+                  />
+                </div>
+
+                <h2
+                  id="parqu-auth-title"
+                  className="text-lg sm:text-xl font-black tracking-tight text-white"
+                >
+                  {authMode === 'login' ? 'Bienvenido de vuelta' : 'Bienvenido a Parqu'}
+                </h2>
+
+                {/* Animación FlipFadeText 3D letra por letra */}
+                <FlipFadeText
+                  words={
+                    authMode === 'login'
+                      ? ['ACCESO DIGITAL NFC', 'AUTOCOBRO EN VIVO', 'TARIFA $6.00 / HR', 'SIN FILAS NI MONEDAS']
+                      : ['CREA TU CUENTA NFC', 'REGISTRO EN SEGUNDOS', 'CIFRADO AES-256', 'PARQU METROPOLITANO']
+                  }
+                  interval={2400}
+                  className="min-h-[22px] sm:min-h-[24px] mt-0.5"
+                  textClassName="text-[10px] sm:text-[11px] font-mono text-[#807DFE] tracking-widest"
                 />
               </div>
-              <h2
-                id="parqu-auth-title"
-                className="text-lg sm:text-xl font-black tracking-tight text-white"
-              >
-                {authMode === 'login' ? 'Bienvenido de vuelta' : 'Bienvenido a Parqu'}
-              </h2>
-              <p className="text-[11px] sm:text-xs text-[#D4D6E6]/85 mt-0.5">
-                {authMode === 'login'
-                  ? 'Inicia sesión con tu cuenta para entrar al sistema'
-                  : 'Crea tu cuenta digital en segundos para comenzar'}
-              </p>
-            </div>
 
-            {/* Selector Iniciar Sesión / Registrarse */}
-            <div className="grid grid-cols-2 gap-1 p-1 rounded-2xl bg-white/10 mb-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthMode('login');
-                  setAuthError('');
-                }}
-                className={`py-2 rounded-xl text-xs font-bold transition cursor-pointer border-0 ${
-                  authMode === 'login'
-                    ? 'bg-[#0033FF] text-white shadow-md'
-                    : 'bg-transparent text-[#D4D6E6] hover:text-white'
-                }`}
-              >
-                Iniciar Sesión
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthMode('register');
-                  setAuthError('');
-                }}
-                className={`py-2 rounded-xl text-xs font-bold transition cursor-pointer border-0 ${
-                  authMode === 'register'
-                    ? 'bg-[#0033FF] text-white shadow-md'
-                    : 'bg-transparent text-[#D4D6E6] hover:text-white'
-                }`}
-              >
-                Registrarse
-              </button>
-            </div>
-
-            {/* Formulario compacto de Login / Registro */}
-            <form onSubmit={handleAuthSubmit} className="space-y-3 text-left">
-              {authMode === 'register' && (
-                <div>
-                  <label className="block text-[11px] font-bold text-[#D4D6E6] mb-1">
-                    Nombre completo
-                  </label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-[#807DFE] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="text"
-                      value={formData.fullName}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, fullName: e.target.value }))
-                      }
-                      placeholder="Ej. Sebastián Salinas"
-                      className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-[#807DFE]"
-                    />
+              {/* Barra de Telemetría Animada (AnimeCounter + Ondas Anime.js) */}
+              <div className="login-stagger-item relative z-10 flex items-center justify-between px-3 py-2 rounded-2xl bg-white/[0.06] border border-white/10 mb-3.5 text-[10px] font-mono">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-end gap-0.5 h-3.5">
+                    {[0, 1, 2, 3, 4].map((bar) => (
+                      <span
+                        key={bar}
+                        className="login-wave-bar w-0.5 h-3.5 rounded-full bg-emerald-400 inline-block origin-bottom"
+                      />
+                    ))}
                   </div>
+                  <span className="text-[#D4D6E6]">
+                    Tarifa:{' '}
+                    <AnimeCounter
+                      value={6}
+                      prefix="$"
+                      decimals={2}
+                      suffix="/hr"
+                      className="text-white font-bold"
+                    />
+                  </span>
                 </div>
-              )}
 
-              <div>
-                <label className="block text-[11px] font-bold text-[#D4D6E6] mb-1">
-                  Correo electrónico
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-[#807DFE] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, email: e.target.value }))
-                    }
-                    placeholder="usuario@correo.com"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-[#807DFE]"
+                <div className="text-emerald-300 font-bold">
+                  Saldo:{' '}
+                  <AnimeCounter
+                    value={Number(card?.balance ?? 320)}
+                    prefix="$"
+                    decimals={0}
+                    suffix=" MXN"
+                    className="text-emerald-300 font-bold"
                   />
                 </div>
               </div>
 
-              {authMode === 'register' && (
-                <div>
+              {/* Selector Iniciar Sesión / Registrarse */}
+              <div className="login-stagger-item relative z-10 grid grid-cols-2 gap-1 p-1 rounded-2xl bg-white/10 mb-3.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('login');
+                    setAuthError('');
+                  }}
+                  className={`py-2 rounded-xl text-xs font-bold transition cursor-pointer border-0 ${
+                    authMode === 'login'
+                      ? 'bg-[#0033FF] text-white shadow-md'
+                      : 'bg-transparent text-[#D4D6E6] hover:text-white'
+                  }`}
+                >
+                  Iniciar Sesión
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('register');
+                    setAuthError('');
+                  }}
+                  className={`py-2 rounded-xl text-xs font-bold transition cursor-pointer border-0 ${
+                    authMode === 'register'
+                      ? 'bg-[#0033FF] text-white shadow-md'
+                      : 'bg-transparent text-[#D4D6E6] hover:text-white'
+                  }`}
+                >
+                  Registrarse
+                </button>
+              </div>
+
+              {/* Formulario compacto de Login / Registro con Stagger Anime.js */}
+              <form onSubmit={handleAuthSubmit} className="relative z-10 space-y-2.5 text-left">
+                {authMode === 'register' && (
+                  <div className="login-stagger-item">
+                    <label className="block text-[11px] font-bold text-[#D4D6E6] mb-1">
+                      Nombre completo
+                    </label>
+                    <div className="relative">
+                      <User className="w-4 h-4 text-[#807DFE] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={formData.fullName}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, fullName: e.target.value }))
+                        }
+                        placeholder="Ej. Sebastián Salinas"
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-[#807DFE] transition"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="login-stagger-item">
                   <label className="block text-[11px] font-bold text-[#D4D6E6] mb-1">
-                    Placas de tu vehículo
+                    Correo electrónico
                   </label>
                   <div className="relative">
-                    <Car className="w-4 h-4 text-[#807DFE] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Mail className="w-4 h-4 text-[#807DFE] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
-                      type="text"
-                      value={formData.plates}
+                      type="email"
+                      value={formData.email}
                       onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          plates: e.target.value.toUpperCase(),
-                        }))
+                        setFormData((prev) => ({ ...prev, email: e.target.value }))
                       }
-                      placeholder="XYZ-7842"
-                      className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white/10 border border-white/15 text-xs font-mono uppercase text-white placeholder:text-white/40 focus:outline-none focus:border-[#807DFE]"
+                      placeholder="usuario@correo.com"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-[#807DFE] transition"
                     />
                   </div>
                 </div>
-              )}
 
-              <div>
-                <label className="block text-[11px] font-bold text-[#D4D6E6] mb-1">
-                  Contraseña
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-[#807DFE] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, password: e.target.value }))
-                    }
-                    placeholder="••••••••"
-                    className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-[#807DFE]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#D4D6E6] hover:text-white bg-transparent border-0 p-0 cursor-pointer"
+                {authMode === 'register' && (
+                  <div className="login-stagger-item">
+                    <label className="block text-[11px] font-bold text-[#D4D6E6] mb-1">
+                      Placas de tu vehículo
+                    </label>
+                    <div className="relative">
+                      <Car className="w-4 h-4 text-[#807DFE] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={formData.plates}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            plates: e.target.value.toUpperCase(),
+                          }))
+                        }
+                        placeholder="XYZ-7842"
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white/10 border border-white/15 text-xs font-mono uppercase text-white placeholder:text-white/40 focus:outline-none focus:border-[#807DFE] transition"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="login-stagger-item">
+                  <label className="block text-[11px] font-bold text-[#D4D6E6] mb-1">
+                    Contraseña
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-[#807DFE] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={formData.password}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, password: e.target.value }))
+                      }
+                      placeholder="••••••••"
+                      className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-[#807DFE] transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#D4D6E6] hover:text-white bg-transparent border-0 p-0 cursor-pointer"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-3.5 h-3.5" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {authError && (
+                  <p className="text-[11px] text-rose-300 font-medium text-center bg-rose-500/15 py-1.5 px-2.5 rounded-xl">
+                    {authError}
+                  </p>
+                )}
+
+                <div className="login-stagger-item pt-1.5">
+                  <RadialGlowButton
+                    type="submit"
+                    className="w-full py-3 rounded-xl text-xs sm:text-sm"
                   >
-                    {showPassword ? (
-                      <EyeOff className="w-3.5 h-3.5" />
-                    ) : (
-                      <Eye className="w-3.5 h-3.5" />
-                    )}
-                  </button>
+                    <span>
+                      {authMode === 'login' ? 'Iniciar Sesión y Entrar' : 'Registrarse y Entrar'}
+                    </span>
+                    <ArrowRight className="w-4 h-4" />
+                  </RadialGlowButton>
                 </div>
-              </div>
 
-              {authError && (
-                <p className="text-[11px] text-rose-300 font-medium text-center bg-rose-500/15 py-1.5 px-2.5 rounded-xl">
-                  {authError}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                className="w-full mt-1 py-3 rounded-xl bg-[#0033FF] hover:bg-[#1a47ff] active:scale-[0.99] text-white text-xs sm:text-sm font-bold transition shadow-[0_0_25px_rgba(0,51,255,0.55)] border-0 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>
-                  {authMode === 'login' ? 'Iniciar Sesión y Entrar' : 'Registrarse y Entrar'}
-                </span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
-          </div>
+                {/* Pie del Login con Logo SSS.Solutions 100% Transparente */}
+                <div className="login-stagger-item pt-2 flex items-center justify-center gap-2 bg-transparent border-0">
+                  <span className="text-[9px] font-mono uppercase tracking-widest text-[#D4D6E6]/65">
+                    Powered by
+                  </span>
+                  <img
+                    src="/sss-solutions-logo.png"
+                    alt="SSS.Solutions"
+                    className="h-4 w-auto object-contain bg-transparent border-0 shadow-none opacity-90"
+                  />
+                </div>
+              </form>
+            </div>
+          </AnimeCardSheen>
         </div>
       )}
     </div>

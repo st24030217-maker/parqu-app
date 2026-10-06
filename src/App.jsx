@@ -687,13 +687,13 @@ const MainContent = () => {
         <footer className="border-t border-slate-200/50 bg-transparent py-10 text-center text-xs text-slate-600 mt-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
             
-            {/* Identidad Parqu - Logo Negro para fondo blanco */}
-            <div className="flex items-center gap-3">
+            {/* Identidad Parqu - Logo Negro 100% transparente */}
+            <div className="flex items-center gap-3 bg-transparent">
               <img 
                 src="./parqu-logo-black.png" 
                 alt="Parqu" 
                 style={{ maxHeight: '32px' }}
-                className="h-8 w-auto object-contain"
+                className="h-8 w-auto object-contain bg-transparent"
               />
               <div className="text-left font-sans">
                 <span className="font-bold text-slate-900 tracking-wide block">Parqu Digital</span>
@@ -701,17 +701,17 @@ const MainContent = () => {
               </div>
             </div>
 
-            {/* Powered by SSS.Solutions - Logo Oficial */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 py-2 px-5 rounded-full bg-white/40 backdrop-blur-md border border-slate-200/50 font-sans shadow-none">
+            {/* Powered by SSS.Solutions - Logo Oficial 100% Transparente */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 py-2 px-4 bg-transparent border-0 font-sans shadow-none">
               <span className="text-[11px] uppercase tracking-[0.2em] font-mono text-slate-500">
                 Powered by
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-transparent">
                 <img 
                   src="/sss-solutions-logo.png" 
                   alt="SSS Solutions" 
                   style={{ maxHeight: '28px' }}
-                  className="h-7 w-auto object-contain hover:scale-105 transition-transform"
+                  className="h-7 w-auto object-contain bg-transparent hover:scale-105 transition-transform"
                 />
               </div>
             </div>

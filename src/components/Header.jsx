@@ -41,46 +41,35 @@ export const Header = memo(() => {
   return (
     <header
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-      className="fixed top-3 sm:top-4 inset-x-0 z-40 px-3 pointer-events-none flex justify-center"
+      className="fixed top-3 sm:top-4 inset-x-0 z-40 px-3 pointer-events-none flex justify-center bg-transparent"
     >
       <nav
         ref={islandRef}
         aria-label="Parqu"
-        className={`w-fit rounded-full backdrop-blur-2xl border px-3.5 h-10 flex items-center gap-2 pointer-events-auto transition-colors duration-300 ${
-          isScrolled
-            ? 'bg-white/95 border-slate-200/90 shadow-[0_10px_30px_rgba(15,23,42,0.10)]'
-            : 'bg-white/15 border-white/25 shadow-[0_10px_28px_rgba(0,20,80,0.18)]'
-        }`}
+        className="w-fit bg-transparent border-0 shadow-none px-2 h-10 flex items-center gap-2 pointer-events-auto"
       >
         <button
           type="button"
           aria-label="Parqu - Volver arriba"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="flex items-center gap-2 cursor-pointer group shrink-0 focus-visible:outline-none"
+          className="flex items-center gap-2 cursor-pointer group shrink-0 bg-transparent border-0 p-0 focus-visible:outline-none"
         >
-          <div className="relative h-5 w-auto flex items-center">
+          <div className="relative h-7 sm:h-8 w-auto flex items-center bg-transparent">
             <img
               src="./parqu-logo-white.png"
               alt="Parqu"
-              className={`h-5 w-auto object-contain transition-all duration-300 ${
+              className={`h-7 sm:h-8 w-auto object-contain bg-transparent transition-all duration-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)] ${
                 isScrolled ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'
               }`}
             />
             <img
               src="./parqu-logo-black.png"
               alt="Parqu"
-              className={`absolute inset-0 h-5 w-auto object-contain transition-all duration-300 ${
+              className={`absolute inset-0 h-7 sm:h-8 w-auto object-contain bg-transparent transition-all duration-300 drop-shadow-[0_2px_8px_rgba(255,255,255,0.8)] ${
                 isScrolled ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
               }`}
             />
           </div>
-          <span
-            className={`font-sans font-black text-xs sm:text-[13px] tracking-tight transition-colors duration-300 ${
-              isScrolled ? 'text-black' : 'text-white'
-            }`}
-          >
-            Parqu
-          </span>
           {activeSession && (
             <span
               title={`En Parquímetro: ${vehicle?.plates || ''}`}
