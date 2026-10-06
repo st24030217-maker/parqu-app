@@ -1,16 +1,13 @@
-// Motor de Notificacion Unica Estilo Uber Live Activity (Sin Audio, Sin Reproductor de Musica, Sin Spam)
+// Motor de Notificacion Unica Interactiva Estilo Uber con Linea Continua en Movimiento
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 
 let swRegistrationPromise = null;
 let cachedSwRegistration = null;
 
-function buildCleanProgressTrack(progressRatio) {
-  const totalSegments = 14;
-  const clamped = Math.min(1, Math.max(0.08, Number(progressRatio) || 0.15));
-  const filled = Math.min(totalSegments - 1, Math.max(1, Math.round(clamped * totalSegments)));
-  const left = '━'.repeat(filled);
-  const right = '─'.repeat(Math.max(1, totalSegments - filled - 1));
-  return `${left}●${right}`;
+function detectIsIOS() {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  return /iPhone|iPad|iPod/i.test(ua);
 }
 
 export const registerParquServiceWorker = () => {
@@ -93,6 +90,7 @@ export const buildParkingNotificationPayload = ({
   const rfidTag = card?.rfidTag || 'NFC-MX-09142-PK';
   const autoPayEnabled = autoPay?.enabled !== false;
   const autoPayStatus = autoPayEnabled ? 'Auto ON' : 'Auto OFF';
+  const isIOS = detectIsIOS();
 
   const historyMinutes = Array.isArray(transactions)
     ? transactions.reduce((acc, t) => acc + (Number(t?.durationMinutes) || 0), 0)
@@ -134,12 +132,8 @@ export const buildParkingNotificationPayload = ({
         : `${minutes}m ${String(seconds).padStart(2, '0')}s`;
     const progressPercent = Math.min(100, Math.max(8, Math.round(progressRatio * 100)));
 
-    const trackBar = buildCleanProgressTrack(progressRatio);
-    const title =
-      remainingMinutes >= 60
-        ? `Estancia activa • ${Math.floor(remainingMinutes / 60)}h ${remainingMinutes % 60}m`
-        : `Estancia activa • ${remainingMinutes} min`;
-    const body = `${plates} • ${carDesc} • Saldo $${balance}\n${trackBar}  ${scheduledHours}h ($${(scheduledHours * 6).toFixed(0)} MXN)`;
+    const title = `Estancia activa • ${clockStr} (${scheduledHours}h)`;
+    const body = `${plates} • ${carDesc} • Cobro: $${cost} MXN • Saldo: $${balance} MXN`;
 
     return {
       title,
@@ -160,6 +154,7 @@ export const buildParkingNotificationPayload = ({
       startTime: activeSession.startTime,
       baseSeconds: elapsedSeconds,
       isActive: true,
+      isIOS,
       fullName,
       plates,
       carDesc,
@@ -171,9 +166,8 @@ export const buildParkingNotificationPayload = ({
     };
   }
 
-  const trackBar = buildCleanProgressTrack(0.1);
-  const title = 'Parqu listo • $6.00/hr';
-  const body = `${plates} • ${carDesc} • Saldo $${balance}\n${trackBar}  En espera`;
+  const title = `Parqu listo • $6.00/hr • Saldo $${balance}`;
+  const body = `${plates} • ${carDesc} • Usa los botones para iniciar o recargar`;
 
   return {
     title,
@@ -194,6 +188,7 @@ export const buildParkingNotificationPayload = ({
     startTime: null,
     baseSeconds: 0,
     isActive: false,
+    isIOS,
     fullName,
     plates,
     carDesc,
@@ -240,7 +235,6 @@ export const notifyAppForegrounded = () => {
   }
 };
 
-// Envia ESTRICTAMENTE 1 sola notificacion estilo Uber al salir de la app (sin reproductor de musica ni duplicados)
 export const dispatchBackgroundNotificationImmediate = (contextData) => {
   const payload = buildParkingNotificationPayload(contextData);
 
@@ -283,7 +277,7 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
     icon: './parqu-logo-black.png',
     badge: './parqu-logo-black.png',
     tag: SINGLE_NOTIFICATION_TAG,
-    renotify: false,
+    renotify: true,
     silent: false,
     requireInteraction: true,
     actions,
@@ -295,16 +289,7 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
 
   try {
     if (cachedSwRegistration && typeof cachedSwRegistration.showNotification === 'function') {
-      if (typeof cachedSwRegistration.getNotifications === 'function') {
-        cachedSwRegistration
-          .getNotifications()
-          .then((list) => list.forEach((n) => n.close()))
-          .finally(() => {
-            cachedSwRegistration.showNotification(payload.title, options).catch(() => {});
-          });
-      } else {
-        cachedSwRegistration.showNotification(payload.title, options).catch(() => {});
-      }
+      cachedSwRegistration.showNotification(payload.title, options).catch(() => {});
       return { sent: true, payload };
     }
   } catch {

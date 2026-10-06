@@ -1,9 +1,13 @@
-// Service Worker Oficial de Parqu - Notificacion Unica Estilo Uber Live Activity (Sin Reproductor de Musica, Sin Spam)
+// Service Worker Oficial de Parqu - Tarjeta Interactiva Estilo Uber con Linea Continua en Movimiento
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 
 let latestParquState = null;
 let pendingActionsQueue = [];
+let backgroundIntervalId = null;
+let animFrame = 0;
 let isShowingLock = false;
+let lastActionFeedback = '';
+let lastActionFeedbackUntil = 0;
 
 self.addEventListener('install', () => {
   self.skipWaiting();
@@ -37,55 +41,55 @@ function drawRoundedRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-// Dibuja el auto blanco visto desde arriba sobre la barra de progreso (exactamente como Uber Live Activity)
-function drawTopDownCar(ctx, centerX, centerY) {
-  const carW = 46;
-  const carH = 22;
+// Dibuja el auto blanco visto desde arriba desplazandose suavemente sobre la linea continua
+function drawMovingTopDownCar(ctx, centerX, centerY, isActive) {
+  const carW = 50;
+  const carH = 24;
   const x = centerX - carW / 2;
   const y = centerY - carH / 2;
 
-  // Sombra suave del auto
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-  drawRoundedRect(ctx, x + 2, y + 3, carW, carH, 8);
+  // Estela luminosa detras del auto cuando esta en movimiento
+  if (isActive) {
+    const trailGrad = ctx.createLinearGradient(x - 36, centerY, x + 4, centerY);
+    trailGrad.addColorStop(0, 'rgba(56, 189, 248, 0)');
+    trailGrad.addColorStop(1, 'rgba(56, 189, 248, 0.55)');
+    ctx.fillStyle = trailGrad;
+    drawRoundedRect(ctx, x - 34, centerY - 5, 38, 10, 5);
+    ctx.fill();
+  }
+
+  // Sombra inferior del auto
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+  drawRoundedRect(ctx, x + 2, y + 3, carW, carH, 9);
   ctx.fill();
 
-  // Carroceria blanca
+  // Carroceria blanca continua
   ctx.fillStyle = '#ffffff';
-  drawRoundedRect(ctx, x, y, carW, carH, 8);
+  drawRoundedRect(ctx, x, y, carW, carH, 9);
   ctx.fill();
 
-  // Parabrisas delantero (derecha)
-  ctx.fillStyle = '#374151';
-  drawRoundedRect(ctx, x + 28, y + 3, 9, carH - 6, 3);
+  // Parabrisas delantero
+  ctx.fillStyle = '#1e293b';
+  drawRoundedRect(ctx, x + 31, y + 3, 10, carH - 6, 3);
   ctx.fill();
 
-  // Medallon trasero (izquierda)
-  ctx.fillStyle = '#4b5563';
+  // Medallon trasero
+  ctx.fillStyle = '#334155';
   drawRoundedRect(ctx, x + 6, y + 4, 6, carH - 8, 2);
   ctx.fill();
 
-  // Techo / detalle ambar tipo Uber
-  ctx.fillStyle = '#d97706';
-  drawRoundedRect(ctx, x + 15, y + 4, 10, carH - 8, 2);
+  // Techo panoramico
+  ctx.fillStyle = isActive ? '#0033ff' : '#d97706';
+  drawRoundedRect(ctx, x + 15, y + 4, 13, carH - 8, 3);
   ctx.fill();
 }
 
-// Barra de progreso limpia en texto para iOS/Android: ━━━━━━━━●────
-function buildCleanProgressTrack(progressRatio) {
-  const totalSegments = 14;
-  const clamped = Math.min(1, Math.max(0.08, Number(progressRatio) || 0.15));
-  const filled = Math.min(totalSegments - 1, Math.max(1, Math.round(clamped * totalSegments)));
-  const left = '━'.repeat(filled);
-  const right = '─'.repeat(Math.max(1, totalSegments - filled - 1));
-  return `${left}●${right}`;
-}
-
-// Genera la tarjeta oscura estilo Uber Live Activity (Pickup in 2 min / barra con auto)
-async function buildUberStyleCardImage(s, remainingMinutes, cost, progressRatio) {
+// Genera la tarjeta estilo Uber con una SOLA linea continua animada y el auto moviendose en tiempo real
+async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, animatedRatio) {
   if (typeof OffscreenCanvas === 'undefined') return undefined;
   try {
     const width = 640;
-    const height = 250;
+    const height = 256;
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
     if (!ctx) return undefined;
@@ -96,117 +100,136 @@ async function buildUberStyleCardImage(s, remainingMinutes, cost, progressRatio)
     const plates = s.plates || 'XYZ-7842';
     const carDesc = s.carDesc || 'Volkswagen Jetta';
     const balance = Number(s.balance ?? 320).toFixed(0);
+    const hasFeedback = Date.now() < lastActionFeedbackUntil && lastActionFeedback;
 
-    // Tarjeta oscura redondeada estilo Uber Lock Screen
-    const cardX = 16;
-    const cardY = 10;
-    const cardW = width - 32;
-    const cardH = height - 20;
+    // Fondo de tarjeta estilo Uber Lock Screen
+    const cardX = 14;
+    const cardY = 8;
+    const cardW = width - 28;
+    const cardH = height - 16;
 
     const grad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
-    grad.addColorStop(0, '#18191c');
-    grad.addColorStop(1, '#101114');
+    grad.addColorStop(0, '#16181d');
+    grad.addColorStop(1, '#0d0f13');
     ctx.fillStyle = grad;
-    drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 36);
+    drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 34);
     ctx.fill();
 
     ctx.lineWidth = 1.5;
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.strokeStyle = s.isActive ? 'rgba(56, 189, 248, 0.35)' : 'rgba(255, 255, 255, 0.14)';
     ctx.stroke();
 
-    // Marca arriba a la izquierda ("Parqu" como "Uber")
+    // Encabezado superior: Parqu a la izquierda, Saldo / Confirmacion de accion a la derecha
     ctx.textAlign = 'left';
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 20px sans-serif';
-    ctx.fillText('Parqu', cardX + 32, cardY + 42);
+    ctx.fillText('Parqu', cardX + 30, cardY + 38);
 
-    // Estado derecha superior (Saldo NFC)
     ctx.textAlign = 'right';
-    ctx.fillStyle = '#9ca3af';
+    ctx.fillStyle = hasFeedback ? '#34d399' : '#38bdf8';
     ctx.font = 'bold 15px sans-serif';
-    ctx.fillText(`Saldo $${balance} MXN`, cardX + cardW - 32, cardY + 42);
+    ctx.fillText(
+      hasFeedback ? lastActionFeedback : `Saldo NFC: $${balance} MXN`,
+      cardX + cardW - 30,
+      cardY + 38
+    );
 
-    // Titulo principal grande ("Estancia: 58 min" como "Pickup in 2 min")
+    // Titulo principal grande en vivo
     ctx.textAlign = 'left';
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 34px sans-serif';
+    ctx.font = 'bold 32px sans-serif';
     ctx.fillText(
       s.isActive
-        ? `Tiempo restante: ${remainingMinutes} min`
-        : 'Listo para estacionar',
-      cardX + 32,
-      cardY + 92
+        ? `Estancia activa • ${clockStr}`
+        : 'Listo para estacionar ($6/hr)',
+      cardX + 30,
+      cardY + 84
     );
 
-    // Subtitulo ("XYZ-7842 • Volkswagen Jetta" como "3XFH2C • Silver Honda Civic")
+    // Subtitulo del vehiculo y cobro
     ctx.fillStyle = '#9ca3af';
-    ctx.font = '21px sans-serif';
+    ctx.font = '20px sans-serif';
     ctx.fillText(
-      `${plates} • ${carDesc} • ${scheduledHours}h ($${cost})`,
-      cardX + 32,
-      cardY + 124
+      s.isActive
+        ? `${plates} • ${carDesc} • ${scheduledHours}h ($${cost} MXN) • Restan ${remainingLabel}`
+        : `${plates} • ${carDesc} • Saldo disponible $${balance} MXN`,
+      cardX + 30,
+      cardY + 116
     );
 
-    // Barra de progreso horizontal con el auto blanco avanzando hacia el punto final
+    // ════════════════════════════════════════════════════════════════
+    // LINEA CONTINUA ANIMADA (1 SOLA BARRA FLUIDA CON EL AUTO EN MOVIMIENTO)
+    // ════════════════════════════════════════════════════════════════
     const barLeft = cardX + 32;
-    const barRight = cardX + cardW - 36;
+    const barRight = cardX + cardW - 38;
     const barWidth = barRight - barLeft;
-    const barY = cardY + 162;
+    const barY = cardY + 156;
 
-    // Linea gris de fondo
-    ctx.fillStyle = '#4b5563';
-    drawRoundedRect(ctx, barLeft, barY - 3, barWidth, 6, 3);
+    // Pista base continua (1 sola linea solida sin cortes)
+    ctx.fillStyle = '#374151';
+    drawRoundedRect(ctx, barLeft, barY - 4, barWidth, 8, 4);
     ctx.fill();
 
-    // Linea blanca de avance
-    const clampedRatio = s.isActive
-      ? Math.min(0.92, Math.max(0.12, Number(progressRatio) || 0.2))
-      : 0.12;
-    const carX = barLeft + Math.round(barWidth * clampedRatio);
+    // Posicion animada continua del auto sobre la linea
+    const carX = barLeft + Math.round(barWidth * animatedRatio);
 
+    // Relleno continuo blanco/azul desde el inicio hasta la posicion actual del auto
+    const fillWidth = Math.max(14, carX - barLeft);
+    const barGrad = ctx.createLinearGradient(barLeft, barY, carX, barY);
+    barGrad.addColorStop(0, '#0033ff');
+    barGrad.addColorStop(0.5, '#38bdf8');
+    barGrad.addColorStop(1, '#ffffff');
+    ctx.fillStyle = barGrad;
+    drawRoundedRect(ctx, barLeft, barY - 4, fillWidth, 8, 4);
+    ctx.fill();
+
+    // Punto de inicio (izquierda)
+    ctx.beginPath();
+    ctx.arc(barLeft, barY, 5, 0, Math.PI * 2);
     ctx.fillStyle = '#ffffff';
-    drawRoundedRect(ctx, barLeft, barY - 3, Math.max(12, carX - barLeft), 6, 3);
     ctx.fill();
 
-    // Circulo destino al final de la barra (derecha)
+    // Punto destino al final de la linea (derecha) con pulso animado
+    const pulseRadius = 9 + Math.sin(animFrame * 0.6) * 2;
     ctx.beginPath();
-    ctx.arc(barRight, barY, 9, 0, Math.PI * 2);
-    ctx.fillStyle = '#4b5563';
+    ctx.arc(barRight, barY, pulseRadius, 0, Math.PI * 2);
+    ctx.fillStyle = s.isActive ? 'rgba(56, 189, 248, 0.35)' : '#4b5563';
     ctx.fill();
+
     ctx.beginPath();
-    ctx.arc(barRight, barY, 3.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#101114';
+    ctx.arc(barRight, barY, 5, 0, Math.PI * 2);
+    ctx.fillStyle = s.isActive ? '#38bdf8' : '#9ca3af';
     ctx.fill();
 
-    // Auto blanco visto desde arriba sobre la barra
-    drawTopDownCar(ctx, carX, barY);
+    // Auto blanco moviendose continuamente sobre la linea
+    drawMovingTopDownCar(ctx, carX, barY, Boolean(s.isActive));
 
-    // Fila inferior de los 3 controles dentro del bloque
+    // Fila inferior: Indicadores visuales de los 3 botones interactivos
     const controls = [
-      { label: '+1 Hora ($6)', bg: '#262930', fg: '#ffffff' },
-      { label: 'Recargar +$50', bg: '#262930', fg: '#38bdf8' },
+      { label: '+1 Hora ($6)', bg: '#0033ff', fg: '#ffffff' },
+      { label: 'Recargar +$50', bg: '#1e293b', fg: '#38bdf8' },
       {
         label: s.isActive ? 'Cancelar Parqu' : 'Iniciar Parqu',
-        bg: s.isActive ? '#3f1d24' : '#143829',
-        fg: s.isActive ? '#fca5a5' : '#6ee7b7',
+        bg: s.isActive ? '#7f1d1d' : '#065f46',
+        fg: '#ffffff',
       },
     ];
 
     const btnGap = 10;
     const btnW = Math.floor((barWidth - btnGap * 2) / 3);
-    const btnH = 34;
+    const btnH = 38;
     const btnY = cardY + 186;
 
     controls.forEach((c, idx) => {
       const bx = barLeft + idx * (btnW + btnGap);
       ctx.fillStyle = c.bg;
-      drawRoundedRect(ctx, bx, btnY, btnW, btnH, 17);
+      drawRoundedRect(ctx, bx, btnY, btnW, btnH, 19);
       ctx.fill();
 
       ctx.textAlign = 'center';
       ctx.fillStyle = c.fg;
       ctx.font = 'bold 13px sans-serif';
-      ctx.fillText(c.label, bx + Math.round(btnW / 2), btnY + 22);
+      ctx.fillText(c.label, bx + Math.round(btnW / 2), btnY + 24);
     });
 
     const blob = await canvas.convertToBlob({ type: 'image/png' });
@@ -217,7 +240,7 @@ async function buildUberStyleCardImage(s, remainingMinutes, cost, progressRatio)
   }
 }
 
-async function buildSingleUberStyleNotification(state) {
+async function buildLiveNotificationPayload(state, isInitialAlert = false) {
   const s = state || latestParquState || {};
   const plates = s.plates || 'XYZ-7842';
   const carDesc = s.carDesc || 'Volkswagen Jetta';
@@ -229,10 +252,20 @@ async function buildSingleUberStyleNotification(state) {
       Number(s.baseSeconds) || 0,
       Math.floor((Date.now() - new Date(s.startTime).getTime()) / 1000)
     );
+    const hours = Math.floor(elapsedSeconds / 3600);
+    const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+    const seconds = elapsedSeconds % 60;
+    const clockStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
     const totalScheduledSeconds = scheduledHours * 3600;
-    const remainingSeconds = Math.max(60, totalScheduledSeconds - elapsedSeconds);
-    const remainingMinutes = Math.ceil(remainingSeconds / 60);
-    const progressRatio = Math.min(0.95, Math.max(0.1, elapsedSeconds / totalScheduledSeconds));
+    const remainingSeconds = Math.max(0, totalScheduledSeconds - elapsedSeconds);
+    const remH = Math.floor(remainingSeconds / 3600);
+    const remM = Math.floor((remainingSeconds % 3600) / 60);
+    const remS = remainingSeconds % 60;
+    const remainingLabel =
+      remH > 0
+        ? `${remH}h ${String(remM).padStart(2, '0')}m`
+        : `${remM}m ${String(remS).padStart(2, '0')}s`;
 
     const rate = Number(s.rate || 6.0);
     const maxLimit = Number(s.maxLimit || 180.0);
@@ -241,20 +274,18 @@ async function buildSingleUberStyleNotification(state) {
       Number(((elapsedSeconds * (rate / 3600)) || 0).toFixed(2))
     ).toFixed(2);
 
-    const trackBar = buildCleanProgressTrack(progressRatio);
-    const cardImage = await buildUberStyleCardImage(s, remainingMinutes, cost, progressRatio);
+    // Movimiento continuo fluido de la linea y el auto en cada fotograma
+    const cycleWave = ((animFrame % 20) / 20) * 0.78 + 0.12;
+    const cardImage = await buildAnimatedUberCardImage(
+      s,
+      clockStr,
+      remainingLabel,
+      cost,
+      cycleWave
+    );
 
-    // Estructura identica a Uber:
-    // Titulo: Tiempo restante: 59 min (o Xh Ym)
-    // Subtitulo: XYZ-7842 • Volkswagen Jetta • Saldo $320
-    // Barra: ━━━━━━━━●────  1h ($6.00/hr)
-    const timeHeadline =
-      remainingMinutes >= 60
-        ? `Estancia activa • ${Math.floor(remainingMinutes / 60)}h ${remainingMinutes % 60}m`
-        : `Estancia activa • ${remainingMinutes} min`;
-
-    const title = timeHeadline;
-    const body = `${plates} • ${carDesc} • Saldo $${balance}\n${trackBar}  ${scheduledHours}h ($${(scheduledHours * 6).toFixed(0)} MXN)`;
+    const title = `Estancia activa • ${clockStr} (${scheduledHours}h)`;
+    const body = `${plates} • ${carDesc} • Cobro: $${cost} MXN • Saldo: $${balance} MXN`;
 
     return {
       title,
@@ -264,8 +295,8 @@ async function buildSingleUberStyleNotification(state) {
         badge: './parqu-logo-black.png',
         image: cardImage,
         tag: SINGLE_NOTIFICATION_TAG,
-        renotify: false,
-        silent: false,
+        renotify: Boolean(isInitialAlert),
+        silent: !isInitialAlert,
         requireInteraction: true,
         actions: [
           { action: 'add_hour', title: '+1 Hora ($6)' },
@@ -280,10 +311,16 @@ async function buildSingleUberStyleNotification(state) {
     };
   }
 
-  const trackBar = buildCleanProgressTrack(0.1);
-  const cardImage = await buildUberStyleCardImage(s, 60, '0.00', 0.1);
-  const title = 'Parqu listo • $6.00/hr';
-  const body = `${plates} • ${carDesc} • Saldo $${balance}\n${trackBar}  En espera`;
+  const standbyWave = ((animFrame % 24) / 24) * 0.65 + 0.14;
+  const cardImage = await buildAnimatedUberCardImage(
+    s,
+    '00:00:00',
+    '60m 00s',
+    '0.00',
+    standbyWave
+  );
+  const title = `Parqu listo • $6.00/hr • Saldo $${balance}`;
+  const body = `${plates} • ${carDesc} • Usa los botones para iniciar o recargar`;
 
   return {
     title,
@@ -293,8 +330,8 @@ async function buildSingleUberStyleNotification(state) {
       badge: './parqu-logo-black.png',
       image: cardImage,
       tag: SINGLE_NOTIFICATION_TAG,
-      renotify: false,
-      silent: false,
+      renotify: Boolean(isInitialAlert),
+      silent: !isInitialAlert,
       requireInteraction: true,
       actions: [
         { action: 'start_parking', title: 'Iniciar Parqu' },
@@ -309,7 +346,14 @@ async function buildSingleUberStyleNotification(state) {
   };
 }
 
-async function closeAllPreviousNotifications() {
+function stopBackgroundLoop() {
+  if (backgroundIntervalId) {
+    clearInterval(backgroundIntervalId);
+    backgroundIntervalId = null;
+  }
+}
+
+async function closeAllNotifications() {
   if (!self.registration || typeof self.registration.getNotifications !== 'function') return;
   try {
     const notifications = await self.registration.getNotifications();
@@ -319,18 +363,58 @@ async function closeAllPreviousNotifications() {
   }
 }
 
-async function renderSingleNotificationOnce() {
+async function closeOtherTagNotifications() {
+  if (!self.registration || typeof self.registration.getNotifications !== 'function') return;
+  try {
+    const notifications = await self.registration.getNotifications();
+    notifications.forEach((n) => {
+      if (n.tag !== SINGLE_NOTIFICATION_TAG) {
+        n.close();
+      }
+    });
+  } catch {
+    // ignore
+  }
+}
+
+// Renderiza la notificacion actualizando en su mismo lugar (in-place) el mismo tag sin apilar
+async function renderNotificationFrame(isInitialAlert = false) {
   if (isShowingLock || !self.registration || !self.registration.showNotification) return;
   isShowingLock = true;
   try {
-    await closeAllPreviousNotifications();
-    const { title, options } = await buildSingleUberStyleNotification(latestParquState);
+    await closeOtherTagNotifications();
+    animFrame += 1;
+    const { title, options } = await buildLiveNotificationPayload(
+      latestParquState,
+      isInitialAlert
+    );
     await self.registration.showNotification(title, options);
   } catch {
     // ignore
   } finally {
     isShowingLock = false;
   }
+}
+
+// Bucle de animacion en vivo (en iOS no repite para evitar apilamiento; en Android/Desktop mueve el auto y reloj en vivo)
+function startLiveAnimationLoop(resolvePromise) {
+  stopBackgroundLoop();
+  const isIOS = Boolean(latestParquState && latestParquState.isIOS);
+  if (isIOS) {
+    if (resolvePromise) resolvePromise();
+    return;
+  }
+
+  let ticks = 0;
+  backgroundIntervalId = setInterval(() => {
+    ticks += 1;
+    if (ticks > 90) {
+      stopBackgroundLoop();
+      if (resolvePromise) resolvePromise();
+      return;
+    }
+    renderNotificationFrame(false);
+  }, 1200);
 }
 
 async function broadcastActionToClients(actionObj) {
@@ -364,6 +448,7 @@ self.addEventListener('message', (event) => {
   }
 
   if (event.data.type === 'APP_FOREGROUNDED') {
+    stopBackgroundLoop();
     if (pendingActionsQueue.length > 0 && event.source) {
       pendingActionsQueue.forEach((act) => {
         event.source.postMessage({
@@ -374,7 +459,7 @@ self.addEventListener('message', (event) => {
       });
       pendingActionsQueue = [];
     }
-    event.waitUntil(closeAllPreviousNotifications());
+    event.waitUntil(closeAllNotifications());
     return;
   }
 
@@ -385,7 +470,15 @@ self.addEventListener('message', (event) => {
       latestParquState = event.data.payload;
     }
 
-    event.waitUntil(renderSingleNotificationOnce());
+    stopBackgroundLoop();
+
+    const showAndAnimatePromise = new Promise((resolve) => {
+      renderNotificationFrame(true).finally(() => {
+        startLiveAnimationLoop(resolve);
+      });
+    });
+
+    event.waitUntil(showAndAnimatePromise);
   }
 });
 
@@ -394,6 +487,9 @@ self.addEventListener('notificationclick', (event) => {
 
   if (action === 'start_parking') {
     const nowIso = new Date().toISOString();
+    lastActionFeedback = 'PARQUIMETRO INICIADO ($6/HR)';
+    lastActionFeedbackUntil = Date.now() + 6000;
+
     latestParquState = {
       ...(latestParquState || {}),
       isActive: true,
@@ -406,10 +502,11 @@ self.addEventListener('notificationclick', (event) => {
 
     event.waitUntil(
       Promise.all([
-        renderSingleNotificationOnce(),
+        renderNotificationFrame(false),
         broadcastActionToClients({ action: 'START_PARKING', startTime: nowIso }),
       ])
     );
+    startLiveAnimationLoop();
     return;
   }
 
@@ -417,6 +514,8 @@ self.addEventListener('notificationclick', (event) => {
     const s = latestParquState || {};
     const nowIso = s.startTime || new Date().toISOString();
     const nextHours = s.isActive ? (Number(s.scheduledHours) || 1) + 1 : 1;
+    lastActionFeedback = `+1 HORA APLICADA (TOTAL ${nextHours}H)`;
+    lastActionFeedbackUntil = Date.now() + 6000;
 
     latestParquState = {
       ...s,
@@ -429,10 +528,11 @@ self.addEventListener('notificationclick', (event) => {
 
     event.waitUntil(
       Promise.all([
-        renderSingleNotificationOnce(),
+        renderNotificationFrame(false),
         broadcastActionToClients({ action: 'ADD_HOUR', hoursAdded: 1, scheduledHours: nextHours }),
       ])
     );
+    startLiveAnimationLoop();
     return;
   }
 
@@ -446,6 +546,9 @@ self.addEventListener('notificationclick', (event) => {
     const prevBalance = Number(s.balance ?? 320);
     const nextBalance = Math.max(0, prevBalance - finalCharge).toFixed(2);
 
+    lastActionFeedback = `ESTANCIA CANCELADA (-$${finalCharge.toFixed(2)})`;
+    lastActionFeedbackUntil = Date.now() + 6000;
+
     latestParquState = {
       ...s,
       isActive: false,
@@ -457,7 +560,7 @@ self.addEventListener('notificationclick', (event) => {
 
     event.waitUntil(
       Promise.all([
-        renderSingleNotificationOnce(),
+        renderNotificationFrame(false),
         broadcastActionToClients({ action: 'CANCEL_PARKING', amount: finalCharge }),
       ])
     );
@@ -467,6 +570,9 @@ self.addEventListener('notificationclick', (event) => {
   if (action === 'add_balance_50') {
     const s = latestParquState || {};
     const nextBalance = (Number(s.balance ?? 320) + 50).toFixed(2);
+    lastActionFeedback = `+$50 RECARGADOS (SALDO $${Number(nextBalance).toFixed(0)})`;
+    lastActionFeedbackUntil = Date.now() + 6000;
+
     latestParquState = {
       ...s,
       balance: nextBalance,
@@ -474,7 +580,7 @@ self.addEventListener('notificationclick', (event) => {
 
     event.waitUntil(
       Promise.all([
-        renderSingleNotificationOnce(),
+        renderNotificationFrame(false),
         broadcastActionToClients({ action: 'ADD_BALANCE', amount: 50 }),
       ])
     );
@@ -482,6 +588,7 @@ self.addEventListener('notificationclick', (event) => {
   }
 
   event.notification.close();
+  stopBackgroundLoop();
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
