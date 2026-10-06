@@ -26,6 +26,7 @@ import CloudSky from './ui/cloud-sky';
 import { AnimeCardSheen } from './ui/anime-card-sheen';
 import { AnimeCounter } from './ui/anime-counter';
 import { FlipFadeText } from './ui/flip-fade-text';
+import CurvedLoop from './ui/CurvedLoop';
 import { RadialGlowButton } from './ui/radial-glow-button';
 import { useParking } from '../context/ParkingContext';
 import { requestParkingNotificationPermission } from '../utils/parkingNotification';
@@ -876,20 +877,21 @@ export const LoadingScreen = ({ onComplete }) => {
                   {authMode === 'login' ? 'Bienvenido de vuelta' : 'Bienvenido a Parqu'}
                 </h2>
 
-                {/* Animación FlipFadeText 3D más lenta y con letras blancas */}
-                <FlipFadeText
-                  words={
-                    authMode === 'login'
-                      ? ['ACCESO DIGITAL NFC', 'AUTOCOBRO EN VIVO', 'SIN FILAS NI MONEDAS']
-                      : ['CREA TU CUENTA NFC', 'REGISTRO EN SEGUNDOS', 'PARQU METROPOLITANO']
-                  }
-                  interval={4500}
-                  letterDuration={0.9}
-                  staggerDelay={0.095}
-                  exitStaggerDelay={0.055}
-                  className="min-h-[26px] sm:min-h-[28px] mt-1.5"
-                  textClassName="text-xs sm:text-[13px] font-mono font-bold text-white tracking-widest"
-                />
+                {/* Animación CurvedLoop-JS-CSS de React Bits debajo de "Bienvenido de vuelta" */}
+                <div className="mt-1">
+                  <CurvedLoop
+                    marqueeText={
+                      authMode === 'login'
+                        ? 'ACCESO DIGITAL NFC ✦ AUTOCOBRO EN VIVO ✦ SIN FILAS NI MONEDAS ✦'
+                        : 'CREA TU CUENTA NFC ✦ REGISTRO EN SEGUNDOS ✦ PARQU METROPOLITANO ✦'
+                    }
+                    speed={1.2}
+                    curveAmount={115}
+                    direction="left"
+                    interactive={true}
+                    className="fill-white font-mono"
+                  />
+                </div>
               </div>
 
               {/* Selector Iniciar Sesión / Registrarse */}
