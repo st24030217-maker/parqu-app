@@ -1,4 +1,4 @@
-// Service Worker Oficial de Parqu - Notificacion Interactiva Estilo Dynamic Island en 2o Plano
+// Service Worker Oficial de Parqu - Bloque de Monitoreo y Control en Barra de Notificaciones
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 const WAVE_CHARS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
 
@@ -16,7 +16,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Mini onda compacta tipo Dynamic Island (solo 5 barras, nunca larga)
+// Mini onda compacta tipo Dynamic Island (solo 5 barras, cero emojis)
 function buildIslandWave(frame, isActive = true) {
   let out = '';
   for (let i = 0; i < 5; i += 1) {
@@ -41,7 +41,6 @@ function arrayBufferToBase64DataUrl(buffer, mime = 'image/png') {
   return `data:${mime};base64,${self.btoa(binary)}`;
 }
 
-// Dibuja una pildora redondeada en Canvas
 function drawRoundedPill(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -56,38 +55,44 @@ function drawRoundedPill(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-// Genera una capsula estilo Dynamic Island de iPhone + Mini Centro de Control (sin barras largas)
-async function buildDynamicIslandImage(s, clockStr, cost, frame) {
+// Genera el bloque visual de monitoreo y controles para la barra de notificaciones
+async function buildControlBlockImage(s, clockStr, cost, frame) {
   if (typeof OffscreenCanvas === 'undefined') return undefined;
   try {
     const width = 600;
-    const height = 210;
+    const height = 224;
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
     if (!ctx) return undefined;
 
     ctx.clearRect(0, 0, width, height);
 
-    // Capsula Dynamic Island centrada (no abarca todo el ancho)
-    const pillW = 476;
-    const pillH = 122;
+    const scheduledHours = Math.max(1, Number(s.scheduledHours) || 1);
+    const plates = s.plates || 'XYZ-7842';
+    const balance = Number(s.balance ?? 320).toFixed(2);
+
+    // Capsula superior de Monitoreo del Parquimetro (Dynamic Island)
+    const pillW = 520;
+    const pillH = 128;
     const pillX = Math.round((width - pillW) / 2);
-    const pillY = 14;
+    const pillY = 12;
 
     ctx.fillStyle = '#07080c';
-    drawRoundedPill(ctx, pillX, pillY, pillW, pillH, 61);
+    drawRoundedPill(ctx, pillX, pillY, pillW, pillH, 64);
     ctx.fill();
 
     ctx.lineWidth = 2;
-    ctx.strokeStyle = s.isActive ? '#38bdf8' : 'rgba(255,255,255,0.22)';
+    ctx.strokeStyle = s.isActive ? '#38bdf8' : 'rgba(255,255,255,0.24)';
     ctx.stroke();
 
-    // Izquierda de la Isla: Estado + Reloj en vivo
+    // Izquierda: Estado de monitoreo + Cronometro en vivo
     ctx.textAlign = 'left';
     ctx.fillStyle = s.isActive ? '#38bdf8' : '#34d399';
     ctx.font = 'bold 13px monospace';
     ctx.fillText(
-      s.isActive ? `PARQU • ${s.plates || 'XYZ-7842'}` : `LISTO • ${s.plates || 'XYZ-7842'}`,
+      s.isActive
+        ? `MONITOREO • ${plates} • ${scheduledHours}H`
+        : `EN ESPERA • ${plates}`,
       pillX + 32,
       pillY + 40
     );
@@ -96,72 +101,85 @@ async function buildDynamicIslandImage(s, clockStr, cost, frame) {
     ctx.font = 'bold 36px monospace';
     ctx.fillText(s.isActive ? clockStr : '00:00:00', pillX + 32, pillY + 86);
 
-    // Centro: Mini ondas estilo Dynamic Island
-    const waveX = pillX + 250;
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 11px monospace';
+    ctx.fillText(
+      s.isActive
+        ? `TIEMPO PROGRAMADO: ${scheduledHours} HORA${scheduledHours > 1 ? 'S' : ''} ($${(scheduledHours * 6).toFixed(2)})`
+        : 'TARIFA OFICIAL: $6.00 MXN / HORA',
+      pillX + 32,
+      pillY + 110
+    );
+
+    // Centro: Mini ondas en vivo
+    const waveX = pillX + 278;
     for (let i = 0; i < 6; i += 1) {
       const amp = (Math.sin(frame * 0.85 + i * 0.7) + 1) / 2;
       const barH = Math.max(8, Math.round(amp * 34));
-      const barY = pillY + Math.round((pillH - barH) / 2);
+      const barY = pillY + Math.round((pillH - barH) / 2) - 4;
       ctx.fillStyle = s.isActive ? '#f59e0b' : '#38bdf8';
       drawRoundedPill(ctx, waveX + i * 9, barY, 5, barH, 2.5);
       ctx.fill();
     }
 
-    // Derecha de la Isla: Cobro / Saldo
+    // Derecha: Cobro actual y Saldo disponible
     ctx.textAlign = 'right';
     ctx.fillStyle = '#94a3b8';
     ctx.font = 'bold 12px monospace';
-    ctx.fillText(s.isActive ? 'COBRO ($6/H)' : 'SALDO NFC', pillX + pillW - 32, pillY + 40);
+    ctx.fillText(s.isActive ? 'COBRO ACTUAL' : 'SALDO DISPONIBLE', pillX + pillW - 32, pillY + 40);
 
     ctx.fillStyle = '#38bdf8';
     ctx.font = 'bold 28px sans-serif';
     ctx.fillText(
-      s.isActive ? `$${cost}` : `$${s.balance || '320'}`,
+      s.isActive ? `$${cost}` : `$${balance}`,
       pillX + pillW - 32,
-      pillY + 84
+      pillY + 82
     );
 
-    // Fila inferior: Mini Centro de Control de Accesos Rapidos (3 pildoras compactas)
-    const autoPayOn = s.autoPayEnabled !== false;
+    ctx.fillStyle = '#34d399';
+    ctx.font = 'bold 11px monospace';
+    ctx.fillText(`SALDO: $${balance} MXN`, pillX + pillW - 32, pillY + 110);
+
+    // Fila inferior: Bloque de 3 Controles Rapidos (Aumentar Horas, Recargar, Cancelar/Iniciar)
     const pills = [
       {
-        label: s.isActive ? 'FINALIZAR ESTANCIA' : 'INICIAR $6.00/HR',
-        bg: s.isActive ? '#f59e0b' : '#0033ff',
-        fg: s.isActive ? '#050505' : '#ffffff',
+        label: '+1 HORA ($6.00)',
+        bg: '#0033ff',
+        fg: '#ffffff',
       },
       {
-        label: '+$50 SALDO NFC',
+        label: 'RECARGAR +$50',
         bg: '#111827',
         fg: '#38bdf8',
       },
       {
-        label: autoPayOn ? 'AUTOCOBRO ON' : 'AUTOCOBRO OFF',
-        bg: '#111827',
-        fg: autoPayOn ? '#34d399' : '#94a3b8',
+        label: s.isActive ? 'CANCELAR PARQU' : 'INICIAR PARQU',
+        bg: s.isActive ? '#dc2626' : '#059669',
+        fg: '#ffffff',
       },
     ];
 
-    const dockW = 476;
+    const dockW = 520;
     const dockX = pillX;
-    const dockY = 148;
+    const dockY = 154;
     const gap = 8;
     const itemW = Math.floor((dockW - gap * 2) / 3);
-    const itemH = 44;
+    const itemH = 48;
 
     pills.forEach((p, idx) => {
       const x = dockX + idx * (itemW + gap);
       ctx.fillStyle = p.bg;
-      drawRoundedPill(ctx, x, dockY, itemW, itemH, 22);
+      drawRoundedPill(ctx, x, dockY, itemW, itemH, 24);
       ctx.fill();
 
       ctx.lineWidth = 1.5;
-      ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
       ctx.stroke();
 
       ctx.textAlign = 'center';
       ctx.fillStyle = p.fg;
-      ctx.font = 'bold 11px monospace';
-      ctx.fillText(p.label, x + Math.round(itemW / 2), dockY + 26);
+      ctx.font = 'bold 12px monospace';
+      ctx.fillText(p.label, x + Math.round(itemW / 2), dockY + 29);
     });
 
     const blob = await canvas.convertToBlob({ type: 'image/png' });
@@ -177,8 +195,7 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
   const plates = s.plates || 'XYZ-7842';
   const carDesc = s.carDesc || 'Volkswagen Jetta';
   const balance = Number(s.balance ?? 320).toFixed(2);
-  const autoPayEnabled = s.autoPayEnabled !== false;
-  const autoPayLabel = autoPayEnabled ? 'Auto ON' : 'Auto OFF';
+  const scheduledHours = Math.max(1, Number(s.scheduledHours) || 1);
   const wave = buildIslandWave(waveFrame, Boolean(s.isActive));
 
   if (s.isActive && s.startTime) {
@@ -197,10 +214,10 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
     ).toFixed(2);
 
     const clockStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    const islandImage = await buildDynamicIslandImage(s, clockStr, cost, waveFrame);
+    const islandImage = await buildControlBlockImage(s, clockStr, cost, waveFrame);
 
-    const title = `Centro Parqu  ${wave}  ${clockStr} • $${cost}`;
-    const body = `Accesos Rápidos • ${plates} (${carDesc}) • Saldo $${balance} • ${autoPayLabel}`;
+    const title = `Parqu  ${wave}  ${clockStr} • ${scheduledHours}h ($${cost})`;
+    const body = `Monitoreo: ${plates} • Tiempo: ${scheduledHours}h ($6/h) • Saldo: $${balance} MXN`;
 
     return {
       title,
@@ -212,14 +229,12 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
         tag: SINGLE_NOTIFICATION_TAG,
         renotify: !isSilentUpdate,
         silent: isSilentUpdate,
+        vibrate: isSilentUpdate ? undefined : [180, 80, 180],
         requireInteraction: true,
         actions: [
-          { action: 'stop_parking', title: 'Finalizar' },
-          { action: 'add_balance_50', title: '+$50 NFC' },
-          {
-            action: 'toggle_autopay',
-            title: autoPayEnabled ? 'Auto OFF' : 'Auto ON',
-          },
+          { action: 'add_hour', title: '+1 Hora ($6)' },
+          { action: 'add_balance_50', title: 'Recargar +$50' },
+          { action: 'cancel_parking', title: 'Cancelar Parqu' },
         ],
         data: {
           url: './',
@@ -229,9 +244,9 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
     };
   }
 
-  const islandImage = await buildDynamicIslandImage(s, '00:00:00', '0.00', waveFrame);
-  const title = `Centro Parqu  ${wave}  ${plates} • $${balance}`;
-  const body = `Accesos Rápidos ($6.00/hr) • ${carDesc} • ${autoPayLabel}`;
+  const islandImage = await buildControlBlockImage(s, '00:00:00', '0.00', waveFrame);
+  const title = `Parqu  ${wave}  ${plates} • Saldo $${balance}`;
+  const body = `Control Parquímetro ($6.00/hr) • ${carDesc} • Listo para iniciar`;
 
   return {
     title,
@@ -243,14 +258,12 @@ async function buildLiveBackgroundNotification(state, isSilentUpdate = true) {
       tag: SINGLE_NOTIFICATION_TAG,
       renotify: !isSilentUpdate,
       silent: isSilentUpdate,
+      vibrate: isSilentUpdate ? undefined : [180, 80, 180],
       requireInteraction: true,
       actions: [
-        { action: 'start_parking', title: 'Iniciar $6/h' },
-        { action: 'add_balance_50', title: '+$50 NFC' },
-        {
-          action: 'toggle_autopay',
-          title: autoPayEnabled ? 'Auto OFF' : 'Auto ON',
-        },
+        { action: 'start_parking', title: 'Iniciar Parqu' },
+        { action: 'add_hour', title: '+1 Hora ($6)' },
+        { action: 'add_balance_50', title: 'Recargar +$50' },
       ],
       data: {
         url: './',
@@ -375,8 +388,10 @@ self.addEventListener('message', (event) => {
 
     stopBackgroundLoop();
 
+    // El primer bloque al salir de la app se lanza con alerta activa (isSilentUpdate = false)
+    // para que se desprenda automaticamente en la barra de notificaciones del telefono
     const showAndMonitorPromise = new Promise((resolve) => {
-      renderSingleNotificationFrame(true).finally(() => {
+      renderSingleNotificationFrame(false).finally(() => {
         startBackgroundLiveLoop(resolve);
       });
     });
@@ -395,6 +410,7 @@ self.addEventListener('notificationclick', (event) => {
       isActive: true,
       startTime: nowIso,
       baseSeconds: 0,
+      scheduledHours: 1,
       zoneName: 'Espacio #1042 • Centro Histórico',
       rate: '6.00',
     };
@@ -409,7 +425,31 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
-  if (action === 'stop_parking') {
+  if (action === 'add_hour') {
+    const s = latestParquState || {};
+    const nowIso = s.startTime || new Date().toISOString();
+    const nextHours = s.isActive ? (Number(s.scheduledHours) || 1) + 1 : 1;
+
+    latestParquState = {
+      ...s,
+      isActive: true,
+      startTime: nowIso,
+      scheduledHours: nextHours,
+      zoneName: s.zoneName || 'Espacio #1042 • Centro Histórico',
+      rate: '6.00',
+    };
+
+    event.waitUntil(
+      Promise.all([
+        renderSingleNotificationFrame(true),
+        broadcastActionToClients({ action: 'ADD_HOUR', hoursAdded: 1, scheduledHours: nextHours }),
+      ])
+    );
+    startBackgroundLiveLoop();
+    return;
+  }
+
+  if (action === 'cancel_parking' || action === 'stop_parking') {
     const s = latestParquState || {};
     const elapsedSeconds = s.startTime
       ? Math.max(Number(s.baseSeconds) || 0, Math.floor((Date.now() - new Date(s.startTime).getTime()) / 1000))
@@ -424,13 +464,14 @@ self.addEventListener('notificationclick', (event) => {
       isActive: false,
       startTime: null,
       baseSeconds: 0,
+      scheduledHours: 1,
       balance: nextBalance,
     };
 
     event.waitUntil(
       Promise.all([
         renderSingleNotificationFrame(true),
-        broadcastActionToClients({ action: 'STOP_PARKING', amount: finalCharge }),
+        broadcastActionToClients({ action: 'CANCEL_PARKING', amount: finalCharge }),
       ])
     );
     return;
@@ -448,24 +489,6 @@ self.addEventListener('notificationclick', (event) => {
       Promise.all([
         renderSingleNotificationFrame(true),
         broadcastActionToClients({ action: 'ADD_BALANCE', amount: 50 }),
-      ])
-    );
-    return;
-  }
-
-  if (action === 'toggle_autopay') {
-    const s = latestParquState || {};
-    const nextAutoPay = !(s.autoPayEnabled !== false);
-    latestParquState = {
-      ...s,
-      autoPayEnabled: nextAutoPay,
-      autoPayStatus: nextAutoPay ? 'AUTOCOBRO ON' : 'AUTOCOBRO PAUSADO',
-    };
-
-    event.waitUntil(
-      Promise.all([
-        renderSingleNotificationFrame(true),
-        broadcastActionToClients({ action: 'TOGGLE_AUTOPAY', enabled: nextAutoPay }),
       ])
     );
     return;

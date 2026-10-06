@@ -1,4 +1,4 @@
-// Motor de Notificacion Unica Estilo Dynamic Island de iPhone (Compacta, Sin Barras Largas)
+// Motor del Bloque de Monitoreo y Control en Barra de Notificaciones al Salir de Parqu
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 const WAVE_CHARS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
 
@@ -124,6 +124,7 @@ export const buildParkingNotificationPayload = ({
     const minutes = Math.floor((elapsedSeconds % 3600) / 60);
     const seconds = elapsedSeconds % 60;
     const rate = Number(activeSession.ratePerHour || 6.0);
+    const scheduledHours = Math.max(1, Number(activeSession.scheduledHours) || 1);
     const maxLimit = Number(activeSession.maxLimit || 180.0);
     const cost = Math.min(
       maxLimit,
@@ -137,8 +138,8 @@ export const buildParkingNotificationPayload = ({
         : `${minutes}m ${String(seconds).padStart(2, '0')}s`;
     const progressPercent = Math.min(100, Math.max(4, Math.round((Number(cost) / maxLimit) * 100)));
 
-    const title = `Parqu  ${wave}  ${clockStr} • $${cost}`;
-    const body = `${plates} (${carDesc}) • Saldo $${balance} • ${autoPayStatus}`;
+    const title = `Parqu  ${wave}  ${clockStr} • ${scheduledHours}h ($${cost})`;
+    const body = `Monitoreo: ${plates} • Tiempo: ${scheduledHours}h ($6/h) • Saldo: $${balance} MXN`;
 
     return {
       title,
@@ -149,6 +150,7 @@ export const buildParkingNotificationPayload = ({
       minutes,
       seconds,
       elapsedSeconds,
+      scheduledHours,
       cost,
       rate: rate.toFixed(2),
       maxLimit,
@@ -168,8 +170,8 @@ export const buildParkingNotificationPayload = ({
     };
   }
 
-  const title = `Parqu  ${wave}  ${plates} • $${balance}`;
-  const body = `En espera ($6.00/hr) • ${carDesc} • ${autoPayStatus}`;
+  const title = `Parqu  ${wave}  ${plates} • Saldo $${balance}`;
+  const body = `Control Parquímetro ($6.00/hr) • ${carDesc} • Listo para iniciar`;
 
   return {
     title,
@@ -180,6 +182,7 @@ export const buildParkingNotificationPayload = ({
     minutes: 0,
     seconds: 0,
     elapsedSeconds: 0,
+    scheduledHours: 1,
     cost: '0.00',
     rate: '6.00',
     maxLimit: 180,
@@ -246,6 +249,47 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
     return { sent: false, payload };
   }
 
+  const actions = payload.isActive
+    ? [
+        { action: 'add_hour', title: '+1 Hora ($6)' },
+        { action: 'add_balance_50', title: 'Recargar +$50' },
+        { action: 'cancel_parking', title: 'Cancelar Parqu' },
+      ]
+    : [
+        { action: 'start_parking', title: 'Iniciar Parqu' },
+        { action: 'add_hour', title: '+1 Hora ($6)' },
+        { action: 'add_balance_50', title: 'Recargar +$50' },
+      ];
+
+  const options = {
+    body: payload.body,
+    icon: './parqu-logo-black.png',
+    badge: './parqu-logo-black.png',
+    tag: SINGLE_NOTIFICATION_TAG,
+    renotify: true,
+    silent: false,
+    vibrate: [180, 80, 180],
+    requireInteraction: true,
+    actions,
+    data: {
+      url: window.location.href,
+      timestamp: Date.now(),
+    },
+  };
+
+  let dispatched = false;
+
+  // 1. Disparo sincrono inmediato desde el registro del Service Worker para que el bloque se desprenda al instante al salir
+  try {
+    if (cachedSwRegistration && typeof cachedSwRegistration.showNotification === 'function') {
+      cachedSwRegistration.showNotification(payload.title, options).catch(() => {});
+      dispatched = true;
+    }
+  } catch {
+    // ignore
+  }
+
+  // 2. Activar el bucle en vivo y el renderizado grafico en el Service Worker bajo el mismo tag unico
   try {
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({
@@ -254,33 +298,14 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
           state: payload,
         },
       });
-      return { sent: true, payload };
+      dispatched = true;
     }
   } catch {
     // ignore
   }
 
-  const options = {
-    body: payload.body,
-    icon: './parqu-logo-black.png',
-    badge: './parqu-logo-black.png',
-    tag: SINGLE_NOTIFICATION_TAG,
-    renotify: false,
-    silent: true,
-    requireInteraction: Boolean(payload.isActive),
-    data: {
-      url: window.location.href,
-      timestamp: Date.now(),
-    },
-  };
-
-  try {
-    if (cachedSwRegistration && typeof cachedSwRegistration.showNotification === 'function') {
-      cachedSwRegistration.showNotification(payload.title, options).catch(() => {});
-      return { sent: true, payload };
-    }
-  } catch {
-    // ignore
+  if (dispatched) {
+    return { sent: true, payload };
   }
 
   try {

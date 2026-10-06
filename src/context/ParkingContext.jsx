@@ -323,7 +323,7 @@ export const ParkingProvider = ({ children }) => {
   };
 
   // Iniciar estancia en parquímetro con coordenadas de ubicación fijada
-  const startParking = (zoneName = 'Espacio #1042 • Centro Histórico', ratePerHour = 6.00, coords = null) => {
+  const startParking = (zoneName = 'Espacio #1042 • Centro Histórico', ratePerHour = 6.00, coords = null, initialHours = 1) => {
     const newSession = {
       id: 'SESS-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
       zoneName,
@@ -332,6 +332,7 @@ export const ParkingProvider = ({ children }) => {
       startTime: new Date().toISOString(),
       secondsElapsed: 0,
       currentCost: 0.00,
+      scheduledHours: Number(initialHours) || 1,
       maxLimit: autoPay.maxLimitPerSession || 180.00,
     };
     setActiveSession(newSession);
@@ -357,6 +358,33 @@ export const ParkingProvider = ({ children }) => {
 
     // Solicitar permiso de notificación del sistema para que esté listo al salir de la app
     requestParkingNotificationPermission().catch(() => {});
+  };
+
+  // Aumentar las horas programadas del parquímetro (desde la app o desde el bloque en barra de notificaciones)
+  const addParkingHours = (hoursToAdd = 1) => {
+    const extra = Math.max(1, Number(hoursToAdd) || 1);
+    setActiveSession((prev) => {
+      if (!prev) {
+        const created = {
+          id: 'SESS-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+          zoneName: 'Espacio #1042 • Centro Histórico',
+          ratePerHour: 6.00,
+          coords: null,
+          startTime: new Date().toISOString(),
+          secondsElapsed: 0,
+          currentCost: 0.00,
+          scheduledHours: extra,
+          maxLimit: autoPay.maxLimitPerSession || 180.00,
+        };
+        setCard((c) => ({ ...c, status: 'EN_PARQUIMETRO' }));
+        return created;
+      }
+      const nextHours = (Number(prev.scheduledHours) || 1) + extra;
+      return {
+        ...prev,
+        scheduledHours: nextHours,
+      };
+    });
   };
 
   // Detener y ejecutar autocobro inmediato
@@ -421,6 +449,7 @@ export const ParkingProvider = ({ children }) => {
         addBalance,
         activeSession,
         startParking,
+        addParkingHours,
         stopParkingAndAutoCharge,
         lastReceipt,
         setLastReceipt,

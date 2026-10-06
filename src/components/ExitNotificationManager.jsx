@@ -12,10 +12,13 @@ import {
 
 /**
  * ExitNotificationManager (100% Invisible en la interfaz del sistema)
- * No muestra ningún popup ni barra dentro de la aplicación.
- * Únicamente cuando el usuario se sale de la app (visibilityState === 'hidden'),
- * despliega un pequeño Centro de Control en el Centro de Notificaciones del teléfono
- * con accesos rápidos para controlar Parqu en segundo plano.
+ * Al cerrar o salirse de la aplicación (visibilitychange === 'hidden' / pagehide),
+ * desprende automáticamente el bloque de monitoreo y control en la barra de notificaciones
+ * con controles para:
+ *  - Monitorear el parquímetro en vivo
+ *  - Aumentar las horas (+1 Hora)
+ *  - Recargar saldo (Recargar +$50)
+ *  - Cancelar o iniciar el parquímetro
  */
 export const ExitNotificationManager = ({ onOpenNFC }) => {
   const {
@@ -27,6 +30,7 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     addBalance,
     activeSession,
     startParking,
+    addParkingHours,
     stopParkingAndAutoCharge,
     transactions,
   } = useParking();
@@ -48,25 +52,42 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
 
   const lastNotificationSentAtRef = useRef(0);
 
-  // Escuchar los accesos rápidos ejecutados desde el Centro de Notificaciones del teléfono
+  // Escuchar los controles ejecutados desde el bloque en la barra de notificaciones
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return undefined;
 
     const handleSwMessage = (event) => {
       if (!event.data || event.data.type !== 'PARQU_SW_ACTION') return;
-      const { action, amount, enabled } = event.data;
+      const { action, amount, hoursAdded, scheduledHours, enabled } = event.data;
 
       if (action === 'START_PARKING' && !latestContextRef.current.activeSession) {
-        startParking('Espacio #1042 • Centro Histórico', 6.0);
+        startParking('Espacio #1042 • Centro Histórico', 6.0, null, 1);
         sileo.success({
           title: 'Parquímetro Iniciado',
-          description: 'Activado desde el Centro de Notificaciones ($6.00/hr).',
+          description: 'Monitoreo activado desde la barra de notificaciones ($6.00/hr).',
         });
-      } else if (action === 'STOP_PARKING' && latestContextRef.current.activeSession) {
+      } else if (action === 'ADD_HOUR') {
+        const extra = Number(hoursAdded) || 1;
+        if (typeof addParkingHours === 'function') {
+          addParkingHours(extra);
+        } else if (!latestContextRef.current.activeSession) {
+          startParking('Espacio #1042 • Centro Histórico', 6.0, null, extra);
+        }
+        const totalH =
+          Number(scheduledHours) ||
+          (Number(latestContextRef.current.activeSession?.scheduledHours) || 1) + extra;
+        sileo.success({
+          title: `+${extra} Hora Agregada al Parquímetro`,
+          description: `Tiempo programado actualizado a ${totalH}h ($${(totalH * 6).toFixed(2)} MXN).`,
+        });
+      } else if (
+        (action === 'CANCEL_PARKING' || action === 'STOP_PARKING') &&
+        latestContextRef.current.activeSession
+      ) {
         const txn = stopParkingAndAutoCharge();
         if (txn) {
           sileo.success({
-            title: 'Estancia Finalizada',
+            title: 'Parquímetro Cancelado / Finalizado',
             description: `Folio ${txn.folio} • Cobrado: $${txn.amount.toFixed(2)} MXN`,
           });
         }
@@ -75,7 +96,7 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
         addBalance(addAmt);
         sileo.success({
           title: `Recarga +$${addAmt}.00 Aplicada`,
-          description: 'Saldo NFC actualizado desde tus accesos rápidos.',
+          description: 'Saldo actualizado desde el bloque de notificaciones.',
         });
       } else if (action === 'TOGGLE_AUTOPAY') {
         const nextEnabled =
@@ -88,15 +109,15 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
 
     navigator.serviceWorker.addEventListener('message', handleSwMessage);
     return () => navigator.serviceWorker.removeEventListener('message', handleSwMessage);
-  }, [startParking, stopParkingAndAutoCharge, addBalance, updateAutoPay, onOpenNFC]);
+  }, [startParking, addParkingHours, stopParkingAndAutoCharge, addBalance, updateAutoPay, onOpenNFC]);
 
-  // Integración con los controles del Centro de Control / Pantalla de Bloqueo del teléfono (MediaSession)
+  // Integración con los controles del sistema móvil (MediaSession)
   useEffect(() => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
     try {
       navigator.mediaSession.setActionHandler('play', () => {
         if (!latestContextRef.current.activeSession) {
-          startParking('Espacio #1042 • Centro Histórico', 6.0);
+          startParking('Espacio #1042 • Centro Histórico', 6.0, null, 1);
         }
       });
       navigator.mediaSession.setActionHandler('pause', () => {
@@ -105,21 +126,21 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
         }
       });
       navigator.mediaSession.setActionHandler('nexttrack', () => {
-        addBalance(50);
+        if (typeof addParkingHours === 'function') addParkingHours(1);
       });
       navigator.mediaSession.setActionHandler('previoustrack', () => {
-        updateAutoPay({ enabled: !latestContextRef.current.autoPay?.enabled });
+        addBalance(50);
       });
     } catch {
       // ignore
     }
-  }, [startParking, stopParkingAndAutoCharge, addBalance, updateAutoPay]);
+  }, [startParking, addParkingHours, stopParkingAndAutoCharge, addBalance]);
 
-  // Registrar Service Worker y solicitar permiso de forma transparente al primer toque del usuario
+  // Registrar Service Worker y asegurar el permiso de notificaciones en cualquier toque del usuario
   useEffect(() => {
     registerParquServiceWorker();
 
-    const unlockNotificationsOnFirstGesture = async () => {
+    const ensureNotificationPermission = async () => {
       if (getNotificationPermissionState() === 'default') {
         const res = await requestParkingNotificationPermission();
         if (res === 'granted') {
@@ -128,18 +149,18 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
       }
     };
 
-    window.addEventListener('click', unlockNotificationsOnFirstGesture, { once: true });
-    window.addEventListener('touchend', unlockNotificationsOnFirstGesture, { once: true });
+    window.addEventListener('click', ensureNotificationPermission);
+    window.addEventListener('touchend', ensureNotificationPermission);
     return () => {
-      window.removeEventListener('click', unlockNotificationsOnFirstGesture);
-      window.removeEventListener('touchend', unlockNotificationsOnFirstGesture);
+      window.removeEventListener('click', ensureNotificationPermission);
+      window.removeEventListener('touchend', ensureNotificationPermission);
     };
   }, []);
 
-  // Disparar el Centro de Control en la barra del teléfono ÚNICAMENTE cuando el usuario se sale de la app
+  // Desprender el bloque en la barra de notificaciones automáticamente al salir o cerrar la aplicación
   const triggerExitNotificationSync = useCallback(() => {
     const now = Date.now();
-    if (now - lastNotificationSentAtRef.current < 3500) {
+    if (now - lastNotificationSentAtRef.current < 3000) {
       return null;
     }
     lastNotificationSentAtRef.current = now;
@@ -155,12 +176,26 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
       }
     };
 
+    const handlePageHide = () => {
+      triggerExitNotificationSync();
+    };
+
+    const handlePageShow = () => {
+      if (document.visibilityState === 'visible') {
+        notifyAppForegrounded();
+      }
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('pageshow', handlePageShow);
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('pageshow', handlePageShow);
     };
   }, [triggerExitNotificationSync]);
 
-  // No renderiza nada dentro del sistema web: todo ocurre en el Centro de Notificaciones al salir
   return null;
 };
