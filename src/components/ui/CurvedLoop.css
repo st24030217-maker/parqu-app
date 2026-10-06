@@ -1,11 +1,18 @@
 .curved-loop-jacket {
-  min-height: 36px;
+  min-height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  overflow: hidden;
-  padding: 2px 0;
+  overflow: visible;
+  padding: 0;
+  margin: 0;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
 }
 
 .curved-loop-svg {
@@ -14,13 +21,17 @@
   aspect-ratio: 100 / 11;
   overflow: visible;
   display: block;
-  font-size: 3.8rem;
+  font-size: 3.9rem;
   fill: #ffffff;
   -moz-user-select: none;
   -webkit-user-select: none;
   font-weight: 700;
   text-transform: uppercase;
   line-height: 1;
-  letter-spacing: 0.12em;
-  filter: drop-shadow(0 2px 10px rgba(128, 125, 254, 0.45));
+  letter-spacing: 0.1em;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  filter: none !important;
 }

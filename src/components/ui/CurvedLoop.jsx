@@ -7,7 +7,7 @@ const CurvedLoop = ({
   marqueeText = '',
   speed = 1.2,
   className,
-  curveAmount = 120,
+  curveAmount = 115,
   direction = 'left',
   interactive = true
 }) => {
@@ -23,7 +23,8 @@ const CurvedLoop = ({
   const [offset, setOffset] = useState(0);
   const uid = useId();
   const pathId = `curve-${uid}`;
-  const pathD = `M-100,45 Q720,${45 + curveAmount} 1540,45`;
+  // Extiende de -300 a 1740 para cubrir de extremo a extremo sin cortes en los bordes
+  const pathD = `M-300,35 Q720,${35 + curveAmount} 1740,35`;
 
   const dragRef = useRef(false);
   const lastXRef = useRef(0);
@@ -32,7 +33,7 @@ const CurvedLoop = ({
 
   const textLength = spacing;
   const totalText = textLength
-    ? Array(Math.ceil(1800 / textLength) + 2)
+    ? Array(Math.ceil(2800 / textLength) + 4)
         .fill(text)
         .join('')
     : text;
@@ -118,18 +119,23 @@ const CurvedLoop = ({
   return (
     <div
       className="curved-loop-jacket"
-      style={{ visibility: ready ? 'visible' : 'hidden', cursor: cursorStyle }}
+      style={{ visibility: ready ? 'visible' : 'hidden', cursor: cursorStyle, background: 'transparent' }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
       onPointerLeave={endDrag}
     >
-      <svg className="curved-loop-svg" viewBox="0 0 1440 145">
+      <svg
+        className="curved-loop-svg"
+        viewBox="0 0 1440 135"
+        preserveAspectRatio="xMidYMid slice"
+        style={{ background: 'transparent', overflow: 'visible' }}
+      >
         <text ref={measureRef} xmlSpace="preserve" style={{ visibility: 'hidden', opacity: 0, pointerEvents: 'none' }}>
           {text}
         </text>
         <defs>
-          <path ref={pathRef} id={pathId} d={pathD} fill="none" stroke="transparent" />
+          <path ref={pathRef} id={pathId} d={pathD} fill="none" stroke="none" />
         </defs>
         {ready && (
           <text fontWeight="bold" xmlSpace="preserve" className={className}>

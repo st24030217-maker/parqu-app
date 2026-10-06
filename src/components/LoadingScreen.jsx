@@ -846,10 +846,6 @@ export const LoadingScreen = ({ onComplete }) => {
               ref={authCardRef}
               className="relative w-full rounded-3xl bg-[#070B2E]/90 border border-white/15 p-5 sm:p-6 text-white shadow-[0_28px_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl overflow-hidden"
             >
-              {/* Resplandor ambiental interno */}
-              <div className="absolute -top-20 -left-20 w-52 h-52 bg-[#0033FF]/30 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute -bottom-20 -right-20 w-52 h-52 bg-[#807DFE]/25 rounded-full blur-3xl pointer-events-none" />
-
               {/* Botón cerrar */}
               <button
                 type="button"
@@ -861,37 +857,37 @@ export const LoadingScreen = ({ onComplete }) => {
               </button>
 
               {/* Encabezado de Bienvenida con Logo 100% Transparente (sin recuadro ni bordes) */}
-              <div className="login-stagger-item relative z-10 text-center mb-3">
+              <div className="relative z-10 text-center mb-1 bg-transparent border-0 shadow-none">
                 <div className="flex items-center justify-center mb-2 bg-transparent border-0 shadow-none">
                   <img
                     src="./parqu-logo-white.png"
                     alt="Parqu"
-                    className="h-9 sm:h-11 w-auto object-contain bg-transparent border-0 shadow-none drop-shadow-[0_0_20px_rgba(128,125,254,0.55)]"
+                    className="h-9 sm:h-11 w-auto object-contain bg-transparent border-0 shadow-none"
                   />
                 </div>
 
                 <h2
                   id="parqu-auth-title"
-                  className="text-lg sm:text-xl font-black tracking-tight text-white"
+                  className="text-lg sm:text-xl font-black tracking-tight text-white bg-transparent"
                 >
                   {authMode === 'login' ? 'Bienvenido de vuelta' : 'Bienvenido a Parqu'}
                 </h2>
+              </div>
 
-                {/* Animación CurvedLoop-JS-CSS de React Bits debajo de "Bienvenido de vuelta" */}
-                <div className="mt-1">
-                  <CurvedLoop
-                    marqueeText={
-                      authMode === 'login'
-                        ? 'ACCESO DIGITAL NFC ✦ AUTOCOBRO EN VIVO ✦ SIN FILAS NI MONEDAS ✦'
-                        : 'CREA TU CUENTA NFC ✦ REGISTRO EN SEGUNDOS ✦ PARQU METROPOLITANO ✦'
-                    }
-                    speed={1.2}
-                    curveAmount={115}
-                    direction="left"
-                    interactive={true}
-                    className="fill-white font-mono"
-                  />
-                </div>
+              {/* Animación CurvedLoop-JS-CSS 100% transparente y de lado a lado completo */}
+              <div className="relative z-10 -mx-5 sm:-mx-6 w-[calc(100%+2.5rem)] sm:w-[calc(100%+3rem)] my-1.5 bg-transparent border-0 shadow-none overflow-visible">
+                <CurvedLoop
+                  marqueeText={
+                    authMode === 'login'
+                      ? 'ACCESO DIGITAL NFC ✦ AUTOCOBRO EN VIVO ✦ SIN FILAS NI MONEDAS ✦'
+                      : 'CREA TU CUENTA NFC ✦ REGISTRO EN SEGUNDOS ✦ PARQU METROPOLITANO ✦'
+                  }
+                  speed={1.2}
+                  curveAmount={110}
+                  direction="left"
+                  interactive={true}
+                  className="fill-white font-mono"
+                />
               </div>
 
               {/* Selector Iniciar Sesión / Registrarse */}
