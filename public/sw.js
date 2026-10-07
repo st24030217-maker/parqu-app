@@ -1,7 +1,8 @@
-// Service Worker Oficial de Parqu - Bloque Único de Notificación Nativa en Barra de Notificaciones
-// - CERO bucles setInterval: nunca envía notificaciones repetidas
-// - Cierra siempre cualquier notificación previa (closeAllNotifications) antes de fijar el bloque único
-// - Incluye barra de progreso visual estilo Uber + botones de control nativos (+1 Hora, Cancelar/Iniciar, Recargar)
+// Service Worker Oficial de Parqu - Bloque Único de Notificación Nativa (Estilo Uber Live Activity)
+// - CERO símbolos ASCII anticuados
+// - CERO bucles setInterval de notificaciones repetidas
+// - Cierra siempre todas las notificaciones previas (closeAllNotifications) antes de fijar 1 único bloque
+// - Incluye tarjeta gráfica estilo Uber + botones nativos (+1 Hora, Cancelar/Iniciar, Recargar)
 
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 const NTFY_BASE_URL = 'https://ntfy.sh';
@@ -48,17 +49,6 @@ function getSupportedSwActions(isActive) {
       ];
 
   return fullActions.slice(0, maxSupported);
-}
-
-// Construye la línea continua visual con el auto para el cuerpo nativo del bloque (compatible con iOS y Android)
-function buildNativeTrackLine(progressRatio, isActive) {
-  const totalSlots = 10;
-  const carSlot = isActive
-    ? Math.min(totalSlots - 1, Math.max(1, Math.round(progressRatio * totalSlots)))
-    : 2;
-  const before = '━'.repeat(carSlot);
-  const after = '─'.repeat(Math.max(1, totalSlots - carSlot));
-  return `●${before}🚗${after}○`;
 }
 
 // Publica en la nube cuando el usuario ejecuta un botón desde el bloque de notificación nativa
@@ -168,7 +158,7 @@ function drawTopDownCar(ctx, centerX, centerY, isActive) {
   ctx.fill();
 }
 
-// Dibuja el bloque visual oscuro estilo Uber (como la referencia Pickup in 2 min)
+// Dibuja el bloque visual oscuro estilo Uber Live Activity
 async function buildUberCardImage(s, clockStr, remainingLabel, cost, progressRatio) {
   if (s && s.preRenderedImage && !(Date.now() < lastActionFeedbackUntil && lastActionFeedback)) {
     return s.preRenderedImage;
@@ -185,7 +175,6 @@ async function buildUberCardImage(s, clockStr, remainingLabel, cost, progressRat
 
     ctx.clearRect(0, 0, width, height);
 
-    const scheduledHours = Math.max(1, Number(s.scheduledHours) || 1);
     const plates = s.plates || 'XYZ-7842';
     const carDesc = s.carDesc || 'Volkswagen Jetta';
     const balance = Number(s.balance ?? 320).toFixed(0);
@@ -238,7 +227,6 @@ async function buildUberCardImage(s, clockStr, remainingLabel, cost, progressRat
       cardY + 126
     );
 
-    // Línea continua estilo Uber con el auto encima y círculo final a la derecha
     const barLeft = cardX + 32;
     const barRight = cardX + cardW - 36;
     const barWidth = barRight - barLeft;
@@ -318,12 +306,11 @@ async function buildSingleNotificationPayload(state) {
       cost,
       progressRatio
     );
-    const trackLine = buildNativeTrackLine(progressRatio, true);
 
     const title = hasFeedback
       ? `${lastActionFeedback} • ${clockStr}`
       : `Estancia activa • ${clockStr} (Restan ${remainingLabel})`;
-    const body = `${plates} • ${carDesc} • Cobro: $${cost} MXN\n${trackLine}  Saldo: $${balance} MXN`;
+    const body = `${plates} • ${carDesc} • Cobro: $${cost} MXN • Saldo: $${balance} MXN`;
 
     return {
       title,
@@ -352,11 +339,10 @@ async function buildSingleNotificationPayload(state) {
     '0.00',
     0.28
   );
-  const trackLine = buildNativeTrackLine(0.28, false);
   const title = hasFeedback
     ? `${lastActionFeedback}`
     : `Parqu • Tarifa $6.00/hr • Saldo $${balance} MXN`;
-  const body = `${plates} • ${carDesc}\n${trackLine}  Listo para estacionar`;
+  const body = `${plates} • ${carDesc} • Controles rápidos activos fuera de la app`;
 
   return {
     title,
@@ -378,7 +364,6 @@ async function buildSingleNotificationPayload(state) {
   };
 }
 
-// Cierra TODAS las notificaciones previas (incluyendo el mismo tag) para que en iOS y Android jamás haya más de 1 bloque
 async function closeAllNotifications() {
   if (!self.registration || typeof self.registration.getNotifications !== 'function') return;
   try {
@@ -389,7 +374,6 @@ async function closeAllNotifications() {
   }
 }
 
-// Muestra ESTRICTAMENTE 1 solo bloque nativo cerrando antes cualquier notificación existente
 async function showSingleNotificationOnce(allowCooldownBypass = false) {
   if (isShowingLock || !self.registration || !self.registration.showNotification) return;
 
@@ -402,7 +386,6 @@ async function showSingleNotificationOnce(allowCooldownBypass = false) {
   lastShownTimestamp = now;
 
   try {
-    // Cerrar SIEMPRE todas las notificaciones previas antes de mostrar el bloque único
     await closeAllNotifications();
 
     const { title, options } = await buildSingleNotificationPayload(latestParquState);

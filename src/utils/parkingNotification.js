@@ -1,6 +1,7 @@
-// Motor de Bloque Único de Notificación Nativa en la Barra de Notificaciones (Estilo Uber)
-// - CERO bucles, CERO spam: cierra siempre cualquier notificación anterior antes de fijar 1 solo bloque
-// - Incluye barra de progreso visual continua con auto + botones de acción nativos (+1 Hora, Cancelar/Iniciar, Recargar)
+// Motor de Bloque Nativo en Vivo Fuera de la Aplicación (Estilo Uber Live Activity)
+// - CERO símbolos ASCII anticuados
+// - CERO bucles de notificaciones repetidas: 1 sola notificación nativa en la barra de notificaciones
+// - Renderizador en vivo a 60 FPS (drawLiveUberBlockFrame) para Picture-in-Picture Nativo (iOS / Android / Desktop)
 
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 
@@ -11,16 +12,6 @@ function detectIsIOS() {
   if (typeof navigator === 'undefined') return false;
   const ua = navigator.userAgent || '';
   return /iPhone|iPad|iPod/i.test(ua);
-}
-
-function buildNativeTrackLine(progressRatio, isActive) {
-  const totalSlots = 10;
-  const carSlot = isActive
-    ? Math.min(totalSlots - 1, Math.max(1, Math.round(progressRatio * totalSlots)))
-    : 2;
-  const before = '━'.repeat(carSlot);
-  const after = '─'.repeat(Math.max(1, totalSlots - carSlot));
-  return `●${before}🚗${after}○`;
 }
 
 export function getSupportedNotificationActions(isActive) {
@@ -65,12 +56,22 @@ function drawRoundedRect(ctx, x, y, w, h, r) {
 }
 
 function drawTopDownCar(ctx, centerX, centerY, isActive) {
-  const carW = 54;
+  const carW = 56;
   const carH = 26;
   const x = centerX - carW / 2;
   const y = centerY - carH / 2;
 
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  // Estela luminosa suave en vivo detrás del auto
+  if (isActive) {
+    const trailGrad = ctx.createLinearGradient(x - 42, centerY, x + 4, centerY);
+    trailGrad.addColorStop(0, 'rgba(56, 189, 248, 0)');
+    trailGrad.addColorStop(1, 'rgba(56, 189, 248, 0.65)');
+    ctx.fillStyle = trailGrad;
+    drawRoundedRect(ctx, x - 40, centerY - 5, 44, 10, 5);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
   drawRoundedRect(ctx, x + 2, y + 3, carW, carH, 10);
   ctx.fill();
 
@@ -79,16 +80,116 @@ function drawTopDownCar(ctx, centerX, centerY, isActive) {
   ctx.fill();
 
   ctx.fillStyle = '#1e293b';
-  drawRoundedRect(ctx, x + 33, y + 3, 11, carH - 6, 3.5);
+  drawRoundedRect(ctx, x + 34, y + 3, 11, carH - 6, 3.5);
   ctx.fill();
 
   ctx.fillStyle = '#334155';
   drawRoundedRect(ctx, x + 6, y + 4, 7, carH - 8, 2.5);
   ctx.fill();
 
-  ctx.fillStyle = isActive ? '#0f172a' : '#d97706';
+  ctx.fillStyle = isActive ? '#0033FF' : '#d97706';
   drawRoundedRect(ctx, x + 16, y + 4, 14, carH - 8, 3);
   ctx.fill();
+}
+
+// Dibuja un fotograma en vivo a 60 FPS del bloque estilo Uber Live Activity
+export function drawLiveUberBlockFrame(ctx, width, height, payload, smoothWaveRatio = null) {
+  ctx.clearRect(0, 0, width, height);
+
+  const plates = payload.plates || 'XYZ-7842';
+  const carDesc = payload.carDesc || 'Volkswagen Jetta';
+  const balance = Number(payload.balance ?? 320).toFixed(0);
+  const clockStr = payload.clockStr || '00:00:00';
+  const cost = payload.cost || '0.00';
+  const remainingLabel = `${payload.remainingMinutes || 60}m`;
+
+  const cardX = 8;
+  const cardY = 6;
+  const cardW = width - 16;
+  const cardH = height - 12;
+
+  const grad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
+  grad.addColorStop(0, '#14161b');
+  grad.addColorStop(1, '#0b0d11');
+  ctx.fillStyle = grad;
+  drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 32);
+  ctx.fill();
+
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = payload.isActive
+    ? 'rgba(56, 189, 248, 0.38)'
+    : 'rgba(255, 255, 255, 0.14)';
+  ctx.stroke();
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 21px sans-serif';
+  ctx.fillText('Parqu', cardX + 30, cardY + 40);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.fillText(`Saldo NFC: $${balance} MXN`, cardX + cardW - 30, cardY + 40);
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 34px sans-serif';
+  ctx.fillText(
+    payload.isActive
+      ? `Estancia activa • ${clockStr}`
+      : `Parqu listo • $6.00/hr`,
+    cardX + 30,
+    cardY + 90
+  );
+
+  ctx.fillStyle = '#9ca3af';
+  ctx.font = '21px sans-serif';
+  ctx.fillText(
+    payload.isActive
+      ? `${plates} • ${carDesc} • $${cost} MXN (Restan ${remainingLabel})`
+      : `${plates} • ${carDesc} • Saldo $${balance} MXN`,
+    cardX + 30,
+    cardY + 124
+  );
+
+  const barLeft = cardX + 30;
+  const barRight = cardX + cardW - 34;
+  const barWidth = barRight - barLeft;
+  const barY = cardY + 174;
+
+  ctx.fillStyle = '#4b5563';
+  drawRoundedRect(ctx, barLeft, barY - 3.5, barWidth, 7, 3.5);
+  ctx.fill();
+
+  const progressRatio =
+    typeof smoothWaveRatio === 'number'
+      ? smoothWaveRatio
+      : payload.isActive
+        ? Math.min(0.88, Math.max(0.22, (payload.progressPercent || 28) / 100))
+        : 0.28;
+
+  const carX = barLeft + Math.round(barWidth * progressRatio);
+  const fillWidth = Math.max(14, carX - barLeft);
+
+  const barGrad = ctx.createLinearGradient(barLeft, barY, carX, barY);
+  barGrad.addColorStop(0, '#0033FF');
+  barGrad.addColorStop(0.55, '#38bdf8');
+  barGrad.addColorStop(1, '#ffffff');
+  ctx.fillStyle = barGrad;
+  drawRoundedRect(ctx, barLeft, barY - 3.5, fillWidth, 7, 3.5);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(barRight, barY, 9, 0, Math.PI * 2);
+  ctx.fillStyle = '#6b7280';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(barRight, barY, 3.5, 0, Math.PI * 2);
+  ctx.fillStyle = '#111318';
+  ctx.fill();
+
+  drawTopDownCar(ctx, carX, barY, Boolean(payload.isActive));
 }
 
 export function buildUberCardDataUrlSync(payload) {
@@ -102,90 +203,7 @@ export function buildUberCardDataUrlSync(payload) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return undefined;
 
-    ctx.clearRect(0, 0, width, height);
-
-    const plates = payload.plates || 'XYZ-7842';
-    const carDesc = payload.carDesc || 'Volkswagen Jetta';
-    const balance = Number(payload.balance ?? 320).toFixed(0);
-    const clockStr = payload.clockStr || '00:00:00';
-    const cost = payload.cost || '0.00';
-    const remainingLabel = `${payload.remainingMinutes || 60}m`;
-
-    const cardX = 12;
-    const cardY = 8;
-    const cardW = width - 24;
-    const cardH = height - 16;
-
-    const grad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
-    grad.addColorStop(0, '#14161b');
-    grad.addColorStop(1, '#0b0d11');
-    ctx.fillStyle = grad;
-    drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 34);
-    ctx.fill();
-
-    ctx.textAlign = 'left';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 21px sans-serif';
-    ctx.fillText('Parqu', cardX + 32, cardY + 42);
-
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 16px sans-serif';
-    ctx.fillText(`Saldo NFC: $${balance} MXN`, cardX + cardW - 32, cardY + 42);
-
-    ctx.textAlign = 'left';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 34px sans-serif';
-    ctx.fillText(
-      payload.isActive
-        ? `Estancia activa • ${clockStr}`
-        : `Parqu listo • $6.00/hr`,
-      cardX + 32,
-      cardY + 92
-    );
-
-    ctx.fillStyle = '#9ca3af';
-    ctx.font = '21px sans-serif';
-    ctx.fillText(
-      payload.isActive
-        ? `${plates} • ${carDesc} • $${cost} MXN (Restan ${remainingLabel})`
-        : `${plates} • ${carDesc} • Saldo $${balance} MXN`,
-      cardX + 32,
-      cardY + 126
-    );
-
-    const barLeft = cardX + 32;
-    const barRight = cardX + cardW - 36;
-    const barWidth = barRight - barLeft;
-    const barY = cardY + 174;
-
-    ctx.fillStyle = '#4b5563';
-    drawRoundedRect(ctx, barLeft, barY - 3.5, barWidth, 7, 3.5);
-    ctx.fill();
-
-    const progressRatio = payload.isActive
-      ? Math.min(0.88, Math.max(0.22, (payload.progressPercent || 28) / 100))
-      : 0.28;
-
-    const carX = barLeft + Math.round(barWidth * progressRatio);
-    const fillWidth = Math.max(14, carX - barLeft);
-
-    ctx.fillStyle = '#ffffff';
-    drawRoundedRect(ctx, barLeft, barY - 3.5, fillWidth, 7, 3.5);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(barRight, barY, 9, 0, Math.PI * 2);
-    ctx.fillStyle = '#6b7280';
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(barRight, barY, 3.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#111318';
-    ctx.fill();
-
-    drawTopDownCar(ctx, carX, barY, Boolean(payload.isActive));
-
+    drawLiveUberBlockFrame(ctx, width, height, payload);
     return canvas.toDataURL('image/png');
   } catch {
     return undefined;
@@ -197,7 +215,6 @@ export const registerParquServiceWorker = () => {
     return Promise.resolve(null);
   }
   if (!swRegistrationPromise) {
-    // Limpiar y actualizar cualquier Service Worker previo en caché (ej. PWA en iPhone/Android)
     if (typeof navigator.serviceWorker.getRegistrations === 'function') {
       navigator.serviceWorker
         .getRegistrations()
@@ -339,10 +356,9 @@ export const buildParkingNotificationPayload = ({
         ? `${hours}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`
         : `${minutes}m ${String(seconds).padStart(2, '0')}s`;
     const progressPercent = Math.min(100, Math.max(18, Math.round(progressRatio * 100)));
-    const trackLine = buildNativeTrackLine(progressRatio, true);
 
     const title = `Estancia activa • ${clockStr} (Restan ${remainingMinutes}m)`;
-    const body = `${plates} • ${carDesc} • Cobro: $${cost} MXN\n${trackLine}  Saldo: $${balance} MXN`;
+    const body = `${plates} • ${carDesc} • Cobro: $${cost} MXN • Saldo: $${balance} MXN`;
 
     return {
       title,
@@ -375,9 +391,8 @@ export const buildParkingNotificationPayload = ({
     };
   }
 
-  const trackLine = buildNativeTrackLine(0.28, false);
   const title = `Parqu • Tarifa $6.00/hr • Saldo $${balance} MXN`;
-  const body = `${plates} • ${carDesc}\n${trackLine}  Listo para estacionar`;
+  const body = `${plates} • ${carDesc} • Controles rápidos activos fuera de la app`;
 
   return {
     title,
@@ -471,7 +486,6 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
   const cardImage = buildUberCardDataUrlSync(payload);
   const actions = getSupportedNotificationActions(payload.isActive);
 
-  // 1. Si el Service Worker está activo, delegar únicamente al Service Worker (cierra las previas y muestra 1 bloque)
   try {
     const targetWorker =
       ('serviceWorker' in navigator && navigator.serviceWorker.controller) ||
@@ -493,7 +507,6 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
     // ignore
   }
 
-  // 2. Fallback si aún no hay Service Worker activo: cerrar cualquier notificación previa y mostrar 1 solo bloque
   const richOptions = {
     body: payload.body,
     icon: './parqu-logo-black.png',
