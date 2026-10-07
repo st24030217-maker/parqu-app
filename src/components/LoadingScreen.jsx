@@ -551,9 +551,8 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
 export const LoadingScreen = ({ onComplete }) => {
   const { vehicle, owner, card, updateOwner, updateVehicle } = useParking();
 
-  // Fase 1: Pantalla de carga principal al abrir la app (carga un momento antes de mostrar la pantalla inicial)
+  // Fase 1: Pantalla de carga principal al abrir la app (animación fluida sobre el logo sin barra de carga)
   const [isBootLoading, setIsBootLoading] = useState(true);
-  const [bootProgress, setBootProgress] = useState(0);
 
   // Fase 2 y 3: Pantalla inicial con botón "Empecemos" -> Login / Registro compacto animado -> Entrar al sistema
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -571,22 +570,12 @@ export const LoadingScreen = ({ onComplete }) => {
   const hasExitedRef = useRef(false);
   const authCardRef = useRef(null);
 
-  // Animación de la pantalla de carga inicial (@aceternity/gta-vi-poster sobre el logo de Parqu)
+  // Transición limpia y sin re-renders intermedios al terminar la animación fluida del logo
   useEffect(() => {
-    let current = 0;
-    const interval = setInterval(() => {
-      current += 2;
-      if (current >= 100) {
-        setBootProgress(100);
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsBootLoading(false);
-        }, 420);
-      } else {
-        setBootProgress(current);
-      }
-    }, 56);
-    return () => clearInterval(interval);
+    const timer = setTimeout(() => {
+      setIsBootLoading(false);
+    }, 2400);
+    return () => clearTimeout(timer);
   }, []);
 
   // Animaciones Anime.js en el Login (Entrada elástica, Stagger de campos y Ondas en vivo)
@@ -734,45 +723,22 @@ export const LoadingScreen = ({ onComplete }) => {
       {/* 
         ══════════════════════════════════════════════════════════════
         FASE 1: PANTALLA DE CARGA PRINCIPAL (@aceternity/gta-vi-poster SOBRE EL LOGO DE PARQU)
-        Aparece al abrir la app aplicando la animación de profundidad, zoom y revelado al logo
+        Animación fluida a 60fps sobre el logo, sin barra de carga
         ══════════════════════════════════════════════════════════════
       */}
       {isBootLoading ? (
         <GtaViPoster
-          duration={2.8}
-          cameraScale={1.18}
+          duration={2.2}
+          cameraScale={1.16}
           fit={0.85}
-          depth={1.15}
-          logoBlur={6}
+          depth={1}
+          logoBlur={4}
           background="#ffffff"
           logoSrc="./parqu-logo-black.png"
           logoAlt="Parqu Logo"
           showReplay={false}
           className="fixed inset-0 z-30 w-screen h-[100dvh]"
-        >
-          {/* Barra de progreso de carga sincronizada debajo del logo animado */}
-          <div className="mt-8 sm:mt-10 flex flex-col items-center justify-center px-6 pointer-events-none">
-            <div className="w-56 sm:w-64 h-1.5 rounded-full bg-slate-200 overflow-hidden shadow-inner">
-              <div
-                style={{
-                  width: `${bootProgress}%`,
-                  transition: 'width 70ms linear',
-                }}
-                className="h-full rounded-full bg-gradient-to-r from-[#0033FF] via-[#807DFE] to-[#01033E]"
-              />
-            </div>
-            <div className="mt-3 flex items-center justify-between w-56 sm:w-64 text-[11px] font-mono text-slate-600">
-              <span>
-                {bootProgress < 45
-                  ? 'Iniciando Parqu...'
-                  : bootProgress < 88
-                  ? 'Sincronizando red NFC...'
-                  : 'Listo'}
-              </span>
-              <span className="font-bold text-slate-900">{bootProgress}%</span>
-            </div>
-          </div>
-        </GtaViPoster>
+        />
       ) : (
         /* 
           ══════════════════════════════════════════════════════════════

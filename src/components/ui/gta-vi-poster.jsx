@@ -3,54 +3,39 @@
 import { motion } from "motion/react";
 import React, { useLayoutEffect, useRef, useState } from "react";
 
-const DEFAULT_DURATION = 3.2;
+const DEFAULT_DURATION = 2.4;
 
-// Capas de profundidad y revelado escalonado de @aceternity/gta-vi-poster aplicadas al logo de Parqu (sin imágenes externas)
+// Capas fluidas a 60fps inspiradas en @aceternity/gta-vi-poster aplicadas exclusivamente al logo de Parqu
 const LOGO_LAYERS = [
   {
-    id: "echo-1",
-    name: "Logo Depth Layer 1",
-    initialScale: 1.234,
-    revealDelay: 0.12,
-    targetOpacity: 0,
-    peakOpacity: 0.14,
+    id: "depth-outer",
+    name: "Parqu Depth Outer",
+    initialScale: 2.35,
+    revealDelay: 0.04,
+    initialOpacity: 0,
+    animateOpacity: [0, 0.16, 0],
   },
   {
-    id: "echo-2",
-    name: "Logo Depth Layer 2",
-    initialScale: 1.48,
-    revealDelay: 0.24,
-    targetOpacity: 0,
-    peakOpacity: 0.18,
+    id: "depth-mid",
+    name: "Parqu Depth Mid",
+    initialScale: 1.72,
+    revealDelay: 0.1,
+    initialOpacity: 0,
+    animateOpacity: [0, 0.24, 0],
   },
   {
-    id: "echo-3",
-    name: "Logo Depth Layer 3",
-    initialScale: 1.797,
-    revealDelay: 0.36,
-    targetOpacity: 0,
-    peakOpacity: 0.22,
+    id: "base-silhouette",
+    name: "Parqu Silhouette",
+    initialScale: 1.32,
+    revealDelay: 0.14,
+    initialOpacity: 0,
+    animateOpacity: 0.22,
   },
   {
-    id: "echo-4",
-    name: "Logo Depth Layer 4",
-    initialScale: 2.186,
-    revealDelay: 0.48,
-    targetOpacity: 0,
-    peakOpacity: 0.28,
-  },
-  {
-    id: "base-logo",
-    name: "Parqu Base Logo",
-    initialScale: 2.446,
-    revealDelay: 0.35,
-    targetOpacity: 0.25,
-  },
-  {
-    id: "main-logo",
+    id: "hero-logo",
     name: "Parqu Hero Logo",
-    initialScale: 3.306,
-    revealDelay: 0.55,
+    initialScale: 2.65,
+    revealDelay: 0.18,
     isHeroLogo: true,
     initial: {
       opacity: 1,
@@ -65,16 +50,17 @@ const LOGO_LAYERS = [
 
 const DEFAULT_LOGO_SPRING = {
   type: "spring",
-  visualDuration: 3.4,
-  bounce: 0.45,
+  stiffness: 82,
+  damping: 16,
+  mass: 0.85,
 };
 
 export const controls = {
-  duration: [3.2, 1, 8, 0.1],
-  cameraScale: [1.14, 1, 1.8, 0.01],
+  duration: [2.4, 1, 6, 0.1],
+  cameraScale: [1.16, 1, 1.8, 0.01],
   fit: [0.85, 0.5, 1, 0.01],
   depth: [1, 0, 1.6, 0.01],
-  logoBlur: [6, 0, 16, 0.5],
+  logoBlur: [4, 0, 16, 0.5],
   posterRadius: [0, 0, 48, 1],
   background: "#ffffff",
   showReplay: false,
@@ -83,10 +69,10 @@ export const controls = {
 
 export function GtaViPoster({
   duration = DEFAULT_DURATION,
-  cameraScale = 1.14,
+  cameraScale = 1.16,
   fit = 0.85,
   depth = 1,
-  logoBlur = 6,
+  logoBlur = 4,
   posterRadius = 0,
   background = "#ffffff",
   logoSrc = "./parqu-logo-black.png",
@@ -117,11 +103,16 @@ export function GtaViPoster({
   }, [fit]);
 
   const logoTransition = {
-    clipPath: { ...logoSpring, delay: 0.45 * timeScale },
-    filter: { ...logoSpring, delay: 0.45 * timeScale },
+    clipPath: { ...logoSpring, delay: 0.18 * timeScale },
+    filter: {
+      duration: 0.85 * timeScale,
+      delay: 0.18 * timeScale,
+      ease: [0.16, 1, 0.3, 1],
+    },
   };
 
-  const logoStageWidth = size > 0 ? Math.min(Math.max(size * 0.62, 210), 380) : 260;
+  const logoStageWidth =
+    size > 0 ? Math.min(Math.max(size * 0.64, 220), 390) : 270;
   const logoStageHeight = Math.round(logoStageWidth * 0.48);
 
   return (
@@ -139,18 +130,30 @@ export function GtaViPoster({
             height: logoStageHeight,
             borderRadius: posterRadius,
             transformOrigin: "center",
+            willChange: "transform, opacity",
           }}
           initial={{ scale: cameraScale, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration, ease: [0.33, 0, 0.2, 1] }}
+          transition={{
+            scale: {
+              type: "spring",
+              stiffness: 70,
+              damping: 18,
+              mass: 0.9,
+            },
+            opacity: {
+              duration: 0.45 * timeScale,
+              ease: "easeOut",
+            },
+          }}
         >
           {LOGO_LAYERS.map((layer, index) => {
             const isHeroLogo = Boolean(layer.isHeroLogo);
             const scale = 1 + (layer.initialScale - 1) * depth;
             const initialFilter = isHeroLogo
               ? `blur(${logoBlur}px)`
-              : "blur(2px)";
-            const animateFilter = "blur(0px)";
+              : undefined;
+            const animateFilter = isHeroLogo ? "blur(0px)" : undefined;
 
             return (
               <motion.img
@@ -162,37 +165,41 @@ export function GtaViPoster({
                 style={{
                   zIndex: index,
                   transformOrigin: "center",
-                  willChange: "transform, opacity, filter, clip-path",
+                  willChange: "transform, opacity, clip-path",
+                  backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
                 }}
                 initial={{
-                  opacity: 0,
+                  opacity: layer.initialOpacity ?? 0,
                   scale,
                   filter: initialFilter,
                   ...layer.initial,
                 }}
                 animate={{
-                  opacity:
-                    layer.peakOpacity !== undefined
-                      ? [0, layer.peakOpacity, layer.targetOpacity ?? 0]
-                      : layer.targetOpacity ?? 1,
+                  opacity: layer.animateOpacity ?? 1,
                   scale: 1,
                   filter: animateFilter,
                   ...layer.animate,
                 }}
                 transition={{
-                  scale: { duration, ease: [0.16, 1, 0.3, 1] },
-                  opacity:
-                    layer.peakOpacity !== undefined
-                      ? {
-                          duration: 1.35 * timeScale,
-                          delay: layer.revealDelay * timeScale,
-                          ease: "easeOut",
-                        }
-                      : {
-                          duration: 0.7 * timeScale,
-                          delay: layer.revealDelay * timeScale,
-                          ease: "easeOut",
-                        },
+                  scale: {
+                    type: "spring",
+                    stiffness: isHeroLogo ? 78 : 68,
+                    damping: isHeroLogo ? 16 : 18,
+                    mass: 0.85,
+                    delay: layer.revealDelay * timeScale,
+                  },
+                  opacity: Array.isArray(layer.animateOpacity)
+                    ? {
+                        duration: 1.45 * timeScale,
+                        delay: layer.revealDelay * timeScale,
+                        ease: "easeInOut",
+                      }
+                    : {
+                        duration: 0.65 * timeScale,
+                        delay: layer.revealDelay * timeScale,
+                        ease: "easeOut",
+                      },
                   ...(isHeroLogo ? logoTransition : {}),
                 }}
               />
