@@ -10,6 +10,13 @@ import {
   subscribeToVehiclePlate,
   DEVICE_INSTANCE_ID,
 } from '../utils/cloudSync';
+import {
+  saveBackupToIndexedDB,
+  loadBackupFromIndexedDB,
+  saveBackupToCloud,
+  restoreBackupFromCloud,
+  exportBackupAsJsonFile,
+} from '../utils/dataBackup';
 
 const ParkingContext = createContext();
 
@@ -777,6 +784,128 @@ export const ParkingProvider = ({ children }) => {
     return newTxn;
   };
 
+  const [lastBackupAt, setLastBackupAt] = useState(() => {
+    try {
+      return localStorage.getItem('parkdigital_last_backup_at') || new Date().toISOString();
+    } catch {
+      return new Date().toISOString();
+    }
+  });
+
+  // Auto-recuperación desde la bóveda IndexedDB si localStorage fue limpiado
+  useEffect(() => {
+    let mounted = true;
+    const hasLocalOwner =
+      typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEYS.OWNER);
+    const hasLocalCard =
+      typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEYS.CARD);
+
+    if (!hasLocalOwner || !hasLocalCard) {
+      loadBackupFromIndexedDB().then((vaultBackup) => {
+        if (!mounted || !vaultBackup) return;
+        if (vaultBackup.vehicle) setVehicle(vaultBackup.vehicle);
+        if (vaultBackup.owner) setOwner(vaultBackup.owner);
+        if (vaultBackup.card) setCard(vaultBackup.card);
+        if (vaultBackup.autoPay) setAutoPay(vaultBackup.autoPay);
+        if (Array.isArray(vaultBackup.transactions)) setTransactions(vaultBackup.transactions);
+        if (Array.isArray(vaultBackup.pinnedLocations))
+          setPinnedLocations(vaultBackup.pinnedLocations);
+      });
+    }
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Auto-respaldo continuo en IndexedDB cada vez que cambian los datos del usuario
+  useEffect(() => {
+    const nowIso = new Date().toISOString();
+    const snapshot = {
+      _type: 'PARQU_FULL_BACKUP_V2',
+      version: '2.0',
+      savedAt: nowIso,
+      timestamp: Date.now(),
+      vehicle,
+      owner,
+      card,
+      autoPay,
+      transactions,
+      pinnedLocations,
+      activeSession,
+    };
+    saveBackupToIndexedDB(snapshot).then((ok) => {
+      if (ok) {
+        setLastBackupAt(nowIso);
+        try {
+          localStorage.setItem('parkdigital_last_backup_at', nowIso);
+        } catch {
+          // ignore
+        }
+      }
+    });
+  }, [vehicle, owner, card, autoPay, transactions, pinnedLocations, activeSession]);
+
+  // Ejecutar respaldo completo en la nube + IndexedDB bajo demanda o al guardar formularios
+  const performCloudBackup = useCallback(async () => {
+    const snap = await saveBackupToCloud({
+      vehicle,
+      owner,
+      card,
+      autoPay,
+      transactions,
+      pinnedLocations,
+      activeSession,
+    });
+    if (snap?.savedAt) {
+      setLastBackupAt(snap.savedAt);
+      try {
+        localStorage.setItem('parkdigital_last_backup_at', snap.savedAt);
+      } catch {
+        // ignore
+      }
+    }
+    return snap;
+  }, [vehicle, owner, card, autoPay, transactions, pinnedLocations, activeSession]);
+
+  // Restaurar respaldo desde un objeto JSON (de la nube o de archivo importado)
+  const applyBackupSnapshot = useCallback((backupObj) => {
+    if (!backupObj || typeof backupObj !== 'object') return false;
+    if (backupObj.vehicle) setVehicle((prev) => ({ ...prev, ...backupObj.vehicle }));
+    if (backupObj.owner) setOwner((prev) => ({ ...prev, ...backupObj.owner }));
+    if (backupObj.card) setCard((prev) => ({ ...prev, ...backupObj.card }));
+    if (backupObj.autoPay) setAutoPay((prev) => ({ ...prev, ...backupObj.autoPay }));
+    if (Array.isArray(backupObj.transactions)) setTransactions(backupObj.transactions);
+    if (Array.isArray(backupObj.pinnedLocations)) setPinnedLocations(backupObj.pinnedLocations);
+    const nowIso = new Date().toISOString();
+    setLastBackupAt(nowIso);
+    return true;
+  }, []);
+
+  const restoreFromCloudBackup = useCallback(
+    async (identifier) => {
+      const lookupKey = identifier || owner?.email || vehicle?.plates || 'XYZ-7842';
+      const snap = await restoreBackupFromCloud(lookupKey);
+      if (snap) {
+        applyBackupSnapshot(snap);
+        return snap;
+      }
+      return null;
+    },
+    [owner?.email, vehicle?.plates, applyBackupSnapshot]
+  );
+
+  const exportBackupFile = useCallback(() => {
+    return exportBackupAsJsonFile({
+      vehicle,
+      owner,
+      card,
+      autoPay,
+      transactions,
+      pinnedLocations,
+      activeSession,
+    });
+  }, [vehicle, owner, card, autoPay, transactions, pinnedLocations, activeSession]);
+
   return (
     <ParkingContext.Provider
       value={{
@@ -810,6 +939,11 @@ export const ParkingProvider = ({ children }) => {
         cloudStatus,
         lastCloudSyncAt,
         syncNowToCloud,
+        lastBackupAt,
+        performCloudBackup,
+        restoreFromCloudBackup,
+        exportBackupFile,
+        applyBackupSnapshot,
       }}
     >
       {children}

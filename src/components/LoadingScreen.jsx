@@ -549,7 +549,15 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
 });
 
 export const LoadingScreen = ({ onComplete }) => {
-  const { vehicle, owner, card, updateOwner, updateVehicle } = useParking();
+  const {
+    vehicle,
+    owner,
+    card,
+    updateOwner,
+    updateVehicle,
+    performCloudBackup,
+    restoreFromCloudBackup,
+  } = useParking();
 
   // Fase 1: Pantalla de carga principal al abrir la app (animación fluida sobre el logo sin barra de carga)
   const [isBootLoading, setIsBootLoading] = useState(true);
@@ -663,20 +671,29 @@ export const LoadingScreen = ({ onComplete }) => {
     }
 
     // Pausa breve para mostrar el estado de carga (loader) del StatefulButton
-    await new Promise((resolve) => setTimeout(resolve, 750));
+    await new Promise((resolve) => setTimeout(resolve, 650));
 
-    if (typeof updateOwner === 'function') {
-      updateOwner({
-        fullName:
-          authMode === 'register'
-            ? cleanName
-            : owner?.fullName || cleanEmail.split('@')[0] || 'Usuario Parqu',
-        email: cleanEmail,
-      });
-    }
-
-    if (authMode === 'register' && cleanPlates && typeof updateVehicle === 'function') {
-      updateVehicle({ plates: cleanPlates });
+    if (authMode === 'login' && typeof restoreFromCloudBackup === 'function') {
+      const restored = await restoreFromCloudBackup(cleanEmail);
+      if (!restored && typeof updateOwner === 'function') {
+        updateOwner({
+          fullName: owner?.fullName || cleanEmail.split('@')[0] || 'Usuario Parqu',
+          email: cleanEmail,
+        });
+      }
+    } else {
+      if (typeof updateOwner === 'function') {
+        updateOwner({
+          fullName: cleanName || owner?.fullName || 'Usuario Parqu',
+          email: cleanEmail,
+        });
+      }
+      if (cleanPlates && typeof updateVehicle === 'function') {
+        updateVehicle({ plates: cleanPlates });
+      }
+      if (typeof performCloudBackup === 'function') {
+        performCloudBackup().catch(() => {});
+      }
     }
 
     // Mostrar el check de éxito del StatefulButton antes de entrar al sistema
