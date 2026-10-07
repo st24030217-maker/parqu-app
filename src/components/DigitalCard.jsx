@@ -1,21 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { sileo } from 'sileo';
 import {
   Wifi,
-  CreditCard,
-  Car,
   User,
-  CheckCircle2,
-  AlertCircle,
-  Sparkles,
   ChevronLeft,
   ChevronRight,
-  Sliders,
-  Eye,
-  EyeOff,
-  Check,
-  Palette,
-  PenTool,
 } from 'lucide-react';
 import { CurrencyDollarIcon } from './icons/currency-dollar-icon';
 import { useParking } from '../context/ParkingContext';
@@ -31,63 +21,40 @@ export const CARD_DESIGNS = [
     name: 'White Clay Edition',
     shortName: 'Tarjeta White',
     badge: 'WHITE • 01',
-    subtitle: 'Diseño minimalista en relieve 3D blanco marfil',
     image: './cards/parqu-card-white.jpg',
-    accentColor: '#0f172a',
     pillBg: 'bg-slate-900/80 text-white backdrop-blur-md',
-    bottomBarStyles: {
-      glass: 'bg-slate-950/75 text-white border border-white/20 backdrop-blur-xl',
-      light: 'bg-white/85 text-slate-900 border border-slate-300/80 backdrop-blur-xl',
-      minimal: 'bg-slate-900/90 text-white border border-white/15 backdrop-blur-md',
-    },
+    dataPanelClass:
+      'bg-slate-900/75 text-white border border-white/25 backdrop-blur-xl shadow-[0_10px_30px_rgba(15,23,42,0.35)]',
     glowClass: 'from-slate-300/70 via-white/60 to-slate-400/60',
-    ringColor: 'ring-slate-900',
-    swatchBg: 'bg-[#f8f7f2] border-slate-300 text-slate-900',
   },
   {
     id: 'blue',
     name: 'Blue Pop Edition',
     shortName: 'Tarjeta Blue',
     badge: 'BLUE • 02',
-    subtitle: 'Diseño vibrante en azul eléctrico con personajes 3D',
     image: './cards/parqu-card-blue.jpg',
-    accentColor: '#0033FF',
     pillBg: 'bg-[#01033E]/80 text-white backdrop-blur-md',
-    bottomBarStyles: {
-      glass: 'bg-[#01033E]/78 text-white border border-white/20 backdrop-blur-xl',
-      light: 'bg-white/88 text-slate-900 border border-white/60 backdrop-blur-xl',
-      minimal: 'bg-black/75 text-white border border-white/15 backdrop-blur-md',
-    },
+    dataPanelClass:
+      'bg-[#01033E]/75 text-white border border-white/25 backdrop-blur-xl shadow-[0_10px_30px_rgba(1,3,62,0.45)]',
     glowClass: 'from-[#0033FF]/70 via-sky-400/60 to-[#807DFE]/70',
-    ringColor: 'ring-[#0033FF]',
-    swatchBg: 'bg-[#0e8ef2] border-blue-400 text-white',
   },
   {
     id: 'red',
     name: 'Red Character Edition',
     shortName: 'Tarjeta Red',
     badge: 'RED • 03',
-    subtitle: 'Diseño dinámico en rojo coral con personaje 3D',
     image: './cards/parqu-card-red.jpg',
-    accentColor: '#e11d48',
-    pillBg: 'bg-red-950/80 text-white backdrop-blur-md',
-    bottomBarStyles: {
-      glass: 'bg-red-950/78 text-white border border-white/20 backdrop-blur-xl',
-      light: 'bg-white/88 text-slate-900 border border-white/60 backdrop-blur-xl',
-      minimal: 'bg-black/75 text-white border border-white/15 backdrop-blur-md',
-    },
+    pillBg: 'bg-red-950/75 text-white backdrop-blur-md',
+    dataPanelClass:
+      'bg-red-950/72 text-white border border-white/25 backdrop-blur-xl shadow-[0_10px_30px_rgba(127,29,29,0.45)]',
     glowClass: 'from-red-500/70 via-orange-500/60 to-rose-500/70',
-    ringColor: 'ring-red-500',
-    swatchBg: 'bg-[#f43f2e] border-red-400 text-white',
   },
 ];
 
-export const DigitalCard = ({ defaultOpenEditor = false }) => {
+export const DigitalCard = () => {
   const {
     vehicle,
-    updateVehicle,
     owner,
-    updateOwner,
     card,
     updateCard,
     autoPay,
@@ -98,19 +65,14 @@ export const DigitalCard = ({ defaultOpenEditor = false }) => {
   const [showQRModal, setShowQRModal] = useState(false);
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [rechargeAmount, setRechargeAmount] = useState(100);
-  const [showEditor, setShowEditor] = useState(defaultOpenEditor);
-  const [hideDataOverlay, setHideDataOverlay] = useState(false);
+  const [slideDirection, setSlideDirection] = useState(1);
 
-  // Diseño activo guardado en el estado global de la tarjeta (por defecto 'white' o el elegido por el usuario)
   const currentDesignId = card?.designId || 'white';
   const currentIndex = Math.max(
     0,
     CARD_DESIGNS.findIndex((d) => d.id === currentDesignId)
   );
   const activeDesign = CARD_DESIGNS[currentIndex] || CARD_DESIGNS[0];
-  const overlayStyle = card?.overlayStyle || 'glass';
-  const customLabel = card?.customLabel ?? 'PARQU PASS NFC';
-  const isLightOverlay = overlayStyle === 'light';
 
   // Accesibilidad WCAG 2.1: Cerrar modales superpuestos con tecla Escape
   useEffect(() => {
@@ -126,25 +88,20 @@ export const DigitalCard = ({ defaultOpenEditor = false }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showQRModal, showRechargeModal]);
 
-  const handleSelectDesign = (designId) => {
-    const chosen = CARD_DESIGNS.find((d) => d.id === designId);
-    updateCard({ designId });
-    if (chosen) {
-      sileo.success({
-        title: `Diseño ${chosen.shortName} Aplicado`,
-        description: `Tu tarjeta digital ahora luce el estilo ${chosen.name}.`,
-      });
-    }
+  const handleSelectByIndex = (nextIdx, dir = 1) => {
+    const normalizedIdx = (nextIdx + CARD_DESIGNS.length) % CARD_DESIGNS.length;
+    const chosen = CARD_DESIGNS[normalizedIdx];
+    if (!chosen) return;
+    setSlideDirection(dir);
+    updateCard({ designId: chosen.id });
   };
 
   const handlePrevDesign = () => {
-    const prevIdx = (currentIndex + CARD_DESIGNS.length - 1) % CARD_DESIGNS.length;
-    handleSelectDesign(CARD_DESIGNS[prevIdx].id);
+    handleSelectByIndex(currentIndex - 1, -1);
   };
 
   const handleNextDesign = () => {
-    const nextIdx = (currentIndex + 1) % CARD_DESIGNS.length;
-    handleSelectDesign(CARD_DESIGNS[nextIdx].id);
+    handleSelectByIndex(currentIndex + 1, 1);
   };
 
   const handleRecharge = (e) => {
@@ -162,398 +119,202 @@ export const DigitalCard = ({ defaultOpenEditor = false }) => {
   const isParked = activeSession !== null;
 
   return (
-    <div className="w-full space-y-5">
+    <div className="w-full space-y-4">
       {/* ══════════════════════════════════════════════════════════════
-          BARRA SUPERIOR DE SELECCIÓN Y EDICIÓN DE LA TARJETA
+          BARRA SUPERIOR CON LAS DOS FLECHAS PARA CAMBIAR DE DISEÑO
       ══════════════════════════════════════════════════════════════ */}
-      <div className="flex flex-wrap items-center justify-between gap-2 bg-white/70 backdrop-blur-xl border border-slate-200/80 rounded-2xl px-3.5 py-2.5 shadow-sm">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handlePrevDesign}
-            aria-label="Tarjeta anterior"
-            className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center justify-center transition cursor-pointer border-0"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <div className="text-left px-1">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#0033FF] font-bold block">
-              DISEÑO {currentIndex + 1} DE {CARD_DESIGNS.length} • {activeDesign.badge}
-            </span>
-            <span className="text-xs sm:text-sm font-black text-slate-900">
-              {activeDesign.name}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={handleNextDesign}
-            aria-label="Siguiente tarjeta"
-            className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center justify-center transition cursor-pointer border-0"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
+      <div className="flex items-center justify-between gap-3 bg-white/70 backdrop-blur-xl border border-slate-200/80 rounded-2xl px-3.5 py-2.5 shadow-sm">
+        <button
+          type="button"
+          onClick={handlePrevDesign}
+          aria-label="Tarjeta anterior"
+          className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#0033FF] text-slate-800 hover:text-white flex items-center justify-center transition-all duration-200 cursor-pointer border-0 shadow-sm active:scale-95"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+
+        <div className="text-center flex-1">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[#0033FF] font-bold block">
+            DISEÑO {currentIndex + 1} DE {CARD_DESIGNS.length} • {activeDesign.badge}
+          </span>
+          <span className="text-xs sm:text-sm font-black text-slate-900">
+            {activeDesign.name}
+          </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setHideDataOverlay((prev) => !prev)}
-            className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold flex items-center gap-1.5 transition cursor-pointer border-0"
-            title="Alternar vista de datos sobre el diseño"
-          >
-            {hideDataOverlay ? (
-              <>
-                <Eye className="w-3.5 h-3.5 text-[#0033FF]" />
-                <span>Ver Datos</span>
-              </>
-            ) : (
-              <>
-                <EyeOff className="w-3.5 h-3.5 text-slate-500" />
-                <span>Solo Arte</span>
-              </>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowEditor((prev) => !prev)}
-            className={`px-3 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition cursor-pointer border-0 ${
-              showEditor
-                ? 'bg-[#0033FF] text-white shadow-md'
-                : 'bg-slate-900 text-white hover:bg-slate-800'
-            }`}
-          >
-            <PenTool className="w-3.5 h-3.5" />
-            <span>{showEditor ? 'Cerrar Editor' : 'Personalizar Tarjeta'}</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleNextDesign}
+          aria-label="Siguiente tarjeta"
+          className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#0033FF] text-slate-800 hover:text-white flex items-center justify-center transition-all duration-200 cursor-pointer border-0 shadow-sm active:scale-95"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
 
       {/* ══════════════════════════════════════════════════════════════
-          1. TARJETA PRINCIPAL ACTIVA (SE VE PRIMERO UNA EN GRANDE CON 3D)
+          TARJETA DIGITAL CON CARRUSEL SCROLL FLUIDO Y ANIMACIÓN SPRING
       ══════════════════════════════════════════════════════════════ */}
       <AnimeCardSheen>
         <CardContainer className="w-full">
           <div className="relative w-full group">
-            {/* Resplandor dinámico acorde al color de la tarjeta elegida */}
+            {/* Resplandor dinámico acorde al color de la tarjeta activa */}
             <div
-              className={`absolute -inset-1.5 rounded-[28px] sm:rounded-[32px] blur-xl opacity-55 transition duration-700 group-hover:opacity-90 bg-gradient-to-r ${activeDesign.glowClass}`}
+              className={`absolute -inset-1.5 rounded-[28px] sm:rounded-[32px] blur-xl opacity-55 transition-all duration-700 group-hover:opacity-90 bg-gradient-to-r ${activeDesign.glowClass}`}
             />
 
             <CardBody className="relative w-full aspect-[860/522] min-h-[225px] sm:min-h-[285px] md:min-h-[320px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_24px_60px_rgba(15,23,42,0.28)] border border-white/40 select-none">
-              {/* Imagen de fondo oficial de la tarjeta elegida (White / Blue / Red) */}
-              <img
-                key={activeDesign.id}
-                src={activeDesign.image}
-                alt={activeDesign.name}
-                className="absolute inset-0 w-full h-full object-cover object-center transition-all duration-500 group-hover:scale-[1.02]"
-              />
-
-              {/* Fila Superior Flotante 3D: Logo Parqu transparente, Etiqueta editable y Estado NFC */}
-              {!hideDataOverlay && (
-                <CardItem
-                  translateZ="45"
-                  className="relative z-10 w-full flex items-center justify-between p-3.5 sm:p-5"
-                >
-                  <div
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full shadow-md ${activeDesign.pillBg}`}
-                  >
-                    <img
-                      src="./parqu-logo-white.png"
-                      alt="Parqu"
-                      className="h-4 sm:h-5 w-auto object-contain bg-transparent border-0 shadow-none"
-                    />
-                    <span className="font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-white">
-                      {customLabel || 'PARQU PASS NFC'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-mono font-bold uppercase flex items-center gap-1.5 shadow-md ${activeDesign.pillBg}`}
-                    >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          isParked ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'
-                        }`}
-                      />
-                      <span>{isParked ? 'EN PARQUÍMETRO' : 'NFC ACTIVA'}</span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowQRModal(true);
+              {/* Pista de Scroll Horizontal Animada con las 3 Tarjetas (Soporta flechas y arrastre táctil/mouse) */}
+              <motion.div
+                className="absolute inset-0 flex w-full h-full cursor-grab active:cursor-grabbing"
+                animate={{
+                  x: `-${currentIndex * 100}%`,
+                }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 170,
+                  damping: 24,
+                  mass: 0.85,
+                }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.18}
+                onDragEnd={(_, info) => {
+                  if (info.offset.x < -45) {
+                    handleNextDesign();
+                  } else if (info.offset.x > 45) {
+                    handlePrevDesign();
+                  }
+                }}
+              >
+                {CARD_DESIGNS.map((design, idx) => {
+                  const isCurrent = idx === currentIndex;
+                  return (
+                    <motion.div
+                      key={design.id}
+                      className="relative w-full h-full flex-shrink-0 overflow-hidden"
+                      animate={{
+                        scale: isCurrent ? 1 : 0.92,
+                        rotateY: isCurrent ? 0 : idx < currentIndex ? 12 : -12,
+                        filter: isCurrent ? 'brightness(1)' : 'brightness(0.85)',
                       }}
-                      title="Mostrar Pase NFC Oficial"
-                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#0033FF] hover:bg-[#0026cc] text-white flex items-center justify-center shadow-lg transition transform hover:scale-110 cursor-pointer border-0"
+                      transition={{
+                        type: 'spring',
+                        stiffness: 180,
+                        damping: 24,
+                      }}
                     >
-                      <Wifi className="w-4 h-4 rotate-90 text-white" />
-                    </button>
-                  </div>
-                </CardItem>
-              )}
+                      <img
+                        src={design.image}
+                        alt={design.name}
+                        draggable={false}
+                        className="w-full h-full object-cover object-center pointer-events-none select-none"
+                      />
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
 
-              {/* Franja Inferior Flotante 3D con todos los Datos del Usuario (Deja libre el arte central de los personajes) */}
-              {!hideDataOverlay && (
-                <CardItem
-                  translateZ="65"
-                  className="absolute inset-x-0 bottom-0 z-10 p-3 sm:p-4"
+              {/* Fila Superior Flotante 3D: Logo Parqu transparente y Estado NFC */}
+              <CardItem
+                translateZ="45"
+                className="relative z-10 w-full flex items-center justify-between p-3.5 sm:p-5 pointer-events-none"
+              >
+                <div
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full shadow-md transition-colors duration-500 ${activeDesign.pillBg}`}
                 >
-                  <div
-                    className={`w-full rounded-2xl px-3.5 py-2.5 sm:px-5 sm:py-3.5 shadow-xl transition-colors duration-300 ${
-                      activeDesign.bottomBarStyles[overlayStyle] ||
-                      activeDesign.bottomBarStyles.glass
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      {/* Placas y Vehículo */}
-                      <div className="flex items-center gap-2.5 sm:gap-3">
-                        <div
-                          className={`px-2.5 py-1 rounded-xl font-mono text-xs sm:text-base font-black tracking-wider shadow-inner ${
-                            isLightOverlay
-                              ? 'bg-slate-900 text-white'
-                              : 'bg-white/15 text-white border border-white/15'
-                          }`}
-                        >
-                          {formatPlate(vehicle.plates)}
-                        </div>
-                        <div className="text-left">
-                          <span
-                            className={`text-[9px] font-mono uppercase tracking-wider block ${
-                              isLightOverlay ? 'text-slate-500' : 'text-white/70'
-                            }`}
-                          >
-                            {vehicle.brand || 'Vehículo'} {vehicle.model || ''}
-                          </span>
-                          <span className="text-xs sm:text-sm font-black uppercase tracking-wide flex items-center gap-1">
-                            <User
-                              className={`w-3.5 h-3.5 ${
-                                isLightOverlay ? 'text-[#0033FF]' : 'text-sky-300'
-                              }`}
-                            />
-                            {owner.fullName || 'NOMBRE DEL TITULAR'}
-                          </span>
-                        </div>
-                      </div>
+                  <img
+                    src="./parqu-logo-white.png"
+                    alt="Parqu"
+                    className="h-4 sm:h-5 w-auto object-contain bg-transparent border-0 shadow-none"
+                  />
+                  <span className="font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-white">
+                    {card?.customLabel || 'PARQU PASS NFC'}
+                  </span>
+                </div>
 
-                      {/* Saldo en vivo y Número de Tarjeta */}
-                      <div className="text-right ml-auto">
-                        <span
-                          className={`text-[9px] font-mono uppercase tracking-wider block ${
-                            isLightOverlay ? 'text-slate-500' : 'text-white/70'
-                          }`}
-                        >
-                          SALDO DISPONIBLE
+                <div className="flex items-center gap-2 pointer-events-auto">
+                  <div
+                    className={`px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-mono font-bold uppercase flex items-center gap-1.5 shadow-md transition-colors duration-500 ${activeDesign.pillBg}`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        isParked ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'
+                      }`}
+                    />
+                    <span>{isParked ? 'EN PARQUÍMETRO' : 'NFC ACTIVA'}</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowQRModal(true);
+                    }}
+                    title="Mostrar Pase NFC Oficial"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#0033FF] hover:bg-[#0026cc] text-white flex items-center justify-center shadow-lg transition transform hover:scale-110 cursor-pointer border-0"
+                  >
+                    <Wifi className="w-4 h-4 rotate-90 text-white" />
+                  </button>
+                </div>
+              </CardItem>
+
+              {/* Bloque Inferior Izquierdo 3D con los Datos del Usuario (deja libre la esquina derecha del diseño) */}
+              <CardItem
+                translateZ="65"
+                className="absolute inset-x-0 bottom-0 z-10 p-3 sm:p-4 pointer-events-none"
+              >
+                <motion.div
+                  key={activeDesign.id + '-data'}
+                  initial={{ opacity: 0.75, x: slideDirection * 18 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ type: 'spring', stiffness: 220, damping: 24 }}
+                  className={`w-full sm:max-w-[78%] rounded-2xl px-3.5 py-2.5 sm:px-4 sm:py-3 transition-colors duration-500 ${activeDesign.dataPanelClass}`}
+                >
+                  <div className="flex items-center justify-between gap-2.5 flex-wrap">
+                    {/* Placas y Titular */}
+                    <div className="flex items-center gap-2.5">
+                      <div className="px-2.5 py-1 rounded-xl font-mono text-xs sm:text-sm font-black tracking-wider bg-white/15 text-white border border-white/20 shadow-inner">
+                        {formatPlate(vehicle.plates)}
+                      </div>
+                      <div className="text-left">
+                        <span className="text-[8px] sm:text-[9px] font-mono uppercase tracking-wider block text-white/75">
+                          {vehicle.brand || 'Vehículo'} {vehicle.model || ''}
                         </span>
-                        <div className="text-sm sm:text-base font-black font-mono">
-                          <AnimeCounter
-                            value={card.balance}
-                            prefix="$"
-                            decimals={2}
-                            suffix=" MXN"
-                            className={isLightOverlay ? 'text-slate-900' : 'text-white'}
-                          />
-                        </div>
-                        <span
-                          className={`text-[9px] font-mono block ${
-                            isLightOverlay ? 'text-slate-500' : 'text-white/65'
-                          }`}
-                        >
-                          {card.cardNumber || '4890 •••• •••• 9142'}
+                        <span className="text-xs sm:text-sm font-black uppercase tracking-wide flex items-center gap-1 text-white">
+                          <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-300" />
+                          {owner.fullName || 'NOMBRE DEL TITULAR'}
                         </span>
                       </div>
                     </div>
+
+                    {/* Saldo en vivo y Número de Tarjeta */}
+                    <div className="text-right ml-auto">
+                      <span className="text-[8px] sm:text-[9px] font-mono uppercase tracking-wider block text-white/75">
+                        SALDO DISPONIBLE
+                      </span>
+                      <div className="text-xs sm:text-sm font-black font-mono text-white">
+                        <AnimeCounter
+                          value={card.balance}
+                          prefix="$"
+                          decimals={2}
+                          suffix=" MXN"
+                          className="text-white"
+                        />
+                      </div>
+                      <span className="text-[8px] sm:text-[9px] font-mono block text-white/70">
+                        {card.cardNumber || '4890 •••• •••• 9142'}
+                      </span>
+                    </div>
                   </div>
-                </CardItem>
-              )}
+                </motion.div>
+              </CardItem>
             </CardBody>
           </div>
         </CardContainer>
       </AnimeCardSheen>
 
-      {/* ══════════════════════════════════════════════════════════════
-          2. GALERÍA DE LAS 3 TARJETAS POR SEPARADO PARA ESCOGER LA FAVORITA
-      ══════════════════════════════════════════════════════════════ */}
-      <div className="bg-white/75 backdrop-blur-xl border border-slate-200/80 rounded-3xl p-4 sm:p-5 shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-              <Palette className="w-4 h-4 text-[#0033FF]" />
-              Escoge tu Diseño Favorito (3 Ediciones Disponibles)
-            </h4>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              Toca cualquiera de las 3 tarjetas por separado para aplicarla al instante con tus datos.
-            </p>
-          </div>
-          <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
-            {activeDesign.shortName} Activa
-          </span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
-          {CARD_DESIGNS.map((design, idx) => {
-            const isSelected = design.id === activeDesign.id;
-            return (
-              <button
-                key={design.id}
-                type="button"
-                onClick={() => handleSelectDesign(design.id)}
-                className={`group relative rounded-2xl p-1.5 sm:p-2 text-left transition-all duration-300 cursor-pointer border ${
-                  isSelected
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-lg scale-[1.02]'
-                    : 'bg-white/90 hover:bg-white text-slate-800 border-slate-200/90 hover:border-slate-300 shadow-sm'
-                }`}
-              >
-                <div className="relative w-full aspect-[860/522] rounded-xl overflow-hidden mb-2">
-                  <img
-                    src={design.image}
-                    alt={design.name}
-                    className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
-                  />
-                  {isSelected && (
-                    <div className="absolute top-1.5 right-1.5 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#0033FF] text-white flex items-center justify-center shadow-md">
-                      <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[3]" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="px-0.5">
-                  <span
-                    className={`text-[9px] font-mono font-bold uppercase tracking-wider block ${
-                      isSelected ? 'text-sky-300' : 'text-slate-400'
-                    }`}
-                  >
-                    0{idx + 1} • {design.id.toUpperCase()}
-                  </span>
-                  <span
-                    className={`text-[11px] sm:text-xs font-black truncate block ${
-                      isSelected ? 'text-white' : 'text-slate-900'
-                    }`}
-                  >
-                    {design.shortName}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ══════════════════════════════════════════════════════════════
-          3. ESTUDIO EDITABLE DE DATOS Y ESTILO DE LA TARJETA EN VIVO
-      ══════════════════════════════════════════════════════════════ */}
-      {showEditor && (
-        <div className="bg-white/90 backdrop-blur-2xl border border-slate-200/90 rounded-3xl p-4 sm:p-6 shadow-lg space-y-4 animate-in fade-in duration-200">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-[#0033FF] font-bold">
-                PERSONALIZACIÓN EN VIVO
-              </span>
-              <h4 className="text-sm sm:text-base font-black text-slate-900">
-                Editar Datos y Estilo de tu Tarjeta Digital
-              </h4>
-            </div>
-            <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
-              ● Autoguardado Activo
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-left">
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                Nombre del Titular en la Tarjeta
-              </label>
-              <input
-                type="text"
-                value={owner.fullName || ''}
-                onChange={(e) => updateOwner({ fullName: e.target.value })}
-                placeholder="Ej. Sebastián Salinas"
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#0033FF]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                Placas del Vehículo
-              </label>
-              <input
-                type="text"
-                value={vehicle.plates || ''}
-                onChange={(e) => updateVehicle({ plates: e.target.value.toUpperCase() })}
-                placeholder="XYZ-7842"
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-bold uppercase text-slate-900 focus:outline-none focus:border-[#0033FF]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                Marca y Modelo del Vehículo
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  value={vehicle.brand || ''}
-                  onChange={(e) => updateVehicle({ brand: e.target.value })}
-                  placeholder="Marca (ej. VW)"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#0033FF]"
-                />
-                <input
-                  type="text"
-                  value={vehicle.model || ''}
-                  onChange={(e) => updateVehicle({ model: e.target.value })}
-                  placeholder="Modelo (ej. Jetta)"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#0033FF]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                Etiqueta Superior de la Tarjeta
-              </label>
-              <input
-                type="text"
-                value={customLabel}
-                onChange={(e) => updateCard({ customLabel: e.target.value.toUpperCase() })}
-                placeholder="PARQU PASS NFC"
-                maxLength={24}
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-bold uppercase text-slate-900 focus:outline-none focus:border-[#0033FF]"
-              />
-            </div>
-          </div>
-
-          {/* Selector de acabado del bloque de datos */}
-          <div className="pt-1">
-            <label className="block text-[11px] font-bold text-slate-700 mb-1.5">
-              Acabado del Panel de Datos sobre la Tarjeta
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: 'glass', label: 'Cristal Oscuro' },
-                { id: 'light', label: 'Cristal Claro' },
-                { id: 'minimal', label: 'Alto Contraste' },
-              ].map((st) => (
-                <button
-                  key={st.id}
-                  type="button"
-                  onClick={() => updateCard({ overlayStyle: st.id })}
-                  className={`py-2 px-3 rounded-xl text-xs font-bold transition cursor-pointer border ${
-                    overlayStyle === st.id
-                      ? 'bg-[#0033FF] text-white border-[#0033FF] shadow-sm'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                  }`}
-                >
-                  {st.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Botones de acción rápida debajo de la galería */}
+      {/* Botones de acción rápida debajo de la tarjeta */}
       <div className="flex items-center justify-between text-xs text-slate-600 px-1 font-mono flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <span className="text-slate-500 text-[11px]">ID TAG: {card.rfidTag}</span>
