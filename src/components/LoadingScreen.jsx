@@ -494,18 +494,18 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
       </div>
 
       {/* ── TARJETA INFERIOR DE CONTROL DE LA PRESENTACIÓN DE LA APP ── */}
-      <div className="relative z-30 mt-0.5 sm:mt-2 w-full max-w-[330px] sm:max-w-[440px] rounded-2xl sm:rounded-3xl bg-[#01033E]/65 backdrop-blur-md px-3.5 py-2.5 sm:px-5 sm:py-3.5 text-center shadow-xl border-0">
+      <div className="relative z-30 mt-0.5 sm:mt-2 w-full max-w-[330px] sm:max-w-[440px] rounded-2xl sm:rounded-3xl bg-slate-50 border border-slate-200/90 px-3.5 py-2.5 sm:px-5 sm:py-3.5 text-center shadow-md">
         <div className="flex items-center justify-between gap-2 mb-1 sm:mb-1.5">
           <button
             type="button"
             aria-label="Pantalla anterior de la presentación"
             onClick={() => setActiveIndex((prev) => (prev + 2) % 3)}
-            className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition cursor-pointer border-0"
+            className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-200/80 hover:bg-[#0033FF] flex items-center justify-center text-slate-700 hover:text-white transition cursor-pointer border-0"
           >
             <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
 
-          <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-[#807DFE] font-bold">
+          <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-[#0033FF] font-bold">
             {currentStep.badge}
           </span>
 
@@ -513,16 +513,16 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
             type="button"
             aria-label="Siguiente pantalla de la presentación"
             onClick={() => setActiveIndex((prev) => (prev + 1) % 3)}
-            className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition cursor-pointer border-0"
+            className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-200/80 hover:bg-[#0033FF] flex items-center justify-center text-slate-700 hover:text-white transition cursor-pointer border-0"
           >
             <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
         </div>
 
-        <h3 className="text-xs sm:text-base font-bold text-white tracking-tight">
+        <h3 className="text-xs sm:text-base font-bold text-slate-900 tracking-tight">
           {currentStep.title}
         </h3>
-        <p className="text-[11px] sm:text-xs text-[#D4D6E6]/85 mt-0.5 leading-snug sm:leading-relaxed">
+        <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5 leading-snug sm:leading-relaxed">
           {currentStep.subtitle}
         </p>
 
@@ -536,8 +536,8 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
               onClick={() => setActiveIndex(idx)}
               className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer border-0 ${
                 activeIndex === idx
-                  ? 'w-6 sm:w-7 bg-white'
-                  : 'w-2 bg-white/35 hover:bg-white/60'
+                  ? 'w-6 sm:w-7 bg-[#0033FF]'
+                  : 'w-2 bg-slate-300 hover:bg-slate-400'
               }`}
             />
           ))}
@@ -728,32 +728,11 @@ export const LoadingScreen = ({ onComplete }) => {
         transition: 'transform 0.65s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.45s ease',
         willChange: 'transform, opacity',
       }}
-      className="fixed inset-0 w-screen h-screen z-50 overflow-y-auto overflow-x-hidden select-none pointer-events-auto bg-[#01033E] font-sans flex items-center justify-center px-4 sm:px-10 lg:px-16"
+      className="fixed inset-0 w-screen h-screen z-50 overflow-y-auto overflow-x-hidden select-none pointer-events-auto bg-white font-sans flex items-center justify-center px-4 sm:px-10 lg:px-16"
     >
       {/* 
         ══════════════════════════════════════════════════════════════
-        FONDO ANIMADO DE NUBES (CLOUD-SKY) EN TODA LA PANTALLA COMPLETA
-        ══════════════════════════════════════════════════════════════
-      */}
-      <div className="fixed inset-0 w-screen h-screen z-0 pointer-events-auto overflow-hidden">
-        <CloudSky
-          background="#01033E"
-          baseColor="#0033FF"
-          accentColor="#D4D6E6"
-          density={85}
-          speed={45}
-          size={125}
-          clouds={{ softness: 85, shadow: 80, cirrus: 40 }}
-          sun={{ x: 78, y: 90, glow: 'rgba(128, 125, 254, 0.85)' }}
-          pointer={{ parallax: 130, wind: 100, damping: 25 }}
-          pauseWhenLoading={false}
-          className="w-full h-full"
-        />
-      </div>
-
-      {/* 
-        ══════════════════════════════════════════════════════════════
-        FASE 1: PANTALLA DE CARGA PRINCIPAL AL ABRIR LA APLICACIÓN
+        FASE 1: PANTALLA DE CARGA PRINCIPAL AL ABRIR LA APLICACIÓN (FONDO BLANCO)
         Aparece al abrir la app, carga un momento y pasa a la pantalla inicial
         ══════════════════════════════════════════════════════════════
       */}
@@ -761,23 +740,23 @@ export const LoadingScreen = ({ onComplete }) => {
         <div className="relative z-20 flex flex-col items-center justify-center text-center px-6 max-w-sm w-full animate-in fade-in duration-300">
           <div className="relative flex items-center justify-center mb-6 bg-transparent">
             <img
-              src="./parqu-logo-white.png"
+              src="./parqu-logo-black.png"
               alt="Parqu Logo"
-              className="h-20 sm:h-28 w-auto object-contain bg-transparent relative z-10 drop-shadow-[0_0_40px_rgba(128,125,254,0.6)]"
+              className="h-20 sm:h-28 w-auto object-contain bg-transparent relative z-10"
             />
           </div>
 
-          <div className="w-56 sm:w-64 h-1.5 rounded-full bg-white/15 overflow-hidden backdrop-blur-sm shadow-inner">
+          <div className="w-56 sm:w-64 h-1.5 rounded-full bg-slate-200 overflow-hidden shadow-inner">
             <div
               style={{
                 width: `${bootProgress}%`,
                 transition: 'width 80ms linear',
               }}
-              className="h-full rounded-full bg-gradient-to-r from-[#0033FF] via-[#807DFE] to-white shadow-[0_0_15px_rgba(128,125,254,0.9)]"
+              className="h-full rounded-full bg-gradient-to-r from-[#0033FF] via-[#807DFE] to-[#01033E]"
             />
           </div>
 
-          <div className="mt-3 flex items-center justify-between w-56 sm:w-64 text-[11px] font-mono text-[#D4D6E6]">
+          <div className="mt-3 flex items-center justify-between w-56 sm:w-64 text-[11px] font-mono text-slate-600">
             <span>
               {bootProgress < 50
                 ? 'Iniciando Parqu...'
@@ -785,31 +764,31 @@ export const LoadingScreen = ({ onComplete }) => {
                 ? 'Sincronizando red NFC...'
                 : 'Listo'}
             </span>
-            <span className="font-bold text-white">{bootProgress}%</span>
+            <span className="font-bold text-slate-900">{bootProgress}%</span>
           </div>
         </div>
       ) : (
         /* 
           ══════════════════════════════════════════════════════════════
-          FASE 2: PANTALLA INICIAL DE BIENVENIDA CON BOTÓN "EMPECEMOS"
+          FASE 2: PANTALLA INICIAL DE BIENVENIDA EN FONDO BLANCO CON BOTÓN "EMPECEMOS"
           ══════════════════════════════════════════════════════════════
         */
         <div className="relative z-10 w-full max-w-[1280px] mx-auto py-3 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-8 lg:gap-6 items-center animate-in fade-in duration-500">
           
           {/* COLUMNA IZQUIERDA: LOGO DE PARQU 100% TRANSPARENTE, SLOGAN Y ÚNICAMENTE EL BOTÓN "EMPECEMOS" */}
           <div className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2.5 sm:space-y-7">
-            {/* Logotipo Oficial Parqu 100% Transparente */}
+            {/* Logotipo Oficial Parqu 100% Transparente para Fondo Blanco */}
             <div className="relative flex items-center justify-center bg-transparent">
               <img
-                src="./parqu-logo-white.png"
+                src="./parqu-logo-black.png"
                 alt="Parqu Logo"
-                className="h-14 sm:h-28 md:h-32 w-auto object-contain bg-transparent relative z-10 drop-shadow-[0_0_35px_rgba(128,125,254,0.45)]"
+                className="h-14 sm:h-28 md:h-32 w-auto object-contain bg-transparent relative z-10"
               />
             </div>
 
             {/* Slogan */}
-            <p className="font-sans text-xs sm:text-lg md:text-xl text-[#D4D6E6] font-normal tracking-normal leading-snug sm:leading-relaxed max-w-[280px] sm:max-w-md drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">
-              Sistema Inteligente de <span className="text-white font-bold">Parquímetros</span> y Autocobro Digital
+            <p className="font-sans text-xs sm:text-lg md:text-xl text-slate-600 font-normal tracking-normal leading-snug sm:leading-relaxed max-w-[280px] sm:max-w-md">
+              Sistema Inteligente de <span className="text-slate-900 font-bold">Parquímetros</span> y Autocobro Digital
             </p>
 
             {/* Único Botón "Empecemos" con RadialGlowButton */}
