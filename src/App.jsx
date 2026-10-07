@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense, lazy } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { Toaster, sileo } from 'sileo';
 import 'sileo/styles.css';
@@ -6,12 +6,7 @@ import { ParkingProvider, useParking } from './context/ParkingContext';
 import { Header } from './components/Header';
 import { ExitNotificationManager } from './components/ExitNotificationManager';
 import { DigitalCard } from './components/DigitalCard';
-import { VehicleOwnerForm } from './components/VehicleOwnerForm';
-import { AutoPaymentConfig } from './components/AutoPaymentConfig';
-import { ParkingMeter } from './components/ParkingMeter';
-import { TransactionHistory } from './components/TransactionHistory';
 import { StaggeredGrid } from './components/ui/staggered-grid';
-import { HeroParallax } from './components/ui/hero-parallax';
 import { WobbleCard } from './components/ui/wobble-card';
 import { InterfaceCraftsCards } from './components/ui/interface-crafts-cards';
 import { Tabs } from './components/ui/tabs';
@@ -21,6 +16,22 @@ import { CurrencyDollarIcon, PlugConnectedIcon } from './components/icons';
 import { AnimeMetricsHub } from './components/ui/anime-metrics-hub';
 import { AnimeStaggerGroup } from './components/ui/anime-stagger-group';
 import { OrbitalWheelMenu } from './components/ui/orbital-wheel-menu';
+
+const ParkingMeter = lazy(() =>
+  import('./components/ParkingMeter').then((m) => ({ default: m.ParkingMeter || m.default }))
+);
+const AutoPaymentConfig = lazy(() =>
+  import('./components/AutoPaymentConfig').then((m) => ({ default: m.AutoPaymentConfig || m.default }))
+);
+const VehicleOwnerForm = lazy(() =>
+  import('./components/VehicleOwnerForm').then((m) => ({ default: m.VehicleOwnerForm || m.default }))
+);
+const TransactionHistory = lazy(() =>
+  import('./components/TransactionHistory').then((m) => ({ default: m.TransactionHistory || m.default }))
+);
+const HeroParallax = lazy(() =>
+  import('./components/ui/hero-parallax').then((m) => ({ default: m.HeroParallax || m.default }))
+);
 import { 
   CreditCard, 
   Car, 
@@ -654,11 +665,13 @@ const MainContent = () => {
 
           {/* COMPONENTE ACETERNITY UI TABS (Control centralizado de funciones con animación spring) */}
           <div id="system-tabs-container" className="scroll-mt-24">
-            <Tabs 
-              tabs={systemTabs} 
-              activeTab={activeTab} 
-              onTabChange={setActiveTab} 
-            />
+            <Suspense fallback={<div className="h-64 w-full animate-pulse rounded-3xl bg-slate-100/50" />}>
+              <Tabs 
+                tabs={systemTabs} 
+                activeTab={activeTab} 
+                onTabChange={setActiveTab} 
+              />
+            </Suspense>
           </div>
 
             </main>
@@ -666,11 +679,13 @@ const MainContent = () => {
 
         {/* 3. SECCIÓN BANNER: La Nueva Era del Parquímetro Digital */}
         <section className="w-full border-t border-slate-200 overflow-hidden bg-white">
-          <HeroParallax 
-            headerTitle="La Nueva Era del Parquímetro Digital"
-            headerSubtitle="SISTEMA METROPOLITANO PARQU"
-            headerDescription="Descubre una plataforma diseñada para eliminar las filas y los parquímetros mecánicos. Autocobro continuo a $6.00/hr con tecnología NFC de SSS.Solutions."
-          />
+          <Suspense fallback={null}>
+            <HeroParallax 
+              headerTitle="La Nueva Era del Parquímetro Digital"
+              headerSubtitle="SISTEMA METROPOLITANO PARQU"
+              headerDescription="Descubre una plataforma diseñada para eliminar las filas y los parquímetros mecánicos. Autocobro continuo a $6.00/hr con tecnología NFC de SSS.Solutions."
+            />
+          </Suspense>
         </section>
 
         {/* Footer con Logos 100% Transparentes y Powered by SSS.Solutions */}
