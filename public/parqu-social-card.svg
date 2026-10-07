@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <style>
+      .font-ui {
+        font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      .font-mono {
+        font-family: 'JetBrains Mono', monospace;
+      }
+    </style>
+
+    <linearGradient id="parquFrontGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#01033E" />
+      <stop offset="58%" stop-color="#0033FF" />
+      <stop offset="100%" stop-color="#807DFE" />
+    </linearGradient>
+
+    <radialGradient id="parquGlow" cx="65%" cy="50%" r="45%">
+      <stop offset="0%" stop-color="#0033FF" stop-opacity="0.22" />
+      <stop offset="55%" stop-color="#807DFE" stop-opacity="0.14" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </radialGradient>
+
+    <filter id="backPanelShadow" x="-15%" y="-15%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#01033E" flood-opacity="0.14" />
+    </filter>
+
+    <filter id="frontPanelShadow" x="-20%" y="-15%" width="145%" height="145%">
+      <feDropShadow dx="-18" dy="24" stdDeviation="28" flood-color="#01033E" flood-opacity="0.32" />
+    </filter>
+  </defs>
+
+  <!-- 1. FONDO BLANCO LIMPIO DE PARQU + RESPLANDOR ATMOSFÉRICO -->
+  <rect width="1200" height="630" fill="#FFFFFF" />
+  <rect width="1200" height="630" fill="url(#parquGlow)" />
+
+  <!-- 2. IDENTIDAD PARQU EN LA COLUMNA IZQUIERDA -->
+  <g transform="translate(72, 195)">
+    <text x="0" y="0" fill="#01033E" class="font-ui" font-size="68" font-weight="900" letter-spacing="-3">parqu</text>
+    <text x="0" y="48" fill="#475569" class="font-ui" font-size="22" font-weight="500">Sistema Inteligente de <tspan fill="#01033E" font-weight="800">Parquímetros</tspan></text>
+    <text x="0" y="78" fill="#475569" class="font-ui" font-size="22" font-weight="500">y Autocobro Digital</text>
+
+    <!-- Botón Empecemos estilo RadialGlowButton -->
+    <g transform="translate(0, 112)">
+      <rect width="210" height="56" rx="28" fill="#01033E" />
+      <text x="42" y="35" fill="#FFFFFF" class="font-ui" font-size="18" font-weight="800">Empecemos →</text>
+    </g>
+  </g>
+
+  <!-- 3A. PANEL TRASERO (BILLETERA DIGITAL PARQU) -->
+  <g transform="translate(490, 92)" filter="url(#backPanelShadow)">
+    <rect width="348" height="456" rx="28" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" />
+
+    <text x="28" y="42" fill="#0033FF" class="font-mono" font-size="11" font-weight="700" letter-spacing="1">01 • BILLETERA DIGITAL</text>
+    <text x="28" y="68" fill="#01033E" class="font-ui" font-size="20" font-weight="800" letter-spacing="-0.4">Saldo Parqu</text>
+    <text x="28" y="114" fill="#01033E" class="font-ui" font-size="40" font-weight="900" letter-spacing="-1.6">$320.00</text>
+
+    <text x="28" y="140" fill="#64748B" class="font-ui" font-size="12.5" font-weight="600">Placa <tspan fill="#01033E" font-weight="800">XYZ-7842</tspan></text>
+    <text x="28" y="158" fill="#059669" class="font-ui" font-size="12.5" font-weight="700">Pase NFC Activo • Sin comisión</text>
+
+    <!-- Botones píldora -->
+    <g transform="translate(28, 178)">
+      <rect width="92" height="34" rx="17" fill="#0033FF" />
+      <text x="46" y="21.5" fill="#FFFFFF" class="font-ui" font-size="12.5" font-weight="700" text-anchor="middle">Recargar</text>
+
+      <rect x="102" width="96" height="34" rx="17" fill="#F1F5F9" />
+      <text x="150" y="21.5" fill="#01033E" class="font-ui" font-size="12.5" font-weight="700" text-anchor="middle">Autocobro</text>
+    </g>
+
+    <line x1="28" y1="234" x2="320" y2="234" stroke="#E2E8F0" stroke-width="1.5" />
+
+    <!-- Métricas -->
+    <g transform="translate(28, 268)">
+      <text x="0" y="0" fill="#01033E" class="font-ui" font-size="25" font-weight="900" letter-spacing="-0.8">$6.00</text>
+      <text x="0" y="18" fill="#64748B" class="font-ui" font-size="12" font-weight="500">Tarifa oficial por hora</text>
+      <path d="M148 4 L158 0 L167 2 L177 -5 L191 -8" stroke="#0033FF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    </g>
+
+    <g transform="translate(28, 336)">
+      <text x="0" y="0" fill="#01033E" class="font-mono" font-size="25" font-weight="900" letter-spacing="-0.8">00:14:25</text>
+      <text x="0" y="18" fill="#64748B" class="font-ui" font-size="12" font-weight="500">Cronómetro al segundo</text>
+    </g>
+
+    <g transform="translate(28, 404)">
+      <text x="0" y="0" fill="#01033E" class="font-ui" font-size="25" font-weight="900" letter-spacing="-0.8">$180.00</text>
+      <text x="0" y="18" fill="#64748B" class="font-ui" font-size="12" font-weight="500">Límite automático protegido</text>
+    </g>
+  </g>
+
+  <!-- 3B & 4. PANEL FRONTAL CON DEGRADADO PARQU Y "$6" HERO -->
+  <g transform="translate(715, 52)" filter="url(#frontPanelShadow)">
+    <rect width="352" height="474" rx="28" fill="url(#parquFrontGrad)" />
+
+    <circle cx="44" cy="44" r="18" fill="#FFFFFF" fill-opacity="0.16" />
+    <rect x="37" y="37" width="6" height="6" rx="1.2" stroke="#FFFFFF" stroke-width="1.8" fill="none" />
+    <rect x="45" y="37" width="6" height="6" rx="1.2" stroke="#FFFFFF" stroke-width="1.8" fill="none" />
+    <rect x="37" y="45" width="6" height="6" rx="1.2" stroke="#FFFFFF" stroke-width="1.8" fill="none" />
+    <rect x="45" y="45" width="6" height="6" rx="1.2" fill="#FFFFFF" />
+
+    <circle cx="308" cy="44" r="18" fill="#01033E" fill-opacity="0.45" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1.5" />
+    <text x="308" y="48.5" fill="#FFFFFF" class="font-ui" font-size="12" font-weight="700" text-anchor="middle">SS</text>
+
+    <g fill="#FFFFFF" fill-opacity="0.35" class="font-mono" font-size="16" font-weight="700" text-anchor="middle">
+      <text x="26" y="176">1</text>
+      <text x="26" y="214">4</text>
+      <text x="26" y="252">7</text>
+      <text x="26" y="290">•</text>
+      <text x="26" y="328">0</text>
+    </g>
+
+    <text x="182" y="272" fill="#FFFFFF" class="font-ui" font-size="166" font-weight="900" letter-spacing="-9" text-anchor="middle">$6</text>
+    <text x="182" y="310" fill="#D4D6E6" class="font-mono" font-size="13" font-weight="700" letter-spacing="2.6" text-anchor="middle">MXN / HORA OFICIAL</text>
+
+    <text x="28" y="444" fill="#FFFFFF" class="font-mono" font-size="12.5" font-weight="700">NFC AES-256</text>
+    <text x="324" y="444" fill="#FFFFFF" class="font-mono" font-size="12.5" font-weight="700" text-anchor="end">XYZ-7842</text>
+  </g>
+</svg>
