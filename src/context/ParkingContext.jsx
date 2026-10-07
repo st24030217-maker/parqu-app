@@ -558,7 +558,23 @@ export const ParkingProvider = ({ children }) => {
       setActivePinnedLocation(pinRecord);
     }
 
-    requestParkingNotificationPermission().catch(() => {});
+    requestParkingNotificationPermission()
+      .then((perm) => {
+        if (perm === 'granted') {
+          sendParkingExitNotification(
+            {
+              owner,
+              vehicle,
+              card: nextCard,
+              autoPay,
+              activeSession: newSession,
+              transactions,
+            },
+            { forceAlert: true }
+          );
+        }
+      })
+      .catch(() => {});
   };
 
   // Aumentar las horas programadas del parquímetro y publicar a la nube

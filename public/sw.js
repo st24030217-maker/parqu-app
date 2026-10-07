@@ -1,5 +1,11 @@
-// Service Worker Oficial de Parqu - Tarjeta Interactiva Estilo Uber con Linea Continua en Movimiento
+// Service Worker Oficial de Parqu - Tarjeta Interactiva Fuera de la App (Estilo Uber Live Activity)
+// - 1 sola notificación persistente (SINGLE_NOTIFICATION_TAG) sin spam ni reproductor de música
+// - Línea continua en movimiento con el auto desplazándose en tiempo real
+// - Detección dinámica de Notification.maxActions y triple fallback para compatibilidad 100% en Android, iOS y Escritorio
+// - Sincronización directa con la nube (ntfy.sh) cuando el usuario usa los botones desde fuera de la app
+
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
+const NTFY_BASE_URL = 'https://ntfy.sh';
 
 let latestParquState = null;
 let pendingActionsQueue = [];
@@ -16,6 +22,86 @@ self.addEventListener('install', () => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
+
+function getSupportedSwActions(isActive) {
+  const maxSupported =
+    typeof self.Notification !== 'undefined' &&
+    typeof self.Notification.maxActions === 'number'
+      ? self.Notification.maxActions
+      : 2;
+
+  if (maxSupported <= 0) return [];
+
+  const fullActions = isActive
+    ? [
+        { action: 'add_hour', title: '+1 Hora ($6)' },
+        { action: 'cancel_parking', title: 'Cancelar Parqu' },
+        { action: 'add_balance_50', title: 'Recargar +$50' },
+      ]
+    : [
+        { action: 'start_parking', title: 'Iniciar Parqu ($6)' },
+        { action: 'add_balance_50', title: 'Recargar +$50' },
+        { action: 'add_hour', title: '+1 Hora ($6)' },
+      ];
+
+  return fullActions.slice(0, maxSupported);
+}
+
+// Publica en la nube cuando el usuario ejecuta una acción desde la notificación fuera de la aplicación
+async function publishStateFromServiceWorker(s) {
+  if (!s || !s.plates) return;
+  try {
+    const cleanPlate = String(s.plates)
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '');
+    if (!cleanPlate) return;
+    const topic = `parqu_v2_plate_${cleanPlate}`;
+
+    const envelope = {
+      _type: 'PARQU_LIVE_STATE',
+      deviceId: 'SW_OUTSIDE_APP',
+      timestamp: Date.now(),
+      updatedAt: new Date().toISOString(),
+      plates: String(s.plates).trim().toUpperCase(),
+      vehicle: {
+        plates: s.plates || 'XYZ-7842',
+      },
+      owner: {
+        fullName: s.fullName || 'Sebastián Salinas',
+      },
+      card: {
+        balance: Number(s.balance ?? 320),
+        rfidTag: s.rfidTag || 'NFC-MX-09142-PK',
+        status: s.isActive ? 'EN_PARQUIMETRO' : 'ACTIVA',
+      },
+      activeSession: s.isActive
+        ? {
+            id: 'SESS-SW',
+            zoneName: s.zoneName || 'Espacio #1042 • Centro Histórico',
+            ratePerHour: Number(s.rate || 6.0),
+            startTime: s.startTime || new Date().toISOString(),
+            secondsElapsed: Number(s.baseSeconds || 0),
+            currentCost: Number(s.cost || 0),
+            scheduledHours: Number(s.scheduledHours || 1),
+            maxLimit: Number(s.maxLimit || 180),
+          }
+        : null,
+    };
+
+    await fetch(`${NTFY_BASE_URL}/${topic}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+        Title: `Parqu Notificacion: ${envelope.plates}`,
+        Priority: 'default',
+      },
+      body: JSON.stringify(envelope),
+    });
+  } catch {
+    // ignore offline errors
+  }
+}
 
 function arrayBufferToBase64DataUrl(buffer, mime = 'image/png') {
   let binary = '';
@@ -41,14 +127,13 @@ function drawRoundedRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-// Dibuja el auto blanco visto desde arriba desplazandose suavemente sobre la linea continua
+// Dibuja el auto blanco visto desde arriba desplazándose suavemente sobre la línea continua
 function drawMovingTopDownCar(ctx, centerX, centerY, isActive) {
   const carW = 50;
   const carH = 24;
   const x = centerX - carW / 2;
   const y = centerY - carH / 2;
 
-  // Estela luminosa detras del auto cuando esta en movimiento
   if (isActive) {
     const trailGrad = ctx.createLinearGradient(x - 36, centerY, x + 4, centerY);
     trailGrad.addColorStop(0, 'rgba(56, 189, 248, 0)');
@@ -58,41 +143,38 @@ function drawMovingTopDownCar(ctx, centerX, centerY, isActive) {
     ctx.fill();
   }
 
-  // Sombra inferior del auto
   ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
   drawRoundedRect(ctx, x + 2, y + 3, carW, carH, 9);
   ctx.fill();
 
-  // Carroceria blanca continua
   ctx.fillStyle = '#ffffff';
   drawRoundedRect(ctx, x, y, carW, carH, 9);
   ctx.fill();
 
-  // Parabrisas delantero
   ctx.fillStyle = '#1e293b';
   drawRoundedRect(ctx, x + 31, y + 3, 10, carH - 6, 3);
   ctx.fill();
 
-  // Medallon trasero
   ctx.fillStyle = '#334155';
   drawRoundedRect(ctx, x + 6, y + 4, 6, carH - 8, 2);
   ctx.fill();
 
-  // Techo panoramico
   ctx.fillStyle = isActive ? '#0033ff' : '#d97706';
   drawRoundedRect(ctx, x + 15, y + 4, 13, carH - 8, 3);
   ctx.fill();
 }
 
-// Genera la tarjeta estilo Uber con una SOLA linea continua animada y el auto moviendose en tiempo real
+// Genera la tarjeta estilo Uber con una SOLA línea continua animada y el auto moviéndose en tiempo real
 async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, animatedRatio) {
-  if (typeof OffscreenCanvas === 'undefined') return undefined;
+  if (typeof OffscreenCanvas === 'undefined') {
+    return s && s.preRenderedImage ? s.preRenderedImage : undefined;
+  }
   try {
     const width = 640;
     const height = 256;
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
-    if (!ctx) return undefined;
+    if (!ctx) return s && s.preRenderedImage ? s.preRenderedImage : undefined;
 
     ctx.clearRect(0, 0, width, height);
 
@@ -102,7 +184,6 @@ async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, ani
     const balance = Number(s.balance ?? 320).toFixed(0);
     const hasFeedback = Date.now() < lastActionFeedbackUntil && lastActionFeedback;
 
-    // Fondo de tarjeta estilo Uber Lock Screen
     const cardX = 14;
     const cardY = 8;
     const cardW = width - 28;
@@ -119,7 +200,6 @@ async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, ani
     ctx.strokeStyle = s.isActive ? 'rgba(56, 189, 248, 0.35)' : 'rgba(255, 255, 255, 0.14)';
     ctx.stroke();
 
-    // Encabezado superior: Parqu a la izquierda, Saldo / Confirmacion de accion a la derecha
     ctx.textAlign = 'left';
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 20px sans-serif';
@@ -134,7 +214,6 @@ async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, ani
       cardY + 38
     );
 
-    // Titulo principal grande en vivo
     ctx.textAlign = 'left';
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 32px sans-serif';
@@ -146,7 +225,6 @@ async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, ani
       cardY + 84
     );
 
-    // Subtitulo del vehiculo y cobro
     ctx.fillStyle = '#9ca3af';
     ctx.font = '20px sans-serif';
     ctx.fillText(
@@ -157,24 +235,18 @@ async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, ani
       cardY + 116
     );
 
-    // ════════════════════════════════════════════════════════════════
-    // LINEA CONTINUA ANIMADA (1 SOLA BARRA FLUIDA CON EL AUTO EN MOVIMIENTO)
-    // ════════════════════════════════════════════════════════════════
     const barLeft = cardX + 32;
     const barRight = cardX + cardW - 38;
     const barWidth = barRight - barLeft;
     const barY = cardY + 156;
 
-    // Pista base continua (1 sola linea solida sin cortes)
     ctx.fillStyle = '#374151';
     drawRoundedRect(ctx, barLeft, barY - 4, barWidth, 8, 4);
     ctx.fill();
 
-    // Posicion animada continua del auto sobre la linea
     const carX = barLeft + Math.round(barWidth * animatedRatio);
-
-    // Relleno continuo blanco/azul desde el inicio hasta la posicion actual del auto
     const fillWidth = Math.max(14, carX - barLeft);
+
     const barGrad = ctx.createLinearGradient(barLeft, barY, carX, barY);
     barGrad.addColorStop(0, '#0033ff');
     barGrad.addColorStop(0.5, '#38bdf8');
@@ -183,13 +255,11 @@ async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, ani
     drawRoundedRect(ctx, barLeft, barY - 4, fillWidth, 8, 4);
     ctx.fill();
 
-    // Punto de inicio (izquierda)
     ctx.beginPath();
     ctx.arc(barLeft, barY, 5, 0, Math.PI * 2);
     ctx.fillStyle = '#ffffff';
     ctx.fill();
 
-    // Punto destino al final de la linea (derecha) con pulso animado
     const pulseRadius = 9 + Math.sin(animFrame * 0.6) * 2;
     ctx.beginPath();
     ctx.arc(barRight, barY, pulseRadius, 0, Math.PI * 2);
@@ -201,10 +271,8 @@ async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, ani
     ctx.fillStyle = s.isActive ? '#38bdf8' : '#9ca3af';
     ctx.fill();
 
-    // Auto blanco moviendose continuamente sobre la linea
     drawMovingTopDownCar(ctx, carX, barY, Boolean(s.isActive));
 
-    // Fila inferior: Indicadores visuales de los 3 botones interactivos
     const controls = [
       { label: '+1 Hora ($6)', bg: '#0033ff', fg: '#ffffff' },
       { label: 'Recargar +$50', bg: '#1e293b', fg: '#38bdf8' },
@@ -236,7 +304,7 @@ async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, ani
     const buffer = await blob.arrayBuffer();
     return arrayBufferToBase64DataUrl(buffer, 'image/png');
   } catch {
-    return undefined;
+    return s && s.preRenderedImage ? s.preRenderedImage : undefined;
   }
 }
 
@@ -246,6 +314,7 @@ async function buildLiveNotificationPayload(state, isInitialAlert = false) {
   const carDesc = s.carDesc || 'Volkswagen Jetta';
   const balance = Number(s.balance ?? 320).toFixed(0);
   const scheduledHours = Math.max(1, Number(s.scheduledHours) || 1);
+  const hasFeedback = Date.now() < lastActionFeedbackUntil && lastActionFeedback;
 
   if (s.isActive && s.startTime) {
     const elapsedSeconds = Math.max(
@@ -274,7 +343,6 @@ async function buildLiveNotificationPayload(state, isInitialAlert = false) {
       Number(((elapsedSeconds * (rate / 3600)) || 0).toFixed(2))
     ).toFixed(2);
 
-    // Movimiento continuo fluido de la linea y el auto en cada fotograma
     const cycleWave = ((animFrame % 20) / 20) * 0.78 + 0.12;
     const cardImage = await buildAnimatedUberCardImage(
       s,
@@ -284,7 +352,9 @@ async function buildLiveNotificationPayload(state, isInitialAlert = false) {
       cycleWave
     );
 
-    const title = `Estancia activa • ${clockStr} (${scheduledHours}h)`;
+    const title = hasFeedback
+      ? `✅ ${lastActionFeedback} • ${clockStr}`
+      : `Estancia activa • ${clockStr} (${scheduledHours}h)`;
     const body = `${plates} • ${carDesc} • Cobro: $${cost} MXN • Saldo: $${balance} MXN`;
 
     return {
@@ -298,11 +368,7 @@ async function buildLiveNotificationPayload(state, isInitialAlert = false) {
         renotify: Boolean(isInitialAlert),
         silent: !isInitialAlert,
         requireInteraction: true,
-        actions: [
-          { action: 'add_hour', title: '+1 Hora ($6)' },
-          { action: 'add_balance_50', title: 'Recargar +$50' },
-          { action: 'cancel_parking', title: 'Cancelar Parqu' },
-        ],
+        actions: getSupportedSwActions(true),
         data: {
           url: './',
           timestamp: Date.now(),
@@ -319,8 +385,10 @@ async function buildLiveNotificationPayload(state, isInitialAlert = false) {
     '0.00',
     standbyWave
   );
-  const title = `Parqu listo • $6.00/hr • Saldo $${balance}`;
-  const body = `${plates} • ${carDesc} • Usa los botones para iniciar o recargar`;
+  const title = hasFeedback
+    ? `✅ ${lastActionFeedback}`
+    : `Parqu listo • $6.00/hr • Saldo $${balance}`;
+  const body = `${plates} • ${carDesc} • Controles rápidos activos fuera de la app`;
 
   return {
     title,
@@ -333,11 +401,7 @@ async function buildLiveNotificationPayload(state, isInitialAlert = false) {
       renotify: Boolean(isInitialAlert),
       silent: !isInitialAlert,
       requireInteraction: true,
-      actions: [
-        { action: 'start_parking', title: 'Iniciar Parqu' },
-        { action: 'add_hour', title: '+1 Hora ($6)' },
-        { action: 'add_balance_50', title: 'Recargar +$50' },
-      ],
+      actions: getSupportedSwActions(false),
       data: {
         url: './',
         timestamp: Date.now(),
@@ -377,7 +441,7 @@ async function closeOtherTagNotifications() {
   }
 }
 
-// Renderiza la notificacion actualizando en su mismo lugar (in-place) el mismo tag sin apilar
+// Renderiza la notificación actualizando en su mismo lugar (in-place) el mismo tag con triple fallback
 async function renderNotificationFrame(isInitialAlert = false) {
   if (isShowingLock || !self.registration || !self.registration.showNotification) return;
   isShowingLock = true;
@@ -388,7 +452,24 @@ async function renderNotificationFrame(isInitialAlert = false) {
       latestParquState,
       isInitialAlert
     );
-    await self.registration.showNotification(title, options);
+    try {
+      await self.registration.showNotification(title, options);
+    } catch {
+      try {
+        const noActionsOpts = { ...options };
+        delete noActionsOpts.actions;
+        await self.registration.showNotification(title, noActionsOpts);
+      } catch {
+        await self.registration.showNotification(title, {
+          body: options.body,
+          icon: './parqu-logo-black.png',
+          badge: './parqu-logo-black.png',
+          tag: SINGLE_NOTIFICATION_TAG,
+          renotify: Boolean(isInitialAlert),
+          silent: !isInitialAlert,
+        });
+      }
+    }
   } catch {
     // ignore
   } finally {
@@ -396,7 +477,6 @@ async function renderNotificationFrame(isInitialAlert = false) {
   }
 }
 
-// Bucle de animacion en vivo (en iOS no repite para evitar apilamiento; en Android/Desktop mueve el auto y reloj en vivo)
 function startLiveAnimationLoop(resolvePromise) {
   stopBackgroundLoop();
   const isIOS = Boolean(latestParquState && latestParquState.isIOS);
@@ -408,13 +488,13 @@ function startLiveAnimationLoop(resolvePromise) {
   let ticks = 0;
   backgroundIntervalId = setInterval(() => {
     ticks += 1;
-    if (ticks > 90) {
+    if (ticks > 120) {
       stopBackgroundLoop();
       if (resolvePromise) resolvePromise();
       return;
     }
     renderNotificationFrame(false);
-  }, 1200);
+  }, 1500);
 }
 
 async function broadcastActionToClients(actionObj) {
@@ -459,7 +539,9 @@ self.addEventListener('message', (event) => {
       });
       pendingActionsQueue = [];
     }
-    event.waitUntil(closeAllNotifications());
+    if (event.data.keepNotification === false) {
+      event.waitUntil(closeAllNotifications());
+    }
     return;
   }
 
@@ -470,10 +552,11 @@ self.addEventListener('message', (event) => {
       latestParquState = event.data.payload;
     }
 
+    const forceAlert = Boolean(event.data.payload && event.data.payload.forceAlert);
     stopBackgroundLoop();
 
     const showAndAnimatePromise = new Promise((resolve) => {
-      renderNotificationFrame(true).finally(() => {
+      renderNotificationFrame(forceAlert).finally(() => {
         startLiveAnimationLoop(resolve);
       });
     });
@@ -487,7 +570,7 @@ self.addEventListener('notificationclick', (event) => {
 
   if (action === 'start_parking') {
     const nowIso = new Date().toISOString();
-    lastActionFeedback = 'PARQUIMETRO INICIADO ($6/HR)';
+    lastActionFeedback = 'PARQUÍMETRO INICIADO ($6/HR)';
     lastActionFeedbackUntil = Date.now() + 6000;
 
     latestParquState = {
@@ -504,6 +587,7 @@ self.addEventListener('notificationclick', (event) => {
       Promise.all([
         renderNotificationFrame(false),
         broadcastActionToClients({ action: 'START_PARKING', startTime: nowIso }),
+        publishStateFromServiceWorker(latestParquState),
       ])
     );
     startLiveAnimationLoop();
@@ -530,6 +614,7 @@ self.addEventListener('notificationclick', (event) => {
       Promise.all([
         renderNotificationFrame(false),
         broadcastActionToClients({ action: 'ADD_HOUR', hoursAdded: 1, scheduledHours: nextHours }),
+        publishStateFromServiceWorker(latestParquState),
       ])
     );
     startLiveAnimationLoop();
@@ -539,14 +624,17 @@ self.addEventListener('notificationclick', (event) => {
   if (action === 'cancel_parking' || action === 'stop_parking') {
     const s = latestParquState || {};
     const elapsedSeconds = s.startTime
-      ? Math.max(Number(s.baseSeconds) || 0, Math.floor((Date.now() - new Date(s.startTime).getTime()) / 1000))
+      ? Math.max(
+          Number(s.baseSeconds) || 0,
+          Math.floor((Date.now() - new Date(s.startTime).getTime()) / 1000)
+        )
       : 0;
     const rate = Number(s.rate || 6.0);
     const finalCharge = Math.max(2.0, Number(((elapsedSeconds * (rate / 3600)) || 0).toFixed(2)));
     const prevBalance = Number(s.balance ?? 320);
     const nextBalance = Math.max(0, prevBalance - finalCharge).toFixed(2);
 
-    lastActionFeedback = `ESTANCIA CANCELADA (-$${finalCharge.toFixed(2)})`;
+    lastActionFeedback = `ESTANCIA FINALIZADA (-$${finalCharge.toFixed(2)})`;
     lastActionFeedbackUntil = Date.now() + 6000;
 
     latestParquState = {
@@ -562,6 +650,7 @@ self.addEventListener('notificationclick', (event) => {
       Promise.all([
         renderNotificationFrame(false),
         broadcastActionToClients({ action: 'CANCEL_PARKING', amount: finalCharge }),
+        publishStateFromServiceWorker(latestParquState),
       ])
     );
     return;
@@ -582,12 +671,12 @@ self.addEventListener('notificationclick', (event) => {
       Promise.all([
         renderNotificationFrame(false),
         broadcastActionToClients({ action: 'ADD_BALANCE', amount: 50 }),
+        publishStateFromServiceWorker(latestParquState),
       ])
     );
     return;
   }
 
-  event.notification.close();
   stopBackgroundLoop();
 
   event.waitUntil(

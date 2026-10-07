@@ -378,6 +378,7 @@ export const LoadingScreen = ({ onComplete }) => {
   }, [onComplete]);
 
   const handleOpenAuthModal = useCallback(() => {
+    requestParkingNotificationPermission().catch(() => {});
     setAuthError('');
     setShowAuthModal(true);
   }, []);
@@ -387,6 +388,7 @@ export const LoadingScreen = ({ onComplete }) => {
     if (e && typeof e.preventDefault === 'function') {
       e.preventDefault();
     }
+    requestParkingNotificationPermission().catch(() => {});
     setAuthError('');
 
     const cleanEmail = (formData.email || '').trim();
