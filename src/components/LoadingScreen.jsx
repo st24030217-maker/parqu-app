@@ -2,18 +2,8 @@ import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import {
   ArrowRight,
   Wifi,
-  Battery,
   QrCode,
-  ShieldCheck,
-  CreditCard,
-  MapPin,
-  Clock,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
   Car,
-  Zap,
   User,
   Lock,
   Mail,
@@ -22,526 +12,251 @@ import {
   X,
 } from 'lucide-react';
 import { animate, stagger } from 'animejs';
-import CloudSky from './ui/cloud-sky';
 import { AnimeCardSheen } from './ui/anime-card-sheen';
-import { AnimeCounter } from './ui/anime-counter';
-import { FlipFadeText } from './ui/flip-fade-text';
 import CurvedLoop from './ui/CurvedLoop';
-import { RadialGlowButton } from './ui/radial-glow-button';
 import { Button as StatefulButton } from './ui/stateful-button';
-import { GtaViPoster } from './ui/gta-vi-poster';
 import { useParking } from '../context/ParkingContext';
 import { requestParkingNotificationPermission } from '../utils/parkingNotification';
 
-const PRESENTATION_STEPS = [
-  {
-    id: 0,
-    badge: 'PASO 01 / 03 • BILLETERA DIGITAL',
-    title: 'Recarga y gestiona tu Tarjeta Parqu',
-    subtitle:
-      'Registra tus placas en segundos y mantén saldo disponible sin comisiones ni efectivo.',
-  },
-  {
-    id: 1,
-    badge: 'PASO 02 / 03 • AUTOCOBRO EN VIVO',
-    title: 'Paga solo el tiempo que te estaciones',
-    subtitle:
-      'Activa el parquímetro desde tu celular a $6.00 MXN por hora. Detén el reloj cuando te retires.',
-  },
-  {
-    id: 2,
-    badge: 'PASO 03 / 03 • TECNOLOGÍA NFC CONTACTLESS',
-    title: 'Verificación NFC oficial sin contacto',
-    subtitle:
-      'Tu estancia queda registrada con tecnología NFC contactless y cifrado AES-256 ante supervisores viales.',
-  },
-];
-
-// Subcomponente aislado solo para el texto del cronómetro cada segundo (60 FPS garantizados)
-const LiveTimerDisplay = memo(() => {
-  const [seconds, setSeconds] = useState(865); // 14:25 inicial
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSeconds((prev) => prev + 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  const formattedTimer = `00:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  const liveCost = ((seconds / 3600) * 6).toFixed(2);
+// ══════════════════════════════════════════════════════════════════════════
+// COMPOSICIÓN KAGE DESIGN (1200×630 PROPORTIONS ADAPTED FOR DESKTOP & MOBILE)
+// - Ground: Full-bleed solid black (#000000), zero gradient/vignette.
+// - Brand Anchor: Bottom-left rounded square (#0033FF) with bold Parqu glyph.
+// - UI Stack: Centre-right overlapping phone panels (Back white panel + Front #0033FF panel).
+// - Hero Figure: Giant "$6" in heaviest weight at the optical centre of the front panel.
+// - Texture Prop: Bottom-right cropped card with warm metallic (#C98A3B–#E0A44E) micro-pattern.
+// ══════════════════════════════════════════════════════════════════════════
+const KageHeroComposition = memo(({ plates, balance, ownerName }) => {
+  const formattedBalance = Number(balance ?? 320).toFixed(2);
+  const activePlates = plates || 'XYZ-7842';
+  const initials = (ownerName || 'Sebastián Salinas')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n[0]?.toUpperCase())
+    .join('') || 'SS';
 
   return (
-    <div className="mt-2 text-center py-2.5 px-3 rounded-2xl bg-black/25">
-      <div className="text-[9px] font-mono uppercase tracking-widest text-[#D4D6E6]/80">
-        Cronómetro Activo al Segundo
-      </div>
-      <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-white mt-0.5">
-        {formattedTimer}
-      </div>
-      <div className="mt-0.5 text-[11px] font-mono font-bold text-emerald-300">
-        Cobro exacto: ${liveCost} MXN
-      </div>
-    </div>
-  );
-});
-
-// ══════════════════════════════════════════════════════════════════════════
-// PRESENTACIÓN INTERACTIVA DE LA APLICACIÓN EN ABANICO DE 3 TELÉFONOS
-// Los 3 teléfonos rotan suavemente al frente mostrando paso a paso cómo
-// funciona Parqu como una presentación en vivo de la app.
-// ══════════════════════════════════════════════════════════════════════════
-const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isMobileView, setIsMobileView] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth < 640 : false
-  );
-
-  const formattedBalance = Number(balance ?? 250).toFixed(2);
-  const activePlates = plates || 'ABC-123-A';
-
-  useEffect(() => {
-    const onResize = () => setIsMobileView(window.innerWidth < 640);
-    window.addEventListener('resize', onResize, { passive: true });
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  // Rotación continua y 100% automática cada 2.5 segundos sin detenerse con el mouse
-  useEffect(() => {
-    const rotation = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % 3);
-    }, 2500);
-    return () => clearInterval(rotation);
-  }, []);
-
-  // Calcula la posición dinámica en el abanico (izquierda, centro-frente, derecha) adaptada a celular y escritorio
-  const getPhonePositionStyle = (phoneIndex) => {
-    const diff = (phoneIndex - activeIndex + 3) % 3;
-    const offsetX = isMobileView ? 68 : 122;
-    const offsetY = isMobileView ? 12 : 26;
-    const activeScale = isMobileView ? 0.65 : 1.02;
-    const sideScale = isMobileView ? 0.55 : 0.85;
-
-    // diff === 0 -> Teléfono activo al frente en el centro
-    if (diff === 0) {
-      return {
-        transform: `translate3d(0px, -4px, 0px) rotate(0deg) scale(${activeScale})`,
-        zIndex: 30,
-        opacity: 1,
-        filter: 'brightness(1)',
-      };
-    }
-    // diff === 1 -> Teléfono a la derecha en el abanico
-    if (diff === 1) {
-      return {
-        transform: `translate3d(${offsetX}px, ${offsetY}px, 0px) rotate(10deg) scale(${sideScale})`,
-        zIndex: 20,
-        opacity: 0.9,
-        filter: 'brightness(0.9)',
-      };
-    }
-    // diff === 2 -> Teléfono a la izquierda en el abanico
-    return {
-      transform: `translate3d(-${offsetX}px, ${offsetY}px, 0px) rotate(-10deg) scale(${sideScale})`,
-      zIndex: 20,
-      opacity: 0.9,
-      filter: 'brightness(0.9)',
-    };
-  };
-
-  const handleSelectPhone = (index) => {
-    if (index === activeIndex) {
-      setActiveIndex((prev) => (prev + 1) % 3);
-    } else {
-      setActiveIndex(index);
-    }
-  };
-
-  const currentStep = PRESENTATION_STEPS[activeIndex];
-
-  return (
-    <div className="relative w-full max-w-[340px] sm:max-w-[580px] flex flex-col items-center select-none mx-auto">
-      <style>{`
-        @keyframes parquFanFloat {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-6px); }
-        }
-      `}</style>
-      {/* ── ABANICO INTERACTIVO DE LOS 3 TELÉFONOS CON MOVIMIENTO CONTINUO ── */}
-      <div
-        style={{ animation: 'parquFanFloat 4s ease-in-out infinite' }}
-        className="relative w-full h-[295px] sm:h-[510px] flex items-center justify-center"
-      >
-        {/* Resplandor atmosférico detrás de la presentación */}
+    <div className="relative w-full h-full flex items-center justify-center lg:justify-end select-none">
+      {/* Contenedor escalable que preserva la relación y solapamiento exacto en celular y escritorio */}
+      <div className="relative w-[340px] h-[370px] sm:w-[560px] sm:h-[490px] lg:w-[690px] lg:h-[560px]">
+        
+        {/* ── 3A. BACK PANEL (LIGHT UI SCREEN — LEFT ~60% VISIBLE) ── */}
         <div
-          className="absolute inset-0 rounded-full blur-3xl pointer-events-none opacity-70"
           style={{
-            background:
-              'radial-gradient(circle at 50% 50%, rgba(0, 51, 255, 0.5) 0%, rgba(128, 125, 254, 0.25) 48%, transparent 72%)',
+            boxShadow: '0 24px 60px rgba(0, 0, 0, 0.55)',
           }}
-        />
-
-        {/* ════════════════════════════════════════════════════════════
-            PANTALLA 1 (INDEX 0): BILLETERA DIGITAL & TARJETA PARQU PASS
-        ════════════════════════════════════════════════════════════ */}
-        <div
-          onClick={() => handleSelectPhone(0)}
-          style={{
-            ...getPhonePositionStyle(0),
-            transition: 'all 0.65s cubic-bezier(0.22, 1, 0.36, 1)',
-            willChange: 'transform, opacity',
-          }}
-          className="absolute w-[250px] sm:w-[276px] h-[455px] sm:h-[495px] rounded-[42px] bg-[#0b0d14] p-[7px] shadow-[0_28px_70px_rgba(0,0,0,0.75)] cursor-pointer border-0"
+          className="absolute left-0 sm:left-2 lg:left-0 top-6 sm:top-10 lg:top-12 z-10 w-[215px] sm:w-[310px] lg:w-[348px] min-h-[305px] sm:min-h-[415px] lg:min-h-[455px] rounded-[22px] sm:rounded-[26px] bg-white text-black p-4 sm:p-6 flex flex-col justify-between overflow-hidden"
         >
-          {/* Botones físicos laterales */}
-          <div className="absolute -left-[2.5px] top-24 w-[2.5px] h-7 bg-[#807DFE]/60 rounded-l-full pointer-events-none" />
-          <div className="absolute -left-[2.5px] top-36 w-[2.5px] h-11 bg-[#807DFE]/60 rounded-l-full pointer-events-none" />
-          <div className="absolute -right-[2.5px] top-32 w-[2.5px] h-14 bg-[#807DFE]/60 rounded-r-full pointer-events-none" />
-
-          <div className="w-full h-full rounded-[35px] bg-[#f8fafc] text-slate-900 overflow-hidden flex flex-col justify-between p-3.5">
-            {/* Barra de estado iOS */}
-            <div className="flex items-center justify-between px-1.5 pt-0.5 text-[10px] font-mono font-bold text-slate-900">
-              <span>9:41</span>
-              <div className="w-20 h-[18px] rounded-full bg-black flex items-center justify-center">
-                <span className="text-[8px] font-mono text-[#807DFE]">PASO 1 / 3</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Wifi className="w-3 h-3" />
-                <Battery className="w-3.5 h-3.5" />
-              </div>
-            </div>
-
-            {/* Encabezado de Presentación */}
-            <div className="mt-1.5 flex items-center justify-between px-0.5">
-              <div className="text-left">
-                <span className="text-[9px] font-mono uppercase tracking-wider text-[#0033FF] font-bold">
-                  01 • Tu Billetera
-                </span>
-                <h4 className="text-sm font-black text-slate-900 tracking-tight">
-                  Tarjeta Digital Parqu
-                </h4>
-              </div>
-              <div className="flex items-center justify-center bg-transparent">
-                <img src="./parqu-logo-black.png" alt="Parqu" className="h-5 w-auto object-contain bg-transparent" />
-              </div>
-            </div>
-
-            {/* Tarjeta Virtual Parqu (3 Diseños: White, Blue, Red) */}
-            <div className="relative rounded-2xl overflow-hidden text-white text-left shadow-lg aspect-[860/522]">
-              <img
-                src="./cards/parqu-card-blue.jpg"
-                alt="Tarjeta Parqu"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div className="absolute inset-x-0 bottom-0 p-2.5 bg-[#01033E]/80 backdrop-blur-md flex items-center justify-between">
-                <div>
-                  <div className="text-[8px] text-[#D4D6E6] font-mono uppercase">
-                    PLACA: <strong className="text-white">{activePlates}</strong>
-                  </div>
-                  <div className="text-xs font-black font-mono text-white">
-                    ${formattedBalance} MXN
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="w-3.5 h-3.5 rounded-full bg-[#f8f7f2] border border-white/60" />
-                  <span className="w-3.5 h-3.5 rounded-full bg-[#0e8ef2] border border-white ring-1 ring-white" />
-                  <span className="w-3.5 h-3.5 rounded-full bg-[#f43f2e] border border-white/60" />
-                </div>
-              </div>
-            </div>
-
-            {/* Recarga Express */}
-            <div className="bg-white rounded-2xl p-3 shadow-sm text-left space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-slate-800">Recarga Instantánea</span>
-                <span className="text-[9px] font-mono text-emerald-600 font-bold">1 TOQUE</span>
-              </div>
-              <div className="grid grid-cols-3 gap-1.5">
-                <div className="py-1.5 rounded-lg bg-slate-100 text-center text-[10px] font-mono font-bold text-slate-800">
-                  +$100
-                </div>
-                <div className="py-1.5 rounded-lg bg-[#0033FF] text-center text-[10px] font-mono font-bold text-white shadow-sm">
-                  +$200
-                </div>
-                <div className="py-1.5 rounded-lg bg-slate-100 text-center text-[10px] font-mono font-bold text-slate-800">
-                  +$500
-                </div>
-              </div>
-            </div>
-
-            {/* Barra de Navegación App simulada */}
-            <div className="pt-1">
-              <div className="grid grid-cols-3 gap-1 rounded-2xl bg-slate-200/70 p-1 text-[9px] font-bold">
-                <div className="py-1.5 rounded-xl bg-[#01033E] text-white text-center">
-                  1. Tarjeta
-                </div>
-                <div className="py-1.5 rounded-xl text-slate-600 text-center">
-                  2. Reloj
-                </div>
-                <div className="py-1.5 rounded-xl text-slate-600 text-center">
-                  3. Pase NFC
-                </div>
-              </div>
-              <div className="w-20 h-1 bg-slate-300 rounded-full mx-auto mt-2" />
-            </div>
-          </div>
-        </div>
-
-        {/* ════════════════════════════════════════════════════════════
-            PANTALLA 2 (INDEX 1): AUTOCOBRO EN VIVO SEGUNDO A SEGUNDO
-        ════════════════════════════════════════════════════════════ */}
-        <div
-          onClick={() => handleSelectPhone(1)}
-          style={{
-            ...getPhonePositionStyle(1),
-            transition: 'all 0.65s cubic-bezier(0.22, 1, 0.36, 1)',
-            willChange: 'transform, opacity',
-          }}
-          className="absolute w-[250px] sm:w-[276px] h-[455px] sm:h-[495px] rounded-[42px] bg-[#0b0d14] p-[7px] shadow-[0_28px_70px_rgba(0,0,0,0.75)] cursor-pointer border-0"
-        >
-          {/* Botones físicos laterales */}
-          <div className="absolute -left-[2.5px] top-24 w-[2.5px] h-7 bg-[#807DFE]/60 rounded-l-full pointer-events-none" />
-          <div className="absolute -left-[2.5px] top-36 w-[2.5px] h-11 bg-[#807DFE]/60 rounded-l-full pointer-events-none" />
-          <div className="absolute -right-[2.5px] top-32 w-[2.5px] h-14 bg-[#807DFE]/60 rounded-r-full pointer-events-none" />
-
-          <div className="w-full h-full rounded-[35px] bg-[#f8fafc] text-slate-900 overflow-hidden flex flex-col justify-between p-3.5">
-            {/* Barra de Estado iOS + Dynamic Island */}
-            <div className="flex items-center justify-between px-1.5 pt-0.5">
-              <span className="text-[10px] font-bold font-mono text-slate-900">
-                9:41
+          {/* Encabezado y Saldo Principal */}
+          <div>
+            <div className="flex items-center justify-between">
+              <span
+                style={{ letterSpacing: '-0.02em' }}
+                className="text-[14px] sm:text-[18px] lg:text-[19px] font-bold text-black leading-none"
+              >
+                Saldo Parqu
               </span>
-              <div className="w-24 h-[19px] bg-black rounded-full flex items-center justify-between px-2.5 shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[8px] font-mono font-bold text-white">
-                  PASO 2 / 3
-                </span>
-              </div>
-              <div className="flex items-center gap-1 text-slate-900">
-                <Wifi className="w-3 h-3" />
-                <Battery className="w-3.5 h-3.5" />
-              </div>
-            </div>
-
-            {/* Encabezado de Presentación */}
-            <div className="mt-1.5 flex items-center justify-between px-0.5">
-              <div className="text-left">
-                <span className="text-[9px] font-mono uppercase tracking-wider text-[#0033FF] font-bold">
-                  02 • Parquímetro Digital
-                </span>
-                <h4 className="text-sm font-black text-slate-900 tracking-tight">
-                  Autocobro en Vivo
-                </h4>
-              </div>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 text-[9px] font-mono font-bold">
-                ● ACTIVO
+              <span className="text-[10px] sm:text-[12px] font-medium text-[#8A8F98]">
+                MXN
               </span>
             </div>
 
-            {/* Bloque Principal del Cronómetro por Segundo */}
             <div
-              className="rounded-3xl p-3.5 text-white text-left shadow-lg"
-              style={{
-                background: 'linear-gradient(160deg, #01033E 0%, #0033FF 100%)',
-              }}
+              style={{ letterSpacing: '-0.04em' }}
+              className="mt-2 sm:mt-3 text-[24px] sm:text-[34px] lg:text-[38px] font-black text-black leading-none"
             >
-              <div className="flex items-center justify-between text-[9px] font-mono uppercase tracking-wider text-[#D4D6E6]">
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-[#807DFE]" />
-                  Tarifa Oficial
-                </span>
-                <span className="font-bold text-white">$6.00 / hr</span>
+              ${formattedBalance}
+            </div>
+
+            {/* Dos metadatos pequeños en gris #8A8F98 */}
+            <div className="mt-1.5 sm:mt-2 space-y-0.5 text-[10px] sm:text-[12px] font-medium text-[#8A8F98]">
+              <div>Placa {activePlates}</div>
+              <div>Pase NFC Activo • Sin comisión</div>
+            </div>
+
+            {/* Dos botones tipo píldora (full-radius pills) */}
+            <div className="mt-3.5 sm:mt-5 flex items-center gap-2 sm:gap-2.5">
+              <div className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#F2F3F5] text-black text-[10px] sm:text-[12.5px] font-bold leading-none">
+                Recargar
               </div>
+              <div className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#F2F3F5] text-black text-[10px] sm:text-[12.5px] font-bold leading-none">
+                Autocobro
+              </div>
+            </div>
+          </div>
 
-              <LiveTimerDisplay />
+          {/* 3 Filas de saldos/métricas secundarias con leyendas en #8A8F98 */}
+          <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-[#ECEEF2] space-y-2.5 sm:space-y-3.5">
+            <div className="flex items-center justify-between">
+              <div>
+                <div
+                  style={{ letterSpacing: '-0.03em' }}
+                  className="text-[16px] sm:text-[22px] lg:text-[25px] font-bold text-black leading-none"
+                >
+                  $6.00
+                </div>
+                <div className="text-[9.5px] sm:text-[12px] font-medium text-[#8A8F98] mt-0.5">
+                  Tarifa por hora
+                </div>
+              </div>
+              {/* Mini sparkline limpio */}
+              <svg
+                width="48"
+                height="20"
+                viewBox="0 0 48 20"
+                fill="none"
+                className="opacity-70 mr-8 sm:mr-14"
+              >
+                <path
+                  d="M2 15L12 11L21 13L31 6L45 3"
+                  stroke="#0033FF"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
 
-              <div className="mt-2 flex items-center justify-between text-[9px] font-mono">
-                <span className="text-[#D4D6E6]">
-                  PLACA: <strong className="text-white">{activePlates}</strong>
-                </span>
-                <span className="text-emerald-300 font-bold">NFC ACTIVO</span>
+            <div>
+              <div
+                style={{ letterSpacing: '-0.03em' }}
+                className="text-[16px] sm:text-[22px] lg:text-[25px] font-bold text-black leading-none"
+              >
+                00:14:25
+              </div>
+              <div className="text-[9.5px] sm:text-[12px] font-medium text-[#8A8F98] mt-0.5">
+                Cronómetro al segundo
               </div>
             </div>
 
-            {/* Detalle de Ubicación y Ahorro */}
-            <div className="bg-white rounded-2xl p-2.5 shadow-sm space-y-1.5 text-left">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-[#0033FF]" />
-                  <span className="text-[10px] font-bold text-slate-800">Polígono Centro A-12</span>
-                </div>
-                <span className="text-[9px] font-mono font-bold text-emerald-600">GPS OK</span>
+            <div>
+              <div
+                style={{ letterSpacing: '-0.03em' }}
+                className="text-[16px] sm:text-[22px] lg:text-[25px] font-bold text-black leading-none"
+              >
+                $180.00
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-amber-500" />
-                  <span className="text-[10px] font-bold text-slate-800">Tarifa $6.00 MXN / hr</span>
-                </div>
-                <span className="text-[9px] font-mono font-bold text-slate-500">AUTO</span>
+              <div className="text-[9.5px] sm:text-[12px] font-medium text-[#8A8F98] mt-0.5">
+                Límite automático
               </div>
-            </div>
-
-            {/* Barra de Navegación App simulada */}
-            <div className="pt-1">
-              <div className="grid grid-cols-3 gap-1 rounded-2xl bg-slate-200/70 p-1 text-[9px] font-bold">
-                <div className="py-1.5 rounded-xl text-slate-600 text-center">
-                  1. Tarjeta
-                </div>
-                <div className="py-1.5 rounded-xl bg-[#0033FF] text-white text-center shadow-sm">
-                  2. Reloj
-                </div>
-                <div className="py-1.5 rounded-xl text-slate-600 text-center">
-                  3. Pase NFC
-                </div>
-              </div>
-              <div className="w-20 h-1 bg-slate-300 rounded-full mx-auto mt-2" />
             </div>
           </div>
         </div>
 
-        {/* ════════════════════════════════════════════════════════════
-            PANTALLA 3 (INDEX 2): TECNOLOGÍA NFC CONTACTLESS & VERIFICACIÓN VIAL
-        ════════════════════════════════════════════════════════════ */}
+        {/* ── 3B & 4. FRONT PANEL (SOLID ACCENT #0033FF + GIANT "$6" HERO FIGURE) ── */}
         <div
-          onClick={() => handleSelectPhone(2)}
           style={{
-            ...getPhonePositionStyle(2),
-            transition: 'all 0.65s cubic-bezier(0.22, 1, 0.36, 1)',
-            willChange: 'transform, opacity',
+            backgroundColor: '#0033FF',
+            boxShadow: '-18px 24px 64px rgba(0, 0, 0, 0.65)',
           }}
-          className="absolute w-[250px] sm:w-[276px] h-[455px] sm:h-[495px] rounded-[42px] bg-[#0b0d14] p-[7px] shadow-[0_28px_70px_rgba(0,0,0,0.75)] cursor-pointer border-0"
+          className="absolute left-[118px] sm:left-[195px] lg:left-[225px] top-0 sm:top-1 lg:top-2 z-20 w-[212px] sm:w-[315px] lg:w-[352px] h-[315px] sm:h-[430px] lg:h-[472px] rounded-[22px] sm:rounded-[26px] text-white p-4 sm:p-6 flex flex-col justify-between overflow-hidden"
         >
-          {/* Botones físicos laterales */}
-          <div className="absolute -left-[2.5px] top-24 w-[2.5px] h-7 bg-[#807DFE]/60 rounded-l-full pointer-events-none" />
-          <div className="absolute -left-[2.5px] top-36 w-[2.5px] h-11 bg-[#807DFE]/60 rounded-l-full pointer-events-none" />
-          <div className="absolute -right-[2.5px] top-32 w-[2.5px] h-14 bg-[#807DFE]/60 rounded-r-full pointer-events-none" />
-
-          <div className="w-full h-full rounded-[35px] bg-[#f8fafc] text-slate-900 overflow-hidden flex flex-col justify-between p-3.5">
-            {/* Barra de estado iOS */}
-            <div className="flex items-center justify-between px-1.5 pt-0.5 text-[10px] font-mono font-bold text-slate-900">
-              <span>9:41</span>
-              <div className="w-20 h-[18px] rounded-full bg-black flex items-center justify-center">
-                <span className="text-[8px] font-mono text-emerald-400">PASO 3 / 3</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Wifi className="w-3 h-3" />
-                <Battery className="w-3.5 h-3.5" />
-              </div>
+          {/* Fila superior: icono utilitario arriba a la izquierda + avatar circular arriba a la derecha */}
+          <div className="flex items-center justify-between">
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/15 flex items-center justify-center">
+              <QrCode className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
             </div>
 
-            {/* Encabezado NFC */}
-            <div className="mt-1.5 flex items-center justify-between px-0.5">
-              <div className="text-left">
-                <span className="text-[9px] font-mono uppercase tracking-wider text-emerald-600 font-bold">
-                  03 • Tecnología NFC
-                </span>
-                <h4 className="text-sm font-black text-slate-900 tracking-tight">
-                  Pase NFC Contactless
-                </h4>
-              </div>
-              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-black/25 border border-white/30 flex items-center justify-center text-[10px] sm:text-[12px] font-bold tracking-tight text-white">
+              {initials}
             </div>
+          </div>
 
-            {/* Tarjeta NFC Contactless con Ondas Activas */}
-            <div className="bg-white rounded-2xl p-3 shadow-sm flex flex-col items-center text-center">
-              <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-[#01033E] to-[#0033FF] flex items-center justify-center shadow-md">
-                <span className="absolute inset-0 rounded-full bg-[#0033FF]/30 animate-ping" />
-                <span className="absolute -inset-1.5 rounded-full border-2 border-[#807DFE]/40" />
-                <div className="relative z-10 flex flex-col items-center justify-center text-white">
-                  <Wifi className="w-9 h-9 rotate-90 text-white" />
-                  <span className="text-[9px] font-mono font-black tracking-widest mt-0.5">
-                    NFC
-                  </span>
-                </div>
-              </div>
-              <div className="mt-2.5 text-xs font-black font-mono text-slate-900 tracking-wider">
-                {activePlates}
-              </div>
-              <span className="mt-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-mono font-bold">
-                LECTURA NFC SIN CONTACTO
-              </span>
-            </div>
+          {/* Columna vertical escasa de dígitos tipo teclado sobre el borde izquierdo interior */}
+          <div className="absolute left-3.5 sm:left-5 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 sm:gap-5 text-[12px] sm:text-[16px] font-bold text-white/35 pointer-events-none">
+            <span>1</span>
+            <span>4</span>
+            <span>7</span>
+            <span>•</span>
+            <span>0</span>
+          </div>
 
-            {/* Estado de Verificación NFC */}
-            <div className="bg-white rounded-2xl p-2.5 shadow-sm text-left space-y-1.5">
-              <div className="flex items-center justify-between text-[10px]">
-                <span className="text-slate-500">Protocolo</span>
-                <span className="font-mono font-bold text-slate-900">NFC AES-256</span>
-              </div>
-              <div className="flex items-center justify-between text-[10px]">
-                <span className="text-slate-500">Tarifa Vigente</span>
-                <span className="font-mono font-bold text-emerald-600">$6.00 / hr</span>
-              </div>
+          {/* 4. HERO FIGURE: "$6" en el centro óptico con el peso más alto y tracking cerrado */}
+          <div className="my-auto flex flex-col items-center justify-center text-center pl-3 sm:pl-4">
+            <div
+              style={{
+                letterSpacing: '-0.055em',
+                lineHeight: 0.9,
+              }}
+              className="text-[96px] sm:text-[148px] lg:text-[168px] font-black text-white select-none"
+            >
+              $6
             </div>
+            <span className="mt-2 sm:mt-3 text-[11px] sm:text-[13px] font-bold uppercase tracking-widest text-white/80">
+              MXN / HORA OFICIAL
+            </span>
+          </div>
 
-            {/* Barra de Navegación App simulada */}
-            <div className="pt-1">
-              <div className="grid grid-cols-3 gap-1 rounded-2xl bg-slate-200/70 p-1 text-[9px] font-bold">
-                <div className="py-1.5 rounded-xl text-slate-600 text-center">
-                  1. Tarjeta
-                </div>
-                <div className="py-1.5 rounded-xl text-slate-600 text-center">
-                  2. Reloj
-                </div>
-                <div className="py-1.5 rounded-xl bg-emerald-600 text-white text-center shadow-sm">
-                  3. Pase NFC
-                </div>
-              </div>
-              <div className="w-20 h-1 bg-slate-300 rounded-full mx-auto mt-2" />
-            </div>
+          {/* Pie minimalista dentro del panel frontal */}
+          <div className="flex items-center justify-between text-[10px] sm:text-[12px] font-semibold text-white/75">
+            <span>Parqu Pass</span>
+            <span>{activePlates}</span>
           </div>
         </div>
       </div>
 
-      {/* ── TARJETA INFERIOR DE CONTROL DE LA PRESENTACIÓN DE LA APP (100% TRANSPARENTE) ── */}
-      <div className="relative z-30 mt-0.5 sm:mt-2 w-full max-w-[330px] sm:max-w-[440px] rounded-2xl sm:rounded-3xl bg-transparent border-0 shadow-none px-3.5 py-2.5 sm:px-5 sm:py-3.5 text-center">
-        <div className="flex items-center justify-between gap-2 mb-1 sm:mb-1.5">
-          <button
-            type="button"
-            aria-label="Pantalla anterior de la presentación"
-            onClick={() => setActiveIndex((prev) => (prev + 2) % 3)}
-            className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-200/80 hover:bg-[#0033FF] flex items-center justify-center text-slate-700 hover:text-white transition cursor-pointer border-0"
-          >
-            <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          </button>
+      {/* ── 5. TEXTURE PROP (BOTTOM-RIGHT CROPPED WARM METALLIC CARD) ── */}
+      <div
+        style={{
+          backgroundColor: '#16120C',
+          boxShadow: '-16px -16px 50px rgba(0, 0, 0, 0.75)',
+        }}
+        className="fixed -right-14 -bottom-14 sm:-right-16 sm:-bottom-16 lg:-right-12 lg:-bottom-12 z-30 w-[240px] h-[145px] sm:w-[370px] sm:h-[215px] lg:w-[450px] lg:h-[255px] rounded-[20px] sm:rounded-[22px] border border-[#E0A44E]/30 overflow-hidden pointer-events-none"
+      >
+        {/* Textura metálica cálida tejida (#C98A3B – #E0A44E) hecha a mano en SVG */}
+        <svg
+          className="absolute inset-0 w-full h-full opacity-90"
+          xmlns="http://www.w3.org/2000/svg"
+          width="100%"
+          height="100%"
+        >
+          <defs>
+            <pattern
+              id="parqu-metallic-weave"
+              width="28"
+              height="28"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(28)"
+            >
+              <rect width="28" height="28" fill="#17120B" />
+              <path
+                d="M0 14 H28 M14 0 V28"
+                stroke="#C98A3B"
+                strokeWidth="1.2"
+                strokeOpacity="0.28"
+              />
+              <circle cx="14" cy="14" r="3.5" fill="#E0A44E" fillOpacity="0.22" />
+              <circle cx="0" cy="0" r="2" fill="#C98A3B" fillOpacity="0.3" />
+              <circle cx="28" cy="28" r="2" fill="#C98A3B" fillOpacity="0.3" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#parqu-metallic-weave)" />
+        </svg>
 
-          <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-[#0033FF] font-bold">
-            {currentStep.badge}
-          </span>
+        {/* Wordmark de marca en la esquina superior derecha visible de la tarjeta */}
+        <div className="relative z-10 p-4 sm:p-6 flex flex-col justify-between h-full">
+          <div className="flex items-center justify-between pr-10 sm:pr-14">
+            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-[12px] font-bold tracking-widest uppercase text-[#E0A44E]">
+              <Wifi className="w-3.5 h-3.5 rotate-90 text-[#E0A44E]" />
+              NFC PASS
+            </span>
+            <span
+              style={{ letterSpacing: '-0.03em' }}
+              className="text-[14px] sm:text-[18px] lg:text-[20px] font-black tracking-tight text-[#E0A44E]"
+            >
+              PARQU
+            </span>
+          </div>
 
-          <button
-            type="button"
-            aria-label="Siguiente pantalla de la presentación"
-            onClick={() => setActiveIndex((prev) => (prev + 1) % 3)}
-            className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-200/80 hover:bg-[#0033FF] flex items-center justify-center text-slate-700 hover:text-white transition cursor-pointer border-0"
-          >
-            <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          </button>
-        </div>
-
-        <h3 className="text-xs sm:text-base font-bold text-slate-900 tracking-tight">
-          {currentStep.title}
-        </h3>
-        <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5 leading-snug sm:leading-relaxed">
-          {currentStep.subtitle}
-        </p>
-
-        {/* Indicadores de diapositiva de la presentación */}
-        <div className="flex items-center justify-center gap-2 mt-2 sm:mt-3">
-          {[0, 1, 2].map((idx) => (
-            <button
-              key={idx}
-              type="button"
-              aria-label={`Ver paso ${idx + 1} de la presentación`}
-              onClick={() => setActiveIndex(idx)}
-              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer border-0 ${
-                activeIndex === idx
-                  ? 'w-6 sm:w-7 bg-[#0033FF]'
-                  : 'w-2 bg-slate-300 hover:bg-slate-400'
-              }`}
-            />
-          ))}
+          <div className="pb-10 sm:pb-12">
+            <div className="text-[10px] sm:text-[12px] font-medium text-[#C98A3B]/85">
+              Tarjeta Digital Metropolitana
+            </div>
+            <div className="text-[13px] sm:text-[17px] font-bold text-[#E0A44E] tracking-wider mt-0.5">
+              {activePlates}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -559,10 +274,7 @@ export const LoadingScreen = ({ onComplete }) => {
     restoreFromCloudBackup,
   } = useParking();
 
-  // Fase 1: Pantalla de carga principal al abrir la app (animación fluida sobre el logo sin barra de carga)
-  const [isBootLoading, setIsBootLoading] = useState(true);
-
-  // Fase 2 y 3: Pantalla inicial con botón "Empecemos" -> Login / Registro compacto animado -> Entrar al sistema
+  // Modal de Login / Registro al presionar "Empecemos"
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
   const [showPassword, setShowPassword] = useState(false);
@@ -578,15 +290,7 @@ export const LoadingScreen = ({ onComplete }) => {
   const hasExitedRef = useRef(false);
   const authCardRef = useRef(null);
 
-  // Transición limpia y sin re-renders intermedios al terminar la animación fluida del logo
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsBootLoading(false);
-    }, 2400);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Animaciones Anime.js en el Login (Entrada elástica, Stagger de campos y Ondas en vivo)
+  // Animaciones Anime.js en el Login
   useEffect(() => {
     if (!showAuthModal || !authCardRef.current) return undefined;
 
@@ -609,24 +313,7 @@ export const LoadingScreen = ({ onComplete }) => {
       });
     }
 
-    const waveBars = authCardRef.current.querySelectorAll('.login-wave-bar');
-    let waveAnim = null;
-    if (waveBars.length > 0) {
-      waveAnim = animate(waveBars, {
-        scaleY: [0.35, 1, 0.4],
-        opacity: [0.55, 1, 0.55],
-        delay: stagger(90),
-        duration: 950,
-        loop: true,
-        ease: 'inOutSine',
-      });
-    }
-
-    return () => {
-      if (waveAnim && typeof waveAnim.pause === 'function') {
-        waveAnim.pause();
-      }
-    };
+    return undefined;
   }, [showAuthModal, authMode]);
 
   // Ejecuta la animación de salida suave hacia el sistema principal después de iniciar sesión o registrarse
@@ -642,13 +329,12 @@ export const LoadingScreen = ({ onComplete }) => {
     }, 650);
   }, [onComplete]);
 
-  // Abrir el login pequeño al presionar "Empecemos"
   const handleOpenAuthModal = useCallback(() => {
     setAuthError('');
     setShowAuthModal(true);
   }, []);
 
-  // Procesar inicio de sesión o registro con la animación StatefulButton (Loader -> Checkmark -> Entrar al sistema)
+  // Procesar inicio de sesión o registro con StatefulButton y respaldo automático
   const handleAuthSubmit = async (e) => {
     if (e && typeof e.preventDefault === 'function') {
       e.preventDefault();
@@ -670,7 +356,6 @@ export const LoadingScreen = ({ onComplete }) => {
       return false;
     }
 
-    // Pausa breve para mostrar el estado de carga (loader) del StatefulButton
     await new Promise((resolve) => setTimeout(resolve, 650));
 
     if (authMode === 'login' && typeof restoreFromCloudBackup === 'function') {
@@ -696,7 +381,6 @@ export const LoadingScreen = ({ onComplete }) => {
       }
     }
 
-    // Mostrar el check de éxito del StatefulButton antes de entrar al sistema
     setTimeout(() => {
       setShowAuthModal(false);
       handleTriggerExit();
@@ -705,7 +389,6 @@ export const LoadingScreen = ({ onComplete }) => {
     return true;
   };
 
-  // Cerrar el modal de login con Escape
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && showAuthModal) {
@@ -716,7 +399,6 @@ export const LoadingScreen = ({ onComplete }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showAuthModal]);
 
-  // Bloqueo de scroll mientras se visualiza la pantalla de carga / bienvenida
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -730,83 +412,76 @@ export const LoadingScreen = ({ onComplete }) => {
   return (
     <div
       style={{
+        backgroundColor: '#000000',
         transform: isExiting ? 'translateY(-100%)' : 'translateY(0%)',
         opacity: isExiting ? 0 : 1,
         transition: 'transform 0.65s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.45s ease',
         willChange: 'transform, opacity',
       }}
-      className="fixed inset-0 w-screen h-[100dvh] z-50 overflow-y-auto overflow-x-hidden select-none pointer-events-auto bg-white font-sans flex items-center justify-center px-3 sm:px-10 lg:px-16 py-3 sm:py-0"
+      className="fixed inset-0 w-screen h-[100dvh] z-50 overflow-hidden select-none pointer-events-auto font-sans flex flex-col justify-between p-5 sm:p-10 lg:p-[55px]"
     >
-      {/* 
-        ══════════════════════════════════════════════════════════════
-        FASE 1: PANTALLA DE CARGA PRINCIPAL (@aceternity/gta-vi-poster SOBRE EL LOGO DE PARQU)
-        Animación fluida a 60fps sobre el logo, sin barra de carga
-        ══════════════════════════════════════════════════════════════
-      */}
-      {isBootLoading ? (
-        <GtaViPoster
-          duration={2.2}
-          cameraScale={1.16}
-          fit={0.85}
-          depth={1}
-          logoBlur={4}
-          background="#ffffff"
-          logoSrc="./parqu-logo-black.png"
-          logoAlt="Parqu Logo"
-          showReplay={false}
-          className="fixed inset-0 z-30 w-screen h-[100dvh]"
-        />
-      ) : (
-        /* 
-          ══════════════════════════════════════════════════════════════
-          FASE 2: PANTALLA INICIAL DE BIENVENIDA EN FONDO BLANCO CON BOTÓN "EMPECEMOS"
-          ══════════════════════════════════════════════════════════════
-        */
-        <div className="relative z-10 w-full max-w-[1280px] mx-auto my-auto py-2 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-8 lg:gap-6 items-center animate-in fade-in duration-500">
-          
-          {/* COLUMNA IZQUIERDA: LOGO DE PARQU 100% TRANSPARENTE, SLOGAN Y ÚNICAMENTE EL BOTÓN "EMPECEMOS" */}
-          <div className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2 sm:space-y-7">
-            {/* Logotipo Oficial Parqu 100% Transparente para Fondo Blanco */}
-            <div className="relative flex items-center justify-center bg-transparent">
-              <img
-                src="./parqu-logo-black.png"
-                alt="Parqu Logo"
-                className="h-12 sm:h-28 md:h-32 w-auto object-contain bg-transparent relative z-10"
-              />
-            </div>
-
-            {/* Slogan */}
-            <p className="font-sans text-xs sm:text-lg md:text-xl text-slate-600 font-normal tracking-normal leading-snug sm:leading-relaxed max-w-[280px] sm:max-w-md">
-              Sistema Inteligente de <span className="text-slate-900 font-bold">Parquímetros</span> y Autocobro Digital
+      {/* ── COMPOSICIÓN PRINCIPAL (LEFT ~40% NEGATIVE SPACE + RIGHT ~60% UI STACK) ── */}
+      <div className="relative z-10 w-full max-w-[1280px] h-full mx-auto grid grid-cols-1 lg:grid-cols-12 items-center gap-4 lg:gap-6">
+        
+        {/* LEFT ~40% (5 COLS): NEGATIVE SPACE + BRAND ANCHOR BOTTOM-LEFT + BOTÓN "EMPECEMOS" */}
+        <div className="lg:col-span-5 h-full flex flex-col justify-between items-start text-left py-1 sm:py-2">
+          {/* Parte superior izquierda: espacio negativo limpio con el logo blanco transparente de Parqu */}
+          <div className="space-y-3 sm:space-y-5">
+            <img
+              src="./parqu-logo-white.png"
+              alt="Parqu"
+              className="h-9 sm:h-14 lg:h-16 w-auto object-contain bg-transparent border-0 shadow-none"
+            />
+            <p className="text-xs sm:text-base text-[#8A8F98] font-medium max-w-[270px] sm:max-w-[330px] leading-relaxed">
+              Parquímetro digital inteligente y autocobro por segundo a{' '}
+              <span className="text-white font-bold">$6.00 MXN/hr</span>.
             </p>
 
-            {/* Único Botón "Empecemos" con RadialGlowButton */}
-            <div className="pt-0.5 sm:pt-1">
-              <RadialGlowButton
+            {/* Botón "Empecemos" estilo píldora de alto contraste integrado en el espacio negativo */}
+            <div className="pt-1">
+              <button
                 type="button"
                 onClick={handleOpenAuthModal}
+                className="group inline-flex items-center gap-3 px-6 sm:px-7 py-3 sm:py-3.5 rounded-full bg-[#0033FF] hover:bg-[#1a47ff] text-white text-xs sm:text-sm font-bold tracking-tight transition-all duration-200 active:scale-95 cursor-pointer border-0"
               >
                 <span>Empecemos</span>
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white inline transition-transform duration-300 group-hover:translate-x-1.5" />
-              </RadialGlowButton>
+                <ArrowRight className="w-4 h-4 text-white transition-transform duration-200 group-hover:translate-x-1" />
+              </button>
             </div>
           </div>
 
-          {/* COLUMNA DERECHA: PRESENTACIÓN INTERACTIVA EN 3 TELÉFONOS */}
-          <div className="lg:col-span-7 flex items-center justify-center lg:justify-end">
-            <AppPresentationMockups
-              plates={vehicle?.plates}
-              balance={card?.balance}
-              onEnter={handleOpenAuthModal}
-            />
+          {/* 2. BRAND ANCHOR (BOTTOM-LEFT ROUNDED SQUARE ~110×110px, ~26px RADIUS, #0033FF) */}
+          <div className="mt-2 sm:mt-0 flex items-center gap-4">
+            <button
+              type="button"
+              onClick={handleOpenAuthModal}
+              aria-label="Abrir acceso Parqu"
+              style={{ backgroundColor: '#0033FF' }}
+              className="w-[74px] h-[74px] sm:w-[96px] sm:h-[96px] lg:w-[110px] lg:h-[110px] rounded-[20px] sm:rounded-[26px] flex items-center justify-center cursor-pointer border-0 transition-transform duration-200 hover:scale-105 active:scale-95"
+            >
+              <span
+                style={{ letterSpacing: '-0.06em' }}
+                className="text-[44px] sm:text-[58px] lg:text-[66px] font-black text-white leading-none select-none"
+              >
+                P
+              </span>
+            </button>
           </div>
-
         </div>
-      )}
+
+        {/* RIGHT ~60% (7 COLS): UI STACK (2 OVERLAPPING PANELS + GIANT "$6" HERO FIGURE) */}
+        <div className="lg:col-span-7 flex items-center justify-center lg:justify-end">
+          <KageHeroComposition
+            plates={vehicle?.plates}
+            balance={card?.balance}
+            ownerName={owner?.fullName}
+          />
+        </div>
+      </div>
 
       {/* 
         ══════════════════════════════════════════════════════════════
-        FASE 3: PEQUEÑO LOGIN / REGISTRO ADAPTADO A CELULAR Y ESCRITORIO
+        MODAL DE ACCESO (LOGIN / REGISTRO) AL PRESIONAR "EMPECEMOS"
         ══════════════════════════════════════════════════════════════
       */}
       {showAuthModal && (
@@ -814,7 +489,7 @@ export const LoadingScreen = ({ onComplete }) => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="parqu-auth-title"
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
         >
           <AnimeCardSheen className="w-full max-w-[360px] sm:max-w-[380px] my-auto">
             <div
@@ -831,7 +506,7 @@ export const LoadingScreen = ({ onComplete }) => {
                 <X className="w-4 h-4" />
               </button>
 
-              {/* Encabezado de Bienvenida con Logo 100% Transparente (sin recuadro ni bordes) */}
+              {/* Encabezado de Bienvenida con Logo 100% Transparente */}
               <div className="relative z-10 text-center mb-1 bg-transparent border-0 shadow-none">
                 <div className="flex items-center justify-center mb-1.5 sm:mb-2 bg-transparent border-0 shadow-none">
                   <img
@@ -849,7 +524,7 @@ export const LoadingScreen = ({ onComplete }) => {
                 </h2>
               </div>
 
-              {/* Animación CurvedLoop-JS-CSS 100% transparente y de lado a lado completo en celular y escritorio */}
+              {/* Animación CurvedLoop-JS-CSS 100% transparente de lado a lado */}
               <div className="relative z-10 -mx-4 sm:-mx-6 w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] my-1 sm:my-1.5 bg-transparent border-0 shadow-none overflow-visible">
                 <CurvedLoop
                   marqueeText={
@@ -897,7 +572,7 @@ export const LoadingScreen = ({ onComplete }) => {
                 </button>
               </div>
 
-              {/* Formulario compacto de Login / Registro con Stagger Anime.js */}
+              {/* Formulario compacto de Login / Registro */}
               <form onSubmit={handleAuthSubmit} className="relative z-10 space-y-2.5 text-left">
                 {authMode === 'register' && (
                   <div className="login-stagger-item">
