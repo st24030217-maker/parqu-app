@@ -342,6 +342,32 @@ const MainContent = () => {
       ),
     },
     {
+      title: 'Diseño de Tarjeta',
+      value: 'card-studio',
+      icon: Sparkles,
+      badge: '3 DISEÑOS',
+      content: (
+        <AnimeStaggerGroup triggerKey={activeTab} className="max-w-4xl mx-auto space-y-6">
+          <div className="anime-stagger-card p-4 sm:p-7 rounded-3xl bg-white/50 backdrop-blur-2xl border border-slate-200/70 space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-4">
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-[#0033FF] font-bold">
+                  ESTUDIO DE TARJETA DIGITAL PARQU
+                </span>
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  Elige y Personaliza tu Tarjeta (White • Blue • Red)
+                </h3>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Visualiza cada una de las 3 tarjetas por separado, escoge la que más te guste y edita tus datos en tiempo real.
+                </p>
+              </div>
+            </div>
+            <DigitalCard defaultOpenEditor={true} />
+          </div>
+        </AnimeStaggerGroup>
+      ),
+    },
+    {
       title: 'Tarjeta & Parquímetro',
       value: 'dashboard',
       icon: CreditCard,
@@ -351,15 +377,15 @@ const MainContent = () => {
           {/* Grid Superior: Tarjeta Digital & Resumen Rápido */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            {/* Tarjeta Digital (Col 1 a 7) */}
+            {/* Tarjeta Digital Personalizable (Col 1 a 7) */}
             <div className="anime-stagger-card lg:col-span-7 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs uppercase tracking-wider font-bold text-slate-700 font-sans flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-black" />
-                  Tu Tarjeta Digital de Parquímetro
+                  <Sparkles className="w-4 h-4 text-[#0033FF]" />
+                  Tu Tarjeta Digital Personalizable (3 Diseños)
                 </h3>
                 <span className="text-[11px] text-slate-500 font-sans">
-                  Actualización en tiempo real
+                  Editable en tiempo real
                 </span>
               </div>
 

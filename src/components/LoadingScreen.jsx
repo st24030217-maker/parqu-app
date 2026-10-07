@@ -227,29 +227,27 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
               </div>
             </div>
 
-            {/* Tarjeta Virtual Parqu */}
-            <div
-              className="rounded-2xl p-3.5 text-white text-left shadow-lg"
-              style={{
-                background: 'linear-gradient(135deg, #01033E 0%, #0033FF 100%)',
-              }}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[9px] font-mono uppercase tracking-widest text-[#D4D6E6]">
-                  PARQU DIGITAL PASS
-                </span>
-                <CreditCard className="w-3.5 h-3.5 text-[#807DFE]" />
-              </div>
-              <div className="text-[10px] text-[#D4D6E6]/80 font-mono">Saldo Disponible</div>
-              <div className="text-xl font-black font-mono tracking-tight">
-                ${formattedBalance} <span className="text-[10px] font-normal">MXN</span>
-              </div>
-              <div className="mt-2.5 flex items-center justify-between text-[9px] font-mono text-[#D4D6E6]">
-                <span className="flex items-center gap-1">
-                  <Car className="w-3 h-3 text-white" />
-                  {activePlates}
-                </span>
-                <span className="text-emerald-300 font-bold">● SIN COMISIÓN</span>
+            {/* Tarjeta Virtual Parqu (3 Diseños: White, Blue, Red) */}
+            <div className="relative rounded-2xl overflow-hidden text-white text-left shadow-lg aspect-[860/522]">
+              <img
+                src="./cards/parqu-card-blue.jpg"
+                alt="Tarjeta Parqu"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-x-0 bottom-0 p-2.5 bg-[#01033E]/80 backdrop-blur-md flex items-center justify-between">
+                <div>
+                  <div className="text-[8px] text-[#D4D6E6] font-mono uppercase">
+                    PLACA: <strong className="text-white">{activePlates}</strong>
+                  </div>
+                  <div className="text-xs font-black font-mono text-white">
+                    ${formattedBalance} MXN
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="w-3.5 h-3.5 rounded-full bg-[#f8f7f2] border border-white/60" />
+                  <span className="w-3.5 h-3.5 rounded-full bg-[#0e8ef2] border border-white ring-1 ring-white" />
+                  <span className="w-3.5 h-3.5 rounded-full bg-[#f43f2e] border border-white/60" />
+                </div>
               </div>
             </div>
 

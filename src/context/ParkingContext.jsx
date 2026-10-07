@@ -39,6 +39,9 @@ const defaultCard = {
   status: 'ACTIVA', // 'ACTIVA' | 'EN_PARQUIMETRO' | 'BLOQUEADA'
   balance: 320.00,
   rfidTag: 'NFC-MX-09142-PK',
+  designId: 'blue', // 'blue' | 'white' | 'red'
+  customLabel: 'PARQU PASS NFC',
+  overlayStyle: 'glass', // 'glass' | 'light' | 'minimal'
 };
 
 const defaultAutoPay = {
