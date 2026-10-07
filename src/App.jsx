@@ -352,17 +352,7 @@ const MainContent = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             {/* Tarjeta Digital (Col 1 a 7) */}
-            <div className="anime-stagger-card lg:col-span-7 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs uppercase tracking-wider font-bold text-slate-700 font-sans flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#0033FF]" />
-                  Tu Tarjeta Digital de Parquímetro
-                </h3>
-                <span className="text-[11px] text-slate-500 font-sans">
-                  Desliza o usa las flechas para cambiar diseño
-                </span>
-              </div>
-
+            <div className="anime-stagger-card lg:col-span-7">
               <DigitalCard />
             </div>
 

@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { sileo } from 'sileo';
 import {
   Wifi,
   User,
   ChevronLeft,
   ChevronRight,
+  Check,
 } from 'lucide-react';
 import { CurrencyDollarIcon } from './icons/currency-dollar-icon';
 import { useParking } from '../context/ParkingContext';
@@ -15,6 +16,42 @@ import { CardContainer, CardBody, CardItem } from './ui/3d-card';
 import { AnimeCounter } from './ui/anime-counter';
 import { AnimeCardSheen } from './ui/anime-card-sheen';
 
+// Sonido táctil sintetizado con Web Audio API únicamente cuando se mueve/desliza la tarjeta (sin reproductor ni iconos)
+const playCardMoveSound = () => {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(240, now);
+    osc.frequency.exponentialRampToValueAtTime(520, now + 0.09);
+    osc.frequency.exponentialRampToValueAtTime(340, now + 0.16);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.exponentialRampToValueAtTime(0.11, now + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.17);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.18);
+    setTimeout(() => {
+      ctx.close().catch(() => {});
+    }, 250);
+  } catch {
+    // Fallback silencioso si el navegador bloquea audio antes de interacción
+  }
+};
+
 export const CARD_DESIGNS = [
   {
     id: 'white',
@@ -22,9 +59,12 @@ export const CARD_DESIGNS = [
     shortName: 'Tarjeta White',
     badge: 'WHITE • 01',
     image: './cards/parqu-card-white.jpg',
-    pillBg: 'bg-slate-900/80 text-white backdrop-blur-md',
+    // Logo Parqu cambia a color grafito/negro en la tarjeta blanca
+    logoColor: '#0f172a',
+    logoPillClass:
+      'bg-white/90 text-slate-900 border border-slate-300/80 shadow-[0_6px_20px_rgba(15,23,42,0.14)] backdrop-blur-md',
     dataPanelClass:
-      'bg-slate-900/75 text-white border border-white/25 backdrop-blur-xl shadow-[0_10px_30px_rgba(15,23,42,0.35)]',
+      'bg-slate-900/78 text-white border border-white/25 backdrop-blur-xl shadow-[0_10px_30px_rgba(15,23,42,0.35)]',
     glowClass: 'from-slate-300/70 via-white/60 to-slate-400/60',
   },
   {
@@ -33,9 +73,12 @@ export const CARD_DESIGNS = [
     shortName: 'Tarjeta Blue',
     badge: 'BLUE • 02',
     image: './cards/parqu-card-blue.jpg',
-    pillBg: 'bg-[#01033E]/80 text-white backdrop-blur-md',
+    // Logo Parqu cambia a color azul eléctrico en la tarjeta azul
+    logoColor: '#0044FF',
+    logoPillClass:
+      'bg-white/92 text-[#0044FF] border border-blue-200/90 shadow-[0_6px_20px_rgba(0,51,255,0.28)] backdrop-blur-md',
     dataPanelClass:
-      'bg-[#01033E]/75 text-white border border-white/25 backdrop-blur-xl shadow-[0_10px_30px_rgba(1,3,62,0.45)]',
+      'bg-[#01033E]/78 text-white border border-white/25 backdrop-blur-xl shadow-[0_10px_30px_rgba(1,3,62,0.45)]',
     glowClass: 'from-[#0033FF]/70 via-sky-400/60 to-[#807DFE]/70',
   },
   {
@@ -44,9 +87,12 @@ export const CARD_DESIGNS = [
     shortName: 'Tarjeta Red',
     badge: 'RED • 03',
     image: './cards/parqu-card-red.jpg',
-    pillBg: 'bg-red-950/75 text-white backdrop-blur-md',
+    // Logo Parqu cambia a color rojo vibrante en la tarjeta roja
+    logoColor: '#e11d24',
+    logoPillClass:
+      'bg-white/94 text-[#e11d24] border border-red-200/90 shadow-[0_6px_20px_rgba(225,29,36,0.28)] backdrop-blur-md',
     dataPanelClass:
-      'bg-red-950/72 text-white border border-white/25 backdrop-blur-xl shadow-[0_10px_30px_rgba(127,29,29,0.45)]',
+      'bg-red-950/75 text-white border border-white/25 backdrop-blur-xl shadow-[0_10px_30px_rgba(127,29,29,0.45)]',
     glowClass: 'from-red-500/70 via-orange-500/60 to-rose-500/70',
   },
 ];
@@ -66,6 +112,8 @@ export const DigitalCard = () => {
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [rechargeAmount, setRechargeAmount] = useState(100);
   const [slideDirection, setSlideDirection] = useState(1);
+  // Cuando el usuario elige la tarjeta deseada, el menú se oculta y muestra el botón "Cambiar el diseño de tu tarjeta"
+  const [isEditingDesign, setIsEditingDesign] = useState(false);
 
   const currentDesignId = card?.designId || 'white';
   const currentIndex = Math.max(
@@ -80,21 +128,26 @@ export const DigitalCard = () => {
       if (e.key === 'Escape') {
         setShowQRModal(false);
         setShowRechargeModal(false);
+        setIsEditingDesign(false);
       }
     };
-    if (showQRModal || showRechargeModal) {
+    if (showQRModal || showRechargeModal || isEditingDesign) {
       window.addEventListener('keydown', handleKeyDown);
     }
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showQRModal, showRechargeModal]);
+  }, [showQRModal, showRechargeModal, isEditingDesign]);
 
-  const handleSelectByIndex = (nextIdx, dir = 1) => {
-    const normalizedIdx = (nextIdx + CARD_DESIGNS.length) % CARD_DESIGNS.length;
-    const chosen = CARD_DESIGNS[normalizedIdx];
-    if (!chosen) return;
-    setSlideDirection(dir);
-    updateCard({ designId: chosen.id });
-  };
+  const handleSelectByIndex = useCallback(
+    (nextIdx, dir = 1) => {
+      const normalizedIdx = (nextIdx + CARD_DESIGNS.length) % CARD_DESIGNS.length;
+      const chosen = CARD_DESIGNS[normalizedIdx];
+      if (!chosen) return;
+      setSlideDirection(dir);
+      playCardMoveSound();
+      updateCard({ designId: chosen.id });
+    },
+    [updateCard]
+  );
 
   const handlePrevDesign = () => {
     handleSelectByIndex(currentIndex - 1, -1);
@@ -102,6 +155,16 @@ export const DigitalCard = () => {
 
   const handleNextDesign = () => {
     handleSelectByIndex(currentIndex + 1, 1);
+  };
+
+  // Aplicar diseño deseado y ocultar el menú de selección
+  const handleConfirmDesign = () => {
+    playCardMoveSound();
+    setIsEditingDesign(false);
+    sileo.success({
+      title: 'Diseño de Tarjeta Aplicado',
+      description: `Se guardó ${activeDesign.name} como tu tarjeta activa.`,
+    });
   };
 
   const handleRecharge = (e) => {
@@ -119,41 +182,80 @@ export const DigitalCard = () => {
   const isParked = activeSession !== null;
 
   return (
-    <div className="w-full space-y-4">
-      {/* ══════════════════════════════════════════════════════════════
-          BARRA SUPERIOR CON LAS DOS FLECHAS PARA CAMBIAR DE DISEÑO
-      ══════════════════════════════════════════════════════════════ */}
-      <div className="flex items-center justify-between gap-3 bg-white/70 backdrop-blur-xl border border-slate-200/80 rounded-2xl px-3.5 py-2.5 shadow-sm">
-        <button
-          type="button"
-          onClick={handlePrevDesign}
-          aria-label="Tarjeta anterior"
-          className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#0033FF] text-slate-800 hover:text-white flex items-center justify-center transition-all duration-200 cursor-pointer border-0 shadow-sm active:scale-95"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
+    <div className="w-full space-y-3.5">
+      {/* Encabezado limpio sin iconos de estrellitas ni subtítulo extra */}
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-xs uppercase tracking-wider font-bold text-slate-700 font-sans">
+          Tu Tarjeta Digital de Parquímetro
+        </h3>
 
-        <div className="text-center flex-1">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-[#0033FF] font-bold block">
-            DISEÑO {currentIndex + 1} DE {CARD_DESIGNS.length} • {activeDesign.badge}
-          </span>
-          <span className="text-xs sm:text-sm font-black text-slate-900">
-            {activeDesign.name}
-          </span>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleNextDesign}
-          aria-label="Siguiente tarjeta"
-          className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#0033FF] text-slate-800 hover:text-white flex items-center justify-center transition-all duration-200 cursor-pointer border-0 shadow-sm active:scale-95"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
+        {!isEditingDesign && (
+          <button
+            type="button"
+            onClick={() => setIsEditingDesign(true)}
+            className="px-3.5 py-1.5 rounded-xl bg-white/85 hover:bg-[#0033FF] text-slate-800 hover:text-white border border-slate-200/90 text-xs font-bold transition shadow-sm cursor-pointer"
+          >
+            Cambiar el diseño de tu tarjeta
+          </button>
+        )}
       </div>
 
       {/* ══════════════════════════════════════════════════════════════
-          TARJETA DIGITAL CON CARRUSEL SCROLL FLUIDO Y ANIMACIÓN SPRING
+          MENÚ DE CAMBIO DE DISEÑO (SE OCULTA AL ELEGIR LA TARJETA)
+      ══════════════════════════════════════════════════════════════ */}
+      <AnimatePresence>
+        {isEditingDesign && (
+          <motion.div
+            key="design-selector-bar"
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: 0.22 }}
+            className="flex items-center justify-between gap-2 sm:gap-3 bg-white/80 backdrop-blur-xl border border-slate-200/90 rounded-2xl px-3 py-2.5 shadow-sm"
+          >
+            <button
+              type="button"
+              onClick={handlePrevDesign}
+              aria-label="Tarjeta anterior"
+              className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#0033FF] text-slate-800 hover:text-white flex items-center justify-center transition-all duration-200 cursor-pointer border-0 shadow-sm active:scale-95 shrink-0"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-3 flex-1 min-w-0">
+              <div className="text-center">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-[#0033FF] font-bold block">
+                  DISEÑO {currentIndex + 1} DE {CARD_DESIGNS.length} • {activeDesign.badge}
+                </span>
+                <span className="text-xs sm:text-sm font-black text-slate-900 truncate block">
+                  {activeDesign.name}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleConfirmDesign}
+                className="px-3 py-1.5 rounded-xl bg-[#0033FF] hover:bg-[#0026cc] text-white text-[11px] font-bold flex items-center gap-1.5 shadow-sm transition cursor-pointer border-0 shrink-0"
+              >
+                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Elegir diseño</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleNextDesign}
+              aria-label="Siguiente tarjeta"
+              className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#0033FF] text-slate-800 hover:text-white flex items-center justify-center transition-all duration-200 cursor-pointer border-0 shadow-sm active:scale-95 shrink-0"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ══════════════════════════════════════════════════════════════
+          TARJETA DIGITAL CON SCROLL HORIZONTAL FLUIDO Y LOGO CAMBIANTE DE COLOR
       ══════════════════════════════════════════════════════════════ */}
       <AnimeCardSheen>
         <CardContainer className="w-full">
@@ -164,7 +266,7 @@ export const DigitalCard = () => {
             />
 
             <CardBody className="relative w-full aspect-[860/522] min-h-[225px] sm:min-h-[285px] md:min-h-[320px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_24px_60px_rgba(15,23,42,0.28)] border border-white/40 select-none">
-              {/* Pista de Scroll Horizontal Animada con las 3 Tarjetas (Soporta flechas y arrastre táctil/mouse) */}
+              {/* Pista de Scroll Horizontal Animada con las 3 Tarjetas */}
               <motion.div
                 className="absolute inset-0 flex w-full h-full cursor-grab active:cursor-grabbing"
                 animate={{
@@ -184,6 +286,11 @@ export const DigitalCard = () => {
                     handleNextDesign();
                   } else if (info.offset.x > 45) {
                     handlePrevDesign();
+                  }
+                }}
+                onClick={() => {
+                  if (isEditingDesign) {
+                    handleConfirmDesign();
                   }
                 }}
               >
@@ -215,51 +322,40 @@ export const DigitalCard = () => {
                 })}
               </motion.div>
 
-              {/* Fila Superior Flotante 3D: Logo Parqu transparente y Estado NFC */}
+              {/* Esquina Superior Izquierda: Logo de PARQU que cambia de color según la tarjeta (sin iconos ni badges a la derecha) */}
               <CardItem
                 translateZ="45"
-                className="relative z-10 w-full flex items-center justify-between p-3.5 sm:p-5 pointer-events-none"
+                className="relative z-10 w-full flex items-center justify-start p-3.5 sm:p-5 pointer-events-none"
               >
                 <div
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full shadow-md transition-colors duration-500 ${activeDesign.pillBg}`}
+                  className={`flex items-center gap-2.5 px-3.5 py-1.5 rounded-full transition-all duration-500 ${activeDesign.logoPillClass}`}
                 >
-                  <img
-                    src="./parqu-logo-white.png"
-                    alt="Parqu"
-                    className="h-4 sm:h-5 w-auto object-contain bg-transparent border-0 shadow-none"
-                  />
-                  <span className="font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-white">
-                    {card?.customLabel || 'PARQU PASS NFC'}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 pointer-events-auto">
+                  {/* Logotipo oficial Parqu con máscara vectorial que cambia de color (Negro / Azul / Rojo) */}
                   <div
-                    className={`px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-mono font-bold uppercase flex items-center gap-1.5 shadow-md transition-colors duration-500 ${activeDesign.pillBg}`}
-                  >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        isParked ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'
-                      }`}
-                    />
-                    <span>{isParked ? 'EN PARQUÍMETRO' : 'NFC ACTIVA'}</span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowQRModal(true);
+                    aria-label="Parqu Logo"
+                    style={{
+                      backgroundColor: activeDesign.logoColor,
+                      WebkitMaskImage: "url('./parqu-logo-white.png')",
+                      maskImage: "url('./parqu-logo-white.png')",
+                      WebkitMaskSize: 'contain',
+                      maskSize: 'contain',
+                      WebkitMaskRepeat: 'no-repeat',
+                      maskRepeat: 'no-repeat',
+                      WebkitMaskPosition: 'center',
+                      maskPosition: 'center',
                     }}
-                    title="Mostrar Pase NFC Oficial"
-                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#0033FF] hover:bg-[#0026cc] text-white flex items-center justify-center shadow-lg transition transform hover:scale-110 cursor-pointer border-0"
+                    className="h-5 sm:h-6 w-12 sm:w-14 transition-colors duration-500 shrink-0"
+                  />
+                  <span
+                    style={{ color: activeDesign.logoColor }}
+                    className="font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-colors duration-500"
                   >
-                    <Wifi className="w-4 h-4 rotate-90 text-white" />
-                  </button>
+                    {card?.customLabel || 'PARQU PASS'}
+                  </span>
                 </div>
               </CardItem>
 
-              {/* Bloque Inferior Izquierdo 3D con los Datos del Usuario (deja libre la esquina derecha del diseño) */}
+              {/* Bloque Inferior Izquierdo 3D con los Datos del Usuario */}
               <CardItem
                 translateZ="65"
                 className="absolute inset-x-0 bottom-0 z-10 p-3 sm:p-4 pointer-events-none"
