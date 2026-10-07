@@ -3,111 +3,95 @@
 import { motion } from "motion/react";
 import React, { useLayoutEffect, useRef, useState } from "react";
 
-const ASSET_BASE_URL = "https://assets.aceternity.com/gta6";
-const DEFAULT_DURATION = 3.6;
+const DEFAULT_DURATION = 3.2;
 
-const LAYERS = [
+// Capas de profundidad y revelado escalonado de @aceternity/gta-vi-poster aplicadas al logo de Parqu (sin imágenes externas)
+const LOGO_LAYERS = [
   {
-    file: "01-jl.webp",
-    name: "J and L",
+    id: "echo-1",
+    name: "Logo Depth Layer 1",
     initialScale: 1.234,
-    revealDelay: 0.46,
+    revealDelay: 0.12,
+    targetOpacity: 0,
+    peakOpacity: 0.14,
   },
   {
-    file: "06-gator.webp",
-    name: "Gator",
-    initialScale: 1.318,
-    revealDelay: 0.56,
+    id: "echo-2",
+    name: "Logo Depth Layer 2",
+    initialScale: 1.48,
+    revealDelay: 0.24,
+    targetOpacity: 0,
+    peakOpacity: 0.18,
   },
   {
-    file: "04-boobie.webp",
-    name: "Boobie",
-    initialScale: 1.403,
-    revealDelay: 0.65,
-  },
-  { file: "03-gal.webp", name: "Gal", initialScale: 1.518, revealDelay: 0.74 },
-  {
-    file: "02-biker.webp",
-    name: "Biker",
-    initialScale: 1.646,
-    revealDelay: 0.84,
-  },
-  {
-    file: "00-heli.webp",
-    name: "Helicopter",
+    id: "echo-3",
+    name: "Logo Depth Layer 3",
     initialScale: 1.797,
-    revealDelay: 0.93,
+    revealDelay: 0.36,
+    targetOpacity: 0,
+    peakOpacity: 0.22,
   },
   {
-    file: "07-raul.webp",
-    name: "Raul",
-    initialScale: 1.98,
-    revealDelay: 1.02,
-  },
-  {
-    file: "05-lambo.webp",
-    name: "Lambo",
+    id: "echo-4",
+    name: "Logo Depth Layer 4",
     initialScale: 2.186,
-    revealDelay: 1.11,
+    revealDelay: 0.48,
+    targetOpacity: 0,
+    peakOpacity: 0.28,
   },
   {
-    file: "08-speedboat.webp",
-    name: "Speedboat",
-    initialScale: 2.42,
-    revealDelay: 1.21,
-  },
-  {
-    file: "09-logohole.webp",
-    name: "Logo hole",
+    id: "base-logo",
+    name: "Parqu Base Logo",
     initialScale: 2.446,
-    revealDelay: 1.9,
+    revealDelay: 0.35,
+    targetOpacity: 0.25,
   },
   {
-    file: "10-vilogo.webp",
-    name: "VI logo",
-    initialScale: 2.446,
-    revealDelay: 0.5,
-  },
-  {
-    file: "11-gtalogo.webp",
-    name: "GTA logo",
+    id: "main-logo",
+    name: "Parqu Hero Logo",
     initialScale: 3.306,
-    revealDelay: 0.8,
+    revealDelay: 0.55,
+    isHeroLogo: true,
     initial: {
       opacity: 1,
       clipPath: "inset(0% 0% 100% 0%)",
     },
-    animate: { clipPath: "inset(0% 0% 0% 0%)" },
+    animate: {
+      opacity: 1,
+      clipPath: "inset(0% 0% 0% 0%)",
+    },
   },
 ];
 
 const DEFAULT_LOGO_SPRING = {
   type: "spring",
-  visualDuration: 4,
-  bounce: 0.5,
+  visualDuration: 3.4,
+  bounce: 0.45,
 };
 
 export const controls = {
-  duration: [3.6, 1, 8, 0.1],
+  duration: [3.2, 1, 8, 0.1],
   cameraScale: [1.14, 1, 1.8, 0.01],
-  fit: [0.96, 0.5, 1, 0.01],
+  fit: [0.85, 0.5, 1, 0.01],
   depth: [1, 0, 1.6, 0.01],
-  logoBlur: [4, 0, 16, 0.5],
+  logoBlur: [6, 0, 16, 0.5],
   posterRadius: [0, 0, 48, 1],
-  background: "radial-gradient(circle at 50% 28%, #2a1133, #080611 72%)",
-  showReplay: true,
+  background: "#ffffff",
+  showReplay: false,
   logoSpring: DEFAULT_LOGO_SPRING,
 };
 
 export function GtaViPoster({
   duration = DEFAULT_DURATION,
   cameraScale = 1.14,
-  fit = 0.96,
+  fit = 0.85,
   depth = 1,
-  logoBlur = 4,
+  logoBlur = 6,
   posterRadius = 0,
-  background = "radial-gradient(circle at 50% 28%, #2a1133, #080611 72%)",
-  showReplay = true,
+  background = "#ffffff",
+  logoSrc = "./parqu-logo-black.png",
+  logoAlt = "Parqu Logo",
+  showReplay = false,
   logoSpring = DEFAULT_LOGO_SPRING,
   className,
   children,
@@ -133,23 +117,26 @@ export function GtaViPoster({
   }, [fit]);
 
   const logoTransition = {
-    clipPath: { ...logoSpring, delay: 0.8 * timeScale },
-    filter: { ...logoSpring, delay: 0.8 * timeScale },
+    clipPath: { ...logoSpring, delay: 0.45 * timeScale },
+    filter: { ...logoSpring, delay: 0.45 * timeScale },
   };
+
+  const logoStageWidth = size > 0 ? Math.min(Math.max(size * 0.62, 210), 380) : 260;
+  const logoStageHeight = Math.round(logoStageWidth * 0.48);
 
   return (
     <div
       ref={stageRef}
-      className={`relative flex h-dvh w-full items-center justify-center overflow-hidden ${className ?? ""}`}
+      className={`relative flex h-dvh w-full flex-col items-center justify-center overflow-hidden ${className ?? ""}`}
       style={{ background }}
     >
       {size > 0 ? (
         <motion.div
           key={playKey}
-          className="relative"
+          className="relative flex items-center justify-center bg-transparent"
           style={{
-            width: size,
-            height: size,
+            width: logoStageWidth,
+            height: logoStageHeight,
             borderRadius: posterRadius,
             transformOrigin: "center",
           }}
@@ -157,19 +144,21 @@ export function GtaViPoster({
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration, ease: [0.33, 0, 0.2, 1] }}
         >
-          {LAYERS.map((layer, index) => {
-            const isGtaLogo = layer.name === "GTA logo";
+          {LOGO_LAYERS.map((layer, index) => {
+            const isHeroLogo = Boolean(layer.isHeroLogo);
             const scale = 1 + (layer.initialScale - 1) * depth;
-            const initialFilter = isGtaLogo ? `blur(${logoBlur}px)` : undefined;
-            const animateFilter = isGtaLogo ? "blur(0px)" : undefined;
+            const initialFilter = isHeroLogo
+              ? `blur(${logoBlur}px)`
+              : "blur(2px)";
+            const animateFilter = "blur(0px)";
 
             return (
               <motion.img
-                key={layer.file}
-                src={`${ASSET_BASE_URL}/${layer.file}`}
-                alt={layer.name}
+                key={layer.id}
+                src={logoSrc}
+                alt={logoAlt}
                 draggable={false}
-                className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
+                className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain bg-transparent border-0 shadow-none"
                 style={{
                   zIndex: index,
                   transformOrigin: "center",
@@ -182,19 +171,29 @@ export function GtaViPoster({
                   ...layer.initial,
                 }}
                 animate={{
-                  opacity: 1,
+                  opacity:
+                    layer.peakOpacity !== undefined
+                      ? [0, layer.peakOpacity, layer.targetOpacity ?? 0]
+                      : layer.targetOpacity ?? 1,
                   scale: 1,
                   filter: animateFilter,
                   ...layer.animate,
                 }}
                 transition={{
                   scale: { duration, ease: [0.16, 1, 0.3, 1] },
-                  opacity: {
-                    duration: 0.7 * timeScale,
-                    delay: layer.revealDelay * timeScale,
-                    ease: "easeOut",
-                  },
-                  ...(isGtaLogo ? logoTransition : layer.transition),
+                  opacity:
+                    layer.peakOpacity !== undefined
+                      ? {
+                          duration: 1.35 * timeScale,
+                          delay: layer.revealDelay * timeScale,
+                          ease: "easeOut",
+                        }
+                      : {
+                          duration: 0.7 * timeScale,
+                          delay: layer.revealDelay * timeScale,
+                          ease: "easeOut",
+                        },
+                  ...(isHeroLogo ? logoTransition : {}),
                 }}
               />
             );
@@ -208,8 +207,8 @@ export function GtaViPoster({
         <button
           type="button"
           onClick={() => setPlayKey((key) => key + 1)}
-          aria-label="Replay poster intro"
-          className="absolute top-4 left-4 z-20 flex size-10 items-center justify-center rounded-full bg-white/10 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/20 active:scale-[0.98]"
+          aria-label="Replay logo intro"
+          className="absolute top-4 left-4 z-20 flex size-10 items-center justify-center rounded-full bg-slate-900/10 text-sm font-medium text-slate-900 backdrop-blur-md transition hover:bg-slate-900/20 active:scale-[0.98]"
         >
           <ReplayIcon className="size-4" />
         </button>

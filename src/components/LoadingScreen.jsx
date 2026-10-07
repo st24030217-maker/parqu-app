@@ -571,7 +571,7 @@ export const LoadingScreen = ({ onComplete }) => {
   const hasExitedRef = useRef(false);
   const authCardRef = useRef(null);
 
-  // Animación de la pantalla de carga inicial (@aceternity/gta-vi-poster) al abrir la aplicación
+  // Animación de la pantalla de carga inicial (@aceternity/gta-vi-poster sobre el logo de Parqu)
   useEffect(() => {
     let current = 0;
     const interval = setInterval(() => {
@@ -581,11 +581,11 @@ export const LoadingScreen = ({ onComplete }) => {
         clearInterval(interval);
         setTimeout(() => {
           setIsBootLoading(false);
-        }, 550);
+        }, 420);
       } else {
         setBootProgress(current);
       }
-    }, 74);
+    }, 56);
     return () => clearInterval(interval);
   }, []);
 
@@ -733,38 +733,35 @@ export const LoadingScreen = ({ onComplete }) => {
     >
       {/* 
         ══════════════════════════════════════════════════════════════
-        FASE 1: PANTALLA DE CARGA PRINCIPAL (@aceternity/gta-vi-poster)
-        Aparece al abrir la app con la animación por capas de Aceternity
-        y transiciona hacia la pantalla inicial
+        FASE 1: PANTALLA DE CARGA PRINCIPAL (@aceternity/gta-vi-poster SOBRE EL LOGO DE PARQU)
+        Aparece al abrir la app aplicando la animación de profundidad, zoom y revelado al logo
         ══════════════════════════════════════════════════════════════
       */}
       {isBootLoading ? (
         <GtaViPoster
-          duration={3.6}
-          cameraScale={1.14}
-          fit={0.94}
-          depth={1}
-          logoBlur={4}
-          showReplay={true}
+          duration={2.8}
+          cameraScale={1.18}
+          fit={0.85}
+          depth={1.15}
+          logoBlur={6}
+          background="#ffffff"
+          logoSrc="./parqu-logo-black.png"
+          logoAlt="Parqu Logo"
+          showReplay={false}
           className="fixed inset-0 z-30 w-screen h-[100dvh]"
         >
-          {/* Barra inferior de progreso de carga sincronizada para celular y escritorio */}
-          <div className="absolute inset-x-0 bottom-5 sm:bottom-8 z-20 flex flex-col items-center justify-center px-5 pointer-events-none">
-            <img
-              src="./parqu-logo-white.png"
-              alt="Parqu Logo"
-              className="h-7 sm:h-9 w-auto object-contain bg-transparent border-0 shadow-none mb-2.5 drop-shadow-[0_4px_12px_rgba(0,0,0,0.65)]"
-            />
-            <div className="w-60 sm:w-72 h-1.5 rounded-full bg-white/20 backdrop-blur-md overflow-hidden shadow-lg">
+          {/* Barra de progreso de carga sincronizada debajo del logo animado */}
+          <div className="mt-8 sm:mt-10 flex flex-col items-center justify-center px-6 pointer-events-none">
+            <div className="w-56 sm:w-64 h-1.5 rounded-full bg-slate-200 overflow-hidden shadow-inner">
               <div
                 style={{
                   width: `${bootProgress}%`,
-                  transition: 'width 80ms linear',
+                  transition: 'width 70ms linear',
                 }}
-                className="h-full rounded-full bg-gradient-to-r from-[#ff2975] via-[#ff901f] to-[#0044FF]"
+                className="h-full rounded-full bg-gradient-to-r from-[#0033FF] via-[#807DFE] to-[#01033E]"
               />
             </div>
-            <div className="mt-2 flex items-center justify-between w-60 sm:w-72 text-[10px] sm:text-[11px] font-mono text-white/90 drop-shadow">
+            <div className="mt-3 flex items-center justify-between w-56 sm:w-64 text-[11px] font-mono text-slate-600">
               <span>
                 {bootProgress < 45
                   ? 'Iniciando Parqu...'
@@ -772,7 +769,7 @@ export const LoadingScreen = ({ onComplete }) => {
                   ? 'Sincronizando red NFC...'
                   : 'Listo'}
               </span>
-              <span className="font-bold text-white">{bootProgress}%</span>
+              <span className="font-bold text-slate-900">{bootProgress}%</span>
             </div>
           </div>
         </GtaViPoster>
