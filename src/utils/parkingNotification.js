@@ -1,14 +1,11 @@
-// Motor de Notificación Única Interactiva Fuera de la Aplicación (Estilo Uber Live Activity)
-// - 1 sola notificación persistente en la barra del sistema / pantalla de bloqueo (cero spam, cero reproductor de música)
-// - Línea continua en movimiento con auto blanco desplazándose en vivo
-// - Botones de acción directos fuera de la app (+1 Hora $6, Recargar +$50, Iniciar / Cancelar Parqu)
-// - Respaldo de 3 niveles (ServiceWorker Rich Card -> ServiceWorker Basic -> Native Notification API)
+// Motor de Bloque Único de Notificación Nativa en la Barra de Notificaciones (Estilo Uber)
+// - CERO bucles, CERO spam: cierra siempre cualquier notificación anterior antes de fijar 1 solo bloque
+// - Incluye barra de progreso visual continua con auto + botones de acción nativos (+1 Hora, Cancelar/Iniciar, Recargar)
 
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 
 let swRegistrationPromise = null;
 let cachedSwRegistration = null;
-let clientAnimStep = 0;
 
 function detectIsIOS() {
   if (typeof navigator === 'undefined') return false;
@@ -16,8 +13,16 @@ function detectIsIOS() {
   return /iPhone|iPad|iPod/i.test(ua);
 }
 
-// Detecta el número máximo de botones permitidos por el sistema operativo / navegador
-// (Evita el TypeError en Chrome/Android/Edge cuando maxActions es 2 y se envían 3 botones)
+function buildNativeTrackLine(progressRatio, isActive) {
+  const totalSlots = 10;
+  const carSlot = isActive
+    ? Math.min(totalSlots - 1, Math.max(1, Math.round(progressRatio * totalSlots)))
+    : 2;
+  const before = '━'.repeat(carSlot);
+  const after = '─'.repeat(Math.max(1, totalSlots - carSlot));
+  return `●${before}🚗${after}○`;
+}
+
 export function getSupportedNotificationActions(isActive) {
   if (typeof window === 'undefined' || !('Notification' in window)) {
     return [];
@@ -59,49 +64,38 @@ function drawRoundedRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-function drawMovingTopDownCar(ctx, centerX, centerY, isActive) {
-  const carW = 50;
-  const carH = 24;
+function drawTopDownCar(ctx, centerX, centerY, isActive) {
+  const carW = 54;
+  const carH = 26;
   const x = centerX - carW / 2;
   const y = centerY - carH / 2;
 
-  if (isActive) {
-    const trailGrad = ctx.createLinearGradient(x - 36, centerY, x + 4, centerY);
-    trailGrad.addColorStop(0, 'rgba(56, 189, 248, 0)');
-    trailGrad.addColorStop(1, 'rgba(56, 189, 248, 0.55)');
-    ctx.fillStyle = trailGrad;
-    drawRoundedRect(ctx, x - 34, centerY - 5, 38, 10, 5);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
-  drawRoundedRect(ctx, x + 2, y + 3, carW, carH, 9);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  drawRoundedRect(ctx, x + 2, y + 3, carW, carH, 10);
   ctx.fill();
 
   ctx.fillStyle = '#ffffff';
-  drawRoundedRect(ctx, x, y, carW, carH, 9);
+  drawRoundedRect(ctx, x, y, carW, carH, 10);
   ctx.fill();
 
   ctx.fillStyle = '#1e293b';
-  drawRoundedRect(ctx, x + 31, y + 3, 10, carH - 6, 3);
+  drawRoundedRect(ctx, x + 33, y + 3, 11, carH - 6, 3.5);
   ctx.fill();
 
   ctx.fillStyle = '#334155';
-  drawRoundedRect(ctx, x + 6, y + 4, 6, carH - 8, 2);
+  drawRoundedRect(ctx, x + 6, y + 4, 7, carH - 8, 2.5);
   ctx.fill();
 
-  ctx.fillStyle = isActive ? '#0033ff' : '#d97706';
-  drawRoundedRect(ctx, x + 15, y + 4, 13, carH - 8, 3);
+  ctx.fillStyle = isActive ? '#0f172a' : '#d97706';
+  drawRoundedRect(ctx, x + 16, y + 4, 14, carH - 8, 3);
   ctx.fill();
 }
 
-// Genera de forma 100% síncrona (<2ms) la tarjeta estilo Uber con línea continua y auto en movimiento
-// para que al minimizar o salir en celular se dispare al instante antes de que el SO suspenda la pestaña
 export function buildUberCardDataUrlSync(payload) {
   if (typeof document === 'undefined') return undefined;
   try {
     const width = 640;
-    const height = 256;
+    const height = 236;
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -110,7 +104,6 @@ export function buildUberCardDataUrlSync(payload) {
 
     ctx.clearRect(0, 0, width, height);
 
-    const scheduledHours = Math.max(1, Number(payload.scheduledHours) || 1);
     const plates = payload.plates || 'XYZ-7842';
     const carDesc = payload.carDesc || 'Volkswagen Jetta';
     const balance = Number(payload.balance ?? 320).toFixed(0);
@@ -118,123 +111,80 @@ export function buildUberCardDataUrlSync(payload) {
     const cost = payload.cost || '0.00';
     const remainingLabel = `${payload.remainingMinutes || 60}m`;
 
-    const cardX = 14;
+    const cardX = 12;
     const cardY = 8;
-    const cardW = width - 28;
+    const cardW = width - 24;
     const cardH = height - 16;
 
     const grad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
-    grad.addColorStop(0, '#16181d');
-    grad.addColorStop(1, '#0d0f13');
+    grad.addColorStop(0, '#14161b');
+    grad.addColorStop(1, '#0b0d11');
     ctx.fillStyle = grad;
     drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 34);
     ctx.fill();
 
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = payload.isActive
-      ? 'rgba(56, 189, 248, 0.38)'
-      : 'rgba(255, 255, 255, 0.16)';
-    ctx.stroke();
-
     ctx.textAlign = 'left';
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 20px sans-serif';
-    ctx.fillText('Parqu', cardX + 30, cardY + 38);
+    ctx.font = 'bold 21px sans-serif';
+    ctx.fillText('Parqu', cardX + 32, cardY + 42);
 
     ctx.textAlign = 'right';
     ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 15px sans-serif';
-    ctx.fillText(`Saldo NFC: $${balance} MXN`, cardX + cardW - 30, cardY + 38);
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText(`Saldo NFC: $${balance} MXN`, cardX + cardW - 32, cardY + 42);
 
     ctx.textAlign = 'left';
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 31px sans-serif';
+    ctx.font = 'bold 34px sans-serif';
     ctx.fillText(
       payload.isActive
         ? `Estancia activa • ${clockStr}`
-        : 'Listo para estacionar ($6/hr)',
-      cardX + 30,
-      cardY + 84
+        : `Parqu listo • $6.00/hr`,
+      cardX + 32,
+      cardY + 92
     );
 
     ctx.fillStyle = '#9ca3af';
-    ctx.font = '19px sans-serif';
+    ctx.font = '21px sans-serif';
     ctx.fillText(
       payload.isActive
-        ? `${plates} • ${carDesc} • ${scheduledHours}h ($${cost} MXN) • Restan ${remainingLabel}`
-        : `${plates} • ${carDesc} • Saldo disponible $${balance} MXN`,
-      cardX + 30,
-      cardY + 116
+        ? `${plates} • ${carDesc} • $${cost} MXN (Restan ${remainingLabel})`
+        : `${plates} • ${carDesc} • Saldo $${balance} MXN`,
+      cardX + 32,
+      cardY + 126
     );
 
     const barLeft = cardX + 32;
-    const barRight = cardX + cardW - 38;
+    const barRight = cardX + cardW - 36;
     const barWidth = barRight - barLeft;
-    const barY = cardY + 156;
+    const barY = cardY + 174;
 
-    ctx.fillStyle = '#374151';
-    drawRoundedRect(ctx, barLeft, barY - 4, barWidth, 8, 4);
+    ctx.fillStyle = '#4b5563';
+    drawRoundedRect(ctx, barLeft, barY - 3.5, barWidth, 7, 3.5);
     ctx.fill();
 
-    clientAnimStep = (clientAnimStep + 1) % 20;
-    const animatedRatio = payload.isActive
-      ? Math.min(0.92, Math.max(0.14, (payload.progressPercent || 25) / 100))
-      : ((clientAnimStep % 20) / 20) * 0.65 + 0.15;
+    const progressRatio = payload.isActive
+      ? Math.min(0.88, Math.max(0.22, (payload.progressPercent || 28) / 100))
+      : 0.28;
 
-    const carX = barLeft + Math.round(barWidth * animatedRatio);
+    const carX = barLeft + Math.round(barWidth * progressRatio);
     const fillWidth = Math.max(14, carX - barLeft);
 
-    const barGrad = ctx.createLinearGradient(barLeft, barY, carX, barY);
-    barGrad.addColorStop(0, '#0033ff');
-    barGrad.addColorStop(0.5, '#38bdf8');
-    barGrad.addColorStop(1, '#ffffff');
-    ctx.fillStyle = barGrad;
-    drawRoundedRect(ctx, barLeft, barY - 4, fillWidth, 8, 4);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(barLeft, barY, 5, 0, Math.PI * 2);
     ctx.fillStyle = '#ffffff';
+    drawRoundedRect(ctx, barLeft, barY - 3.5, fillWidth, 7, 3.5);
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(barRight, barY, 8, 0, Math.PI * 2);
-    ctx.fillStyle = payload.isActive ? 'rgba(56, 189, 248, 0.35)' : '#4b5563';
+    ctx.arc(barRight, barY, 9, 0, Math.PI * 2);
+    ctx.fillStyle = '#6b7280';
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(barRight, barY, 5, 0, Math.PI * 2);
-    ctx.fillStyle = payload.isActive ? '#38bdf8' : '#9ca3af';
+    ctx.arc(barRight, barY, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#111318';
     ctx.fill();
 
-    drawMovingTopDownCar(ctx, carX, barY, Boolean(payload.isActive));
-
-    const controls = [
-      { label: '+1 Hora ($6)', bg: '#0033ff', fg: '#ffffff' },
-      { label: 'Recargar +$50', bg: '#1e293b', fg: '#38bdf8' },
-      {
-        label: payload.isActive ? 'Cancelar Parqu' : 'Iniciar Parqu',
-        bg: payload.isActive ? '#7f1d1d' : '#065f46',
-        fg: '#ffffff',
-      },
-    ];
-
-    const btnGap = 10;
-    const btnW = Math.floor((barWidth - btnGap * 2) / 3);
-    const btnH = 38;
-    const btnY = cardY + 186;
-
-    controls.forEach((c, idx) => {
-      const bx = barLeft + idx * (btnW + btnGap);
-      ctx.fillStyle = c.bg;
-      drawRoundedRect(ctx, bx, btnY, btnW, btnH, 19);
-      ctx.fill();
-
-      ctx.textAlign = 'center';
-      ctx.fillStyle = c.fg;
-      ctx.font = 'bold 13px sans-serif';
-      ctx.fillText(c.label, bx + Math.round(btnW / 2), btnY + 24);
-    });
+    drawTopDownCar(ctx, carX, barY, Boolean(payload.isActive));
 
     return canvas.toDataURL('image/png');
   } catch {
@@ -247,6 +197,26 @@ export const registerParquServiceWorker = () => {
     return Promise.resolve(null);
   }
   if (!swRegistrationPromise) {
+    // Limpiar y actualizar cualquier Service Worker previo en caché (ej. PWA en iPhone/Android)
+    if (typeof navigator.serviceWorker.getRegistrations === 'function') {
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((regs) => {
+          regs.forEach((r) => {
+            if (typeof r.update === 'function') r.update().catch(() => {});
+            if (r.active) {
+              r.active.postMessage({ type: 'STOP_ALL_LOOPS' });
+            }
+            if (typeof r.getNotifications === 'function') {
+              r.getNotifications()
+                .then((list) => list.forEach((n) => n.close()))
+                .catch(() => {});
+            }
+          });
+        })
+        .catch(() => {});
+    }
+
     swRegistrationPromise = navigator.serviceWorker
       .register('./sw.js', { scope: './', updateViaCache: 'none' })
       .then((reg) => {
@@ -355,7 +325,7 @@ export const buildParkingNotificationPayload = ({
     const totalScheduledSeconds = scheduledHours * 3600;
     const remainingSeconds = Math.max(0, totalScheduledSeconds - elapsedSeconds);
     const remainingMinutes = Math.ceil(remainingSeconds / 60);
-    const progressRatio = Math.min(0.95, Math.max(0.12, elapsedSeconds / totalScheduledSeconds));
+    const progressRatio = Math.min(0.88, Math.max(0.22, elapsedSeconds / totalScheduledSeconds));
 
     const maxLimit = Number(activeSession.maxLimit || 180.0);
     const cost = Math.min(
@@ -368,13 +338,11 @@ export const buildParkingNotificationPayload = ({
       hours > 0
         ? `${hours}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`
         : `${minutes}m ${String(seconds).padStart(2, '0')}s`;
-    const progressPercent = Math.min(100, Math.max(12, Math.round(progressRatio * 100)));
+    const progressPercent = Math.min(100, Math.max(18, Math.round(progressRatio * 100)));
+    const trackLine = buildNativeTrackLine(progressRatio, true);
 
-    const isExpiringSoon = remainingMinutes > 0 && remainingMinutes <= 5;
-    const title = isExpiringSoon
-      ? `⚠️ Quedan ${remainingMinutes} min • ${clockStr} (${plates})`
-      : `Estancia activa • ${clockStr} (${scheduledHours}h)`;
-    const body = `${plates} • ${carDesc} • Cobro: $${cost} MXN • Saldo: $${balance} MXN`;
+    const title = `Estancia activa • ${clockStr} (Restan ${remainingMinutes}m)`;
+    const body = `${plates} • ${carDesc} • Cobro: $${cost} MXN\n${trackLine}  Saldo: $${balance} MXN`;
 
     return {
       title,
@@ -395,7 +363,6 @@ export const buildParkingNotificationPayload = ({
       startTime: activeSession.startTime,
       baseSeconds: elapsedSeconds,
       isActive: true,
-      isExpiringSoon,
       isIOS,
       fullName,
       plates,
@@ -408,8 +375,9 @@ export const buildParkingNotificationPayload = ({
     };
   }
 
-  const title = `Parqu listo • $6.00/hr • Saldo $${balance}`;
-  const body = `${plates} • ${carDesc} • Controles rápidos activos fuera de la app`;
+  const trackLine = buildNativeTrackLine(0.28, false);
+  const title = `Parqu • Tarifa $6.00/hr • Saldo $${balance} MXN`;
+  const body = `${plates} • ${carDesc}\n${trackLine}  Listo para estacionar`;
 
   return {
     title,
@@ -425,12 +393,11 @@ export const buildParkingNotificationPayload = ({
     cost: '0.00',
     rate: '6.00',
     maxLimit: 180,
-    progressPercent: 18,
+    progressPercent: 28,
     zoneName: 'Listo para estacionar ($6.00/hr)',
     startTime: null,
     baseSeconds: 0,
     isActive: false,
-    isExpiringSoon: false,
     isIOS,
     fullName,
     plates,
@@ -489,7 +456,7 @@ export const notifyAppForegrounded = () => {
   }
 };
 
-// Dispara ESTRICTAMENTE 1 sola notificación al salir de la aplicación (sin duplicar entre SW y cliente)
+// Dispara ESTRICTAMENTE 1 solo bloque nativo en la barra de notificaciones
 export const dispatchBackgroundNotificationImmediate = (contextData) => {
   const payload = buildParkingNotificationPayload(contextData);
 
@@ -504,7 +471,7 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
   const cardImage = buildUberCardDataUrlSync(payload);
   const actions = getSupportedNotificationActions(payload.isActive);
 
-  // 1. Si el Service Worker está activo, delegar ÚNICAMENTE al Service Worker (evita doble notificación)
+  // 1. Si el Service Worker está activo, delegar únicamente al Service Worker (cierra las previas y muestra 1 bloque)
   try {
     const targetWorker =
       ('serviceWorker' in navigator && navigator.serviceWorker.controller) ||
@@ -526,7 +493,7 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
     // ignore
   }
 
-  // 2. Solo si aún no hay Service Worker activo, mostrar 1 sola vez desde cachedSwRegistration
+  // 2. Fallback si aún no hay Service Worker activo: cerrar cualquier notificación previa y mostrar 1 solo bloque
   const richOptions = {
     body: payload.body,
     icon: './parqu-logo-black.png',
@@ -535,7 +502,7 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
     tag: SINGLE_NOTIFICATION_TAG,
     renotify: false,
     silent: true,
-    requireInteraction: false,
+    requireInteraction: true,
     actions,
     data: {
       url: window.location.href,
@@ -550,20 +517,31 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
     tag: SINGLE_NOTIFICATION_TAG,
     renotify: false,
     silent: true,
+    requireInteraction: true,
   };
 
   if (cachedSwRegistration && typeof cachedSwRegistration.showNotification === 'function') {
-    cachedSwRegistration
-      .showNotification(payload.title, richOptions)
-      .catch(() => {
-        const noActionsOpts = { ...richOptions };
-        delete noActionsOpts.actions;
-        return cachedSwRegistration.showNotification(payload.title, noActionsOpts);
-      })
-      .catch(() => {
-        return cachedSwRegistration.showNotification(payload.title, basicOptions);
-      })
-      .catch(() => {});
+    const closePrevPromise =
+      typeof cachedSwRegistration.getNotifications === 'function'
+        ? cachedSwRegistration
+            .getNotifications()
+            .then((list) => list.forEach((n) => n.close()))
+            .catch(() => {})
+        : Promise.resolve();
+
+    closePrevPromise.then(() => {
+      cachedSwRegistration
+        .showNotification(payload.title, richOptions)
+        .catch(() => {
+          const noActionsOpts = { ...richOptions };
+          delete noActionsOpts.actions;
+          return cachedSwRegistration.showNotification(payload.title, noActionsOpts);
+        })
+        .catch(() => {
+          return cachedSwRegistration.showNotification(payload.title, basicOptions);
+        })
+        .catch(() => {});
+    });
 
     return { sent: true, payload };
   }

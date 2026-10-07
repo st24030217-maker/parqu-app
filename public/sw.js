@@ -1,7 +1,7 @@
-// Service Worker Oficial de Parqu - ESTRICTAMENTE 1 SOLA NOTIFICACIÓN AL SALIR DE LA APP
-// - CERO bucles setInterval (nunca re-envía notificaciones en bucle)
-// - CERO spam: 1 sola notificación estática/interactiva cuando el usuario sale de la app
-// - Solo se actualiza si el usuario toca un botón de la propia notificación (+1 Hora, Cancelar, Iniciar, Recargar)
+// Service Worker Oficial de Parqu - Bloque Único de Notificación Nativa en Barra de Notificaciones
+// - CERO bucles setInterval: nunca envía notificaciones repetidas
+// - Cierra siempre cualquier notificación previa (closeAllNotifications) antes de fijar el bloque único
+// - Incluye barra de progreso visual estilo Uber + botones de control nativos (+1 Hora, Cancelar/Iniciar, Recargar)
 
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 const NTFY_BASE_URL = 'https://ntfy.sh';
@@ -18,7 +18,12 @@ self.addEventListener('install', () => {
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      closeAllNotifications(),
+    ])
+  );
 });
 
 function getSupportedSwActions(isActive) {
@@ -45,7 +50,18 @@ function getSupportedSwActions(isActive) {
   return fullActions.slice(0, maxSupported);
 }
 
-// Publica en la nube cuando el usuario ejecuta una acción desde la notificación fuera de la aplicación
+// Construye la línea continua visual con el auto para el cuerpo nativo del bloque (compatible con iOS y Android)
+function buildNativeTrackLine(progressRatio, isActive) {
+  const totalSlots = 10;
+  const carSlot = isActive
+    ? Math.min(totalSlots - 1, Math.max(1, Math.round(progressRatio * totalSlots)))
+    : 2;
+  const before = '━'.repeat(carSlot);
+  const after = '─'.repeat(Math.max(1, totalSlots - carSlot));
+  return `●${before}🚗${after}○`;
+}
+
+// Publica en la nube cuando el usuario ejecuta un botón desde el bloque de notificación nativa
 async function publishStateFromServiceWorker(s) {
   if (!s || !s.plates) return;
   try {
@@ -126,41 +142,33 @@ function drawRoundedRect(ctx, x, y, w, h, r) {
 }
 
 function drawTopDownCar(ctx, centerX, centerY, isActive) {
-  const carW = 50;
-  const carH = 24;
+  const carW = 54;
+  const carH = 26;
   const x = centerX - carW / 2;
   const y = centerY - carH / 2;
 
-  if (isActive) {
-    const trailGrad = ctx.createLinearGradient(x - 36, centerY, x + 4, centerY);
-    trailGrad.addColorStop(0, 'rgba(56, 189, 248, 0)');
-    trailGrad.addColorStop(1, 'rgba(56, 189, 248, 0.55)');
-    ctx.fillStyle = trailGrad;
-    drawRoundedRect(ctx, x - 34, centerY - 5, 38, 10, 5);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
-  drawRoundedRect(ctx, x + 2, y + 3, carW, carH, 9);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  drawRoundedRect(ctx, x + 2, y + 3, carW, carH, 10);
   ctx.fill();
 
   ctx.fillStyle = '#ffffff';
-  drawRoundedRect(ctx, x, y, carW, carH, 9);
+  drawRoundedRect(ctx, x, y, carW, carH, 10);
   ctx.fill();
 
   ctx.fillStyle = '#1e293b';
-  drawRoundedRect(ctx, x + 31, y + 3, 10, carH - 6, 3);
+  drawRoundedRect(ctx, x + 33, y + 3, 11, carH - 6, 3.5);
   ctx.fill();
 
   ctx.fillStyle = '#334155';
-  drawRoundedRect(ctx, x + 6, y + 4, 6, carH - 8, 2);
+  drawRoundedRect(ctx, x + 6, y + 4, 7, carH - 8, 2.5);
   ctx.fill();
 
-  ctx.fillStyle = isActive ? '#0033ff' : '#d97706';
-  drawRoundedRect(ctx, x + 15, y + 4, 13, carH - 8, 3);
+  ctx.fillStyle = isActive ? '#0f172a' : '#d97706';
+  drawRoundedRect(ctx, x + 16, y + 4, 14, carH - 8, 3);
   ctx.fill();
 }
 
+// Dibuja el bloque visual oscuro estilo Uber (como la referencia Pickup in 2 min)
 async function buildUberCardImage(s, clockStr, remainingLabel, cost, progressRatio) {
   if (s && s.preRenderedImage && !(Date.now() < lastActionFeedbackUntil && lastActionFeedback)) {
     return s.preRenderedImage;
@@ -170,7 +178,7 @@ async function buildUberCardImage(s, clockStr, remainingLabel, cost, progressRat
   }
   try {
     const width = 640;
-    const height = 256;
+    const height = 236;
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
     if (!ctx) return s && s.preRenderedImage ? s.preRenderedImage : undefined;
@@ -183,120 +191,81 @@ async function buildUberCardImage(s, clockStr, remainingLabel, cost, progressRat
     const balance = Number(s.balance ?? 320).toFixed(0);
     const hasFeedback = Date.now() < lastActionFeedbackUntil && lastActionFeedback;
 
-    const cardX = 14;
+    const cardX = 12;
     const cardY = 8;
-    const cardW = width - 28;
+    const cardW = width - 24;
     const cardH = height - 16;
 
     const grad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
-    grad.addColorStop(0, '#16181d');
-    grad.addColorStop(1, '#0d0f13');
+    grad.addColorStop(0, '#14161b');
+    grad.addColorStop(1, '#0b0d11');
     ctx.fillStyle = grad;
     drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 34);
     ctx.fill();
 
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = s.isActive ? 'rgba(56, 189, 248, 0.35)' : 'rgba(255, 255, 255, 0.14)';
-    ctx.stroke();
-
     ctx.textAlign = 'left';
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 20px sans-serif';
-    ctx.fillText('Parqu', cardX + 30, cardY + 38);
+    ctx.font = 'bold 21px sans-serif';
+    ctx.fillText('Parqu', cardX + 32, cardY + 42);
 
     ctx.textAlign = 'right';
     ctx.fillStyle = hasFeedback ? '#34d399' : '#38bdf8';
-    ctx.font = 'bold 15px sans-serif';
+    ctx.font = 'bold 16px sans-serif';
     ctx.fillText(
       hasFeedback ? lastActionFeedback : `Saldo NFC: $${balance} MXN`,
-      cardX + cardW - 30,
-      cardY + 38
+      cardX + cardW - 32,
+      cardY + 42
     );
 
     ctx.textAlign = 'left';
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 32px sans-serif';
+    ctx.font = 'bold 34px sans-serif';
     ctx.fillText(
       s.isActive
         ? `Estancia activa • ${clockStr}`
-        : 'Listo para estacionar ($6/hr)',
-      cardX + 30,
-      cardY + 84
+        : `Parqu listo • $6.00/hr`,
+      cardX + 32,
+      cardY + 92
     );
 
     ctx.fillStyle = '#9ca3af';
-    ctx.font = '20px sans-serif';
+    ctx.font = '21px sans-serif';
     ctx.fillText(
       s.isActive
-        ? `${plates} • ${carDesc} • ${scheduledHours}h ($${cost} MXN) • Restan ${remainingLabel}`
-        : `${plates} • ${carDesc} • Saldo disponible $${balance} MXN`,
-      cardX + 30,
-      cardY + 116
+        ? `${plates} • ${carDesc} • $${cost} MXN (Restan ${remainingLabel})`
+        : `${plates} • ${carDesc} • Saldo $${balance} MXN`,
+      cardX + 32,
+      cardY + 126
     );
 
+    // Línea continua estilo Uber con el auto encima y círculo final a la derecha
     const barLeft = cardX + 32;
-    const barRight = cardX + cardW - 38;
+    const barRight = cardX + cardW - 36;
     const barWidth = barRight - barLeft;
-    const barY = cardY + 156;
+    const barY = cardY + 174;
 
-    ctx.fillStyle = '#374151';
-    drawRoundedRect(ctx, barLeft, barY - 4, barWidth, 8, 4);
+    ctx.fillStyle = '#4b5563';
+    drawRoundedRect(ctx, barLeft, barY - 3.5, barWidth, 7, 3.5);
     ctx.fill();
 
     const carX = barLeft + Math.round(barWidth * progressRatio);
     const fillWidth = Math.max(14, carX - barLeft);
 
-    const barGrad = ctx.createLinearGradient(barLeft, barY, carX, barY);
-    barGrad.addColorStop(0, '#0033ff');
-    barGrad.addColorStop(0.5, '#38bdf8');
-    barGrad.addColorStop(1, '#ffffff');
-    ctx.fillStyle = barGrad;
-    drawRoundedRect(ctx, barLeft, barY - 4, fillWidth, 8, 4);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(barLeft, barY, 5, 0, Math.PI * 2);
     ctx.fillStyle = '#ffffff';
+    drawRoundedRect(ctx, barLeft, barY - 3.5, fillWidth, 7, 3.5);
     ctx.fill();
 
     ctx.beginPath();
     ctx.arc(barRight, barY, 9, 0, Math.PI * 2);
-    ctx.fillStyle = s.isActive ? 'rgba(56, 189, 248, 0.35)' : '#4b5563';
+    ctx.fillStyle = '#6b7280';
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(barRight, barY, 5, 0, Math.PI * 2);
-    ctx.fillStyle = s.isActive ? '#38bdf8' : '#9ca3af';
+    ctx.arc(barRight, barY, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#111318';
     ctx.fill();
 
     drawTopDownCar(ctx, carX, barY, Boolean(s.isActive));
-
-    const controls = [
-      { label: '+1 Hora ($6)', bg: '#0033ff', fg: '#ffffff' },
-      { label: 'Recargar +$50', bg: '#1e293b', fg: '#38bdf8' },
-      {
-        label: s.isActive ? 'Cancelar Parqu' : 'Iniciar Parqu',
-        bg: s.isActive ? '#7f1d1d' : '#065f46',
-        fg: '#ffffff',
-      },
-    ];
-
-    const btnGap = 10;
-    const btnW = Math.floor((barWidth - btnGap * 2) / 3);
-    const btnH = 38;
-    const btnY = cardY + 186;
-
-    controls.forEach((c, idx) => {
-      const bx = barLeft + idx * (btnW + btnGap);
-      ctx.fillStyle = c.bg;
-      drawRoundedRect(ctx, bx, btnY, btnW, btnH, 19);
-      ctx.fill();
-
-      ctx.textAlign = 'center';
-      ctx.fillStyle = c.fg;
-      ctx.font = 'bold 13px sans-serif';
-      ctx.fillText(c.label, bx + Math.round(btnW / 2), btnY + 24);
-    });
 
     const blob = await canvas.convertToBlob({ type: 'image/png' });
     const buffer = await blob.arrayBuffer();
@@ -341,7 +310,7 @@ async function buildSingleNotificationPayload(state) {
       Number(((elapsedSeconds * (rate / 3600)) || 0).toFixed(2))
     ).toFixed(2);
 
-    const progressRatio = Math.min(0.92, Math.max(0.18, elapsedSeconds / totalScheduledSeconds));
+    const progressRatio = Math.min(0.88, Math.max(0.22, elapsedSeconds / totalScheduledSeconds));
     const cardImage = await buildUberCardImage(
       s,
       clockStr,
@@ -349,11 +318,12 @@ async function buildSingleNotificationPayload(state) {
       cost,
       progressRatio
     );
+    const trackLine = buildNativeTrackLine(progressRatio, true);
 
     const title = hasFeedback
-      ? `✅ ${lastActionFeedback} • ${clockStr}`
-      : `Estancia activa • ${clockStr} (${scheduledHours}h)`;
-    const body = `${plates} • ${carDesc} • Cobro: $${cost} MXN • Saldo: $${balance} MXN`;
+      ? `${lastActionFeedback} • ${clockStr}`
+      : `Estancia activa • ${clockStr} (Restan ${remainingLabel})`;
+    const body = `${plates} • ${carDesc} • Cobro: $${cost} MXN\n${trackLine}  Saldo: $${balance} MXN`;
 
     return {
       title,
@@ -365,7 +335,7 @@ async function buildSingleNotificationPayload(state) {
         tag: SINGLE_NOTIFICATION_TAG,
         renotify: false,
         silent: true,
-        requireInteraction: false,
+        requireInteraction: true,
         actions: getSupportedSwActions(true),
         data: {
           url: './',
@@ -380,12 +350,13 @@ async function buildSingleNotificationPayload(state) {
     '00:00:00',
     '60m 00s',
     '0.00',
-    0.25
+    0.28
   );
+  const trackLine = buildNativeTrackLine(0.28, false);
   const title = hasFeedback
-    ? `✅ ${lastActionFeedback}`
-    : `Parqu listo • $6.00/hr • Saldo $${balance}`;
-  const body = `${plates} • ${carDesc} • Controles rápidos activos fuera de la app`;
+    ? `${lastActionFeedback}`
+    : `Parqu • Tarifa $6.00/hr • Saldo $${balance} MXN`;
+  const body = `${plates} • ${carDesc}\n${trackLine}  Listo para estacionar`;
 
   return {
     title,
@@ -397,7 +368,7 @@ async function buildSingleNotificationPayload(state) {
       tag: SINGLE_NOTIFICATION_TAG,
       renotify: false,
       silent: true,
-      requireInteraction: false,
+      requireInteraction: true,
       actions: getSupportedSwActions(false),
       data: {
         url: './',
@@ -407,6 +378,7 @@ async function buildSingleNotificationPayload(state) {
   };
 }
 
+// Cierra TODAS las notificaciones previas (incluyendo el mismo tag) para que en iOS y Android jamás haya más de 1 bloque
 async function closeAllNotifications() {
   if (!self.registration || typeof self.registration.getNotifications !== 'function') return;
   try {
@@ -417,26 +389,12 @@ async function closeAllNotifications() {
   }
 }
 
-async function closeOtherTagNotifications() {
-  if (!self.registration || typeof self.registration.getNotifications !== 'function') return;
-  try {
-    const notifications = await self.registration.getNotifications();
-    notifications.forEach((n) => {
-      if (n.tag !== SINGLE_NOTIFICATION_TAG) {
-        n.close();
-      }
-    });
-  } catch {
-    // ignore
-  }
-}
-
-// Muestra ESTRICTAMENTE 1 sola notificación sin bucles ni repeticiones
+// Muestra ESTRICTAMENTE 1 solo bloque nativo cerrando antes cualquier notificación existente
 async function showSingleNotificationOnce(allowCooldownBypass = false) {
   if (isShowingLock || !self.registration || !self.registration.showNotification) return;
 
   const now = Date.now();
-  if (!allowCooldownBypass && now - lastShownTimestamp < 4000) {
+  if (!allowCooldownBypass && now - lastShownTimestamp < 4500) {
     return;
   }
 
@@ -444,7 +402,9 @@ async function showSingleNotificationOnce(allowCooldownBypass = false) {
   lastShownTimestamp = now;
 
   try {
-    await closeOtherTagNotifications();
+    // Cerrar SIEMPRE todas las notificaciones previas antes de mostrar el bloque único
+    await closeAllNotifications();
+
     const { title, options } = await buildSingleNotificationPayload(latestParquState);
     try {
       await self.registration.showNotification(title, options);
@@ -501,7 +461,7 @@ self.addEventListener('message', (event) => {
     return;
   }
 
-  if (event.data.type === 'APP_FOREGROUNDED') {
+  if (event.data.type === 'APP_FOREGROUNDED' || event.data.type === 'STOP_ALL_LOOPS') {
     if (pendingActionsQueue.length > 0 && event.source) {
       pendingActionsQueue.forEach((act) => {
         event.source.postMessage({
@@ -523,7 +483,6 @@ self.addEventListener('message', (event) => {
       latestParquState = event.data.payload;
     }
 
-    // Mostrar 1 sola vez (CERO setInterval)
     event.waitUntil(showSingleNotificationOnce(false));
   }
 });
