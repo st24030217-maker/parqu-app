@@ -1,19 +1,17 @@
-// Service Worker Oficial de Parqu - Tarjeta Interactiva Fuera de la App (Estilo Uber Live Activity)
-// - 1 sola notificación persistente (SINGLE_NOTIFICATION_TAG) sin spam ni reproductor de música
-// - Línea continua en movimiento con el auto desplazándose en tiempo real
-// - Detección dinámica de Notification.maxActions y triple fallback para compatibilidad 100% en Android, iOS y Escritorio
-// - Sincronización directa con la nube (ntfy.sh) cuando el usuario usa los botones desde fuera de la app
+// Service Worker Oficial de Parqu - ESTRICTAMENTE 1 SOLA NOTIFICACIÓN AL SALIR DE LA APP
+// - CERO bucles setInterval (nunca re-envía notificaciones en bucle)
+// - CERO spam: 1 sola notificación estática/interactiva cuando el usuario sale de la app
+// - Solo se actualiza si el usuario toca un botón de la propia notificación (+1 Hora, Cancelar, Iniciar, Recargar)
 
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 const NTFY_BASE_URL = 'https://ntfy.sh';
 
 let latestParquState = null;
 let pendingActionsQueue = [];
-let backgroundIntervalId = null;
-let animFrame = 0;
 let isShowingLock = false;
 let lastActionFeedback = '';
 let lastActionFeedbackUntil = 0;
+let lastShownTimestamp = 0;
 
 self.addEventListener('install', () => {
   self.skipWaiting();
@@ -127,8 +125,7 @@ function drawRoundedRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-// Dibuja el auto blanco visto desde arriba desplazándose suavemente sobre la línea continua
-function drawMovingTopDownCar(ctx, centerX, centerY, isActive) {
+function drawTopDownCar(ctx, centerX, centerY, isActive) {
   const carW = 50;
   const carH = 24;
   const x = centerX - carW / 2;
@@ -164,8 +161,10 @@ function drawMovingTopDownCar(ctx, centerX, centerY, isActive) {
   ctx.fill();
 }
 
-// Genera la tarjeta estilo Uber con una SOLA línea continua animada y el auto moviéndose en tiempo real
-async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, animatedRatio) {
+async function buildUberCardImage(s, clockStr, remainingLabel, cost, progressRatio) {
+  if (s && s.preRenderedImage && !(Date.now() < lastActionFeedbackUntil && lastActionFeedback)) {
+    return s.preRenderedImage;
+  }
   if (typeof OffscreenCanvas === 'undefined') {
     return s && s.preRenderedImage ? s.preRenderedImage : undefined;
   }
@@ -244,7 +243,7 @@ async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, ani
     drawRoundedRect(ctx, barLeft, barY - 4, barWidth, 8, 4);
     ctx.fill();
 
-    const carX = barLeft + Math.round(barWidth * animatedRatio);
+    const carX = barLeft + Math.round(barWidth * progressRatio);
     const fillWidth = Math.max(14, carX - barLeft);
 
     const barGrad = ctx.createLinearGradient(barLeft, barY, carX, barY);
@@ -260,9 +259,8 @@ async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, ani
     ctx.fillStyle = '#ffffff';
     ctx.fill();
 
-    const pulseRadius = 9 + Math.sin(animFrame * 0.6) * 2;
     ctx.beginPath();
-    ctx.arc(barRight, barY, pulseRadius, 0, Math.PI * 2);
+    ctx.arc(barRight, barY, 9, 0, Math.PI * 2);
     ctx.fillStyle = s.isActive ? 'rgba(56, 189, 248, 0.35)' : '#4b5563';
     ctx.fill();
 
@@ -271,7 +269,7 @@ async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, ani
     ctx.fillStyle = s.isActive ? '#38bdf8' : '#9ca3af';
     ctx.fill();
 
-    drawMovingTopDownCar(ctx, carX, barY, Boolean(s.isActive));
+    drawTopDownCar(ctx, carX, barY, Boolean(s.isActive));
 
     const controls = [
       { label: '+1 Hora ($6)', bg: '#0033ff', fg: '#ffffff' },
@@ -308,7 +306,7 @@ async function buildAnimatedUberCardImage(s, clockStr, remainingLabel, cost, ani
   }
 }
 
-async function buildLiveNotificationPayload(state, isInitialAlert = false) {
+async function buildSingleNotificationPayload(state) {
   const s = state || latestParquState || {};
   const plates = s.plates || 'XYZ-7842';
   const carDesc = s.carDesc || 'Volkswagen Jetta';
@@ -343,13 +341,13 @@ async function buildLiveNotificationPayload(state, isInitialAlert = false) {
       Number(((elapsedSeconds * (rate / 3600)) || 0).toFixed(2))
     ).toFixed(2);
 
-    const cycleWave = ((animFrame % 20) / 20) * 0.78 + 0.12;
-    const cardImage = await buildAnimatedUberCardImage(
+    const progressRatio = Math.min(0.92, Math.max(0.18, elapsedSeconds / totalScheduledSeconds));
+    const cardImage = await buildUberCardImage(
       s,
       clockStr,
       remainingLabel,
       cost,
-      cycleWave
+      progressRatio
     );
 
     const title = hasFeedback
@@ -365,9 +363,9 @@ async function buildLiveNotificationPayload(state, isInitialAlert = false) {
         badge: './parqu-logo-black.png',
         image: cardImage,
         tag: SINGLE_NOTIFICATION_TAG,
-        renotify: Boolean(isInitialAlert),
-        silent: !isInitialAlert,
-        requireInteraction: true,
+        renotify: false,
+        silent: true,
+        requireInteraction: false,
         actions: getSupportedSwActions(true),
         data: {
           url: './',
@@ -377,13 +375,12 @@ async function buildLiveNotificationPayload(state, isInitialAlert = false) {
     };
   }
 
-  const standbyWave = ((animFrame % 24) / 24) * 0.65 + 0.14;
-  const cardImage = await buildAnimatedUberCardImage(
+  const cardImage = await buildUberCardImage(
     s,
     '00:00:00',
     '60m 00s',
     '0.00',
-    standbyWave
+    0.25
   );
   const title = hasFeedback
     ? `✅ ${lastActionFeedback}`
@@ -398,9 +395,9 @@ async function buildLiveNotificationPayload(state, isInitialAlert = false) {
       badge: './parqu-logo-black.png',
       image: cardImage,
       tag: SINGLE_NOTIFICATION_TAG,
-      renotify: Boolean(isInitialAlert),
-      silent: !isInitialAlert,
-      requireInteraction: true,
+      renotify: false,
+      silent: true,
+      requireInteraction: false,
       actions: getSupportedSwActions(false),
       data: {
         url: './',
@@ -408,13 +405,6 @@ async function buildLiveNotificationPayload(state, isInitialAlert = false) {
       },
     },
   };
-}
-
-function stopBackgroundLoop() {
-  if (backgroundIntervalId) {
-    clearInterval(backgroundIntervalId);
-    backgroundIntervalId = null;
-  }
 }
 
 async function closeAllNotifications() {
@@ -441,17 +431,21 @@ async function closeOtherTagNotifications() {
   }
 }
 
-// Renderiza la notificación actualizando en su mismo lugar (in-place) el mismo tag con triple fallback
-async function renderNotificationFrame(isInitialAlert = false) {
+// Muestra ESTRICTAMENTE 1 sola notificación sin bucles ni repeticiones
+async function showSingleNotificationOnce(allowCooldownBypass = false) {
   if (isShowingLock || !self.registration || !self.registration.showNotification) return;
+
+  const now = Date.now();
+  if (!allowCooldownBypass && now - lastShownTimestamp < 4000) {
+    return;
+  }
+
   isShowingLock = true;
+  lastShownTimestamp = now;
+
   try {
     await closeOtherTagNotifications();
-    animFrame += 1;
-    const { title, options } = await buildLiveNotificationPayload(
-      latestParquState,
-      isInitialAlert
-    );
+    const { title, options } = await buildSingleNotificationPayload(latestParquState);
     try {
       await self.registration.showNotification(title, options);
     } catch {
@@ -465,8 +459,8 @@ async function renderNotificationFrame(isInitialAlert = false) {
           icon: './parqu-logo-black.png',
           badge: './parqu-logo-black.png',
           tag: SINGLE_NOTIFICATION_TAG,
-          renotify: Boolean(isInitialAlert),
-          silent: !isInitialAlert,
+          renotify: false,
+          silent: true,
         });
       }
     }
@@ -475,26 +469,6 @@ async function renderNotificationFrame(isInitialAlert = false) {
   } finally {
     isShowingLock = false;
   }
-}
-
-function startLiveAnimationLoop(resolvePromise) {
-  stopBackgroundLoop();
-  const isIOS = Boolean(latestParquState && latestParquState.isIOS);
-  if (isIOS) {
-    if (resolvePromise) resolvePromise();
-    return;
-  }
-
-  let ticks = 0;
-  backgroundIntervalId = setInterval(() => {
-    ticks += 1;
-    if (ticks > 120) {
-      stopBackgroundLoop();
-      if (resolvePromise) resolvePromise();
-      return;
-    }
-    renderNotificationFrame(false);
-  }, 1500);
 }
 
 async function broadcastActionToClients(actionObj) {
@@ -528,7 +502,6 @@ self.addEventListener('message', (event) => {
   }
 
   if (event.data.type === 'APP_FOREGROUNDED') {
-    stopBackgroundLoop();
     if (pendingActionsQueue.length > 0 && event.source) {
       pendingActionsQueue.forEach((act) => {
         event.source.postMessage({
@@ -539,9 +512,7 @@ self.addEventListener('message', (event) => {
       });
       pendingActionsQueue = [];
     }
-    if (event.data.keepNotification === false) {
-      event.waitUntil(closeAllNotifications());
-    }
+    event.waitUntil(closeAllNotifications());
     return;
   }
 
@@ -552,16 +523,8 @@ self.addEventListener('message', (event) => {
       latestParquState = event.data.payload;
     }
 
-    const forceAlert = Boolean(event.data.payload && event.data.payload.forceAlert);
-    stopBackgroundLoop();
-
-    const showAndAnimatePromise = new Promise((resolve) => {
-      renderNotificationFrame(forceAlert).finally(() => {
-        startLiveAnimationLoop(resolve);
-      });
-    });
-
-    event.waitUntil(showAndAnimatePromise);
+    // Mostrar 1 sola vez (CERO setInterval)
+    event.waitUntil(showSingleNotificationOnce(false));
   }
 });
 
@@ -581,16 +544,16 @@ self.addEventListener('notificationclick', (event) => {
       scheduledHours: 1,
       zoneName: 'Espacio #1042 • Centro Histórico',
       rate: '6.00',
+      preRenderedImage: null,
     };
 
     event.waitUntil(
       Promise.all([
-        renderNotificationFrame(false),
+        showSingleNotificationOnce(true),
         broadcastActionToClients({ action: 'START_PARKING', startTime: nowIso }),
         publishStateFromServiceWorker(latestParquState),
       ])
     );
-    startLiveAnimationLoop();
     return;
   }
 
@@ -608,16 +571,16 @@ self.addEventListener('notificationclick', (event) => {
       scheduledHours: nextHours,
       zoneName: s.zoneName || 'Espacio #1042 • Centro Histórico',
       rate: '6.00',
+      preRenderedImage: null,
     };
 
     event.waitUntil(
       Promise.all([
-        renderNotificationFrame(false),
+        showSingleNotificationOnce(true),
         broadcastActionToClients({ action: 'ADD_HOUR', hoursAdded: 1, scheduledHours: nextHours }),
         publishStateFromServiceWorker(latestParquState),
       ])
     );
-    startLiveAnimationLoop();
     return;
   }
 
@@ -644,11 +607,12 @@ self.addEventListener('notificationclick', (event) => {
       baseSeconds: 0,
       scheduledHours: 1,
       balance: nextBalance,
+      preRenderedImage: null,
     };
 
     event.waitUntil(
       Promise.all([
-        renderNotificationFrame(false),
+        showSingleNotificationOnce(true),
         broadcastActionToClients({ action: 'CANCEL_PARKING', amount: finalCharge }),
         publishStateFromServiceWorker(latestParquState),
       ])
@@ -665,11 +629,12 @@ self.addEventListener('notificationclick', (event) => {
     latestParquState = {
       ...s,
       balance: nextBalance,
+      preRenderedImage: null,
     };
 
     event.waitUntil(
       Promise.all([
-        renderNotificationFrame(false),
+        showSingleNotificationOnce(true),
         broadcastActionToClients({ action: 'ADD_BALANCE', amount: 50 }),
         publishStateFromServiceWorker(latestParquState),
       ])
@@ -677,7 +642,7 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
-  stopBackgroundLoop();
+  event.notification.close();
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {

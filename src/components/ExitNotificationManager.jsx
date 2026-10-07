@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { BellRing } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { sileo } from 'sileo';
 import { useParking } from '../context/ParkingContext';
 import {
@@ -12,12 +11,11 @@ import {
 } from '../utils/parkingNotification';
 
 /**
- * ExitNotificationManager
- * - Sin reproductor de música (cero audio / cero MediaSession).
- * - Cero spam: envía ESTRICTAMENTE 1 sola notificación interactiva estilo Uber Live Activity (mismo tag).
- * - Se dispara automáticamente al salir/minimizar la app (visibilitychange, pagehide, blur),
- *   al iniciar/finalizar parquímetro, al agregar horas o recargar saldo, y cuando restan <= 5 min.
- * - Incluye controles directos fuera de la app: +1 Hora ($6), Recargar +$50 y Cancelar/Iniciar Parqu.
+ * ExitNotificationManager (100% Invisible dentro del sistema)
+ * - CERO bucles, CERO spam: envía ESTRICTAMENTE 1 SOLA notificación cuando el usuario sale de la app
+ *   (document.visibilityState === 'hidden') usando un candado estricto por salida (hasSentWhileHiddenRef).
+ * - Nunca envía notificaciones mientras el usuario está dentro de la app.
+ * - Al regresar a la app (visibilityState === 'visible'), cierra la notificación y reinicia el candado.
  */
 export const ExitNotificationManager = ({ onOpenNFC }) => {
   const {
@@ -34,10 +32,6 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     transactions,
   } = useParking();
 
-  const [permissionState, setPermissionState] = useState(() =>
-    getNotificationPermissionState()
-  );
-
   const latestContextRef = useRef({
     owner,
     vehicle,
@@ -47,64 +41,18 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     transactions,
   });
 
-  const lastNotificationSentAtRef = useRef(0);
-  const prevSessionActiveRef = useRef(Boolean(activeSession));
-  const prevScheduledHoursRef = useRef(Number(activeSession?.scheduledHours || 0));
-  const prevBalanceRef = useRef(Number(card?.balance || 0));
-  const alertedExpiringSessionIdRef = useRef(null);
+  // Candado estricto: garantiza que SOLO se envíe 1 notificación por cada vez que el usuario sale de la app
+  const hasSentWhileHiddenRef = useRef(false);
+  const lastExitTimestampRef = useRef(0);
 
-  // Sincronizar continuamente el estado con el Service Worker
+  // Sincronizar el estado en memoria del Service Worker (sin disparar notificaciones)
   useEffect(() => {
     const ctx = { owner, vehicle, card, autoPay, activeSession, transactions };
     latestContextRef.current = ctx;
     syncParquStateToServiceWorker(ctx);
   }, [owner, vehicle, card, autoPay, activeSession, transactions]);
 
-  // Actualizar automáticamente la notificación externa cuando se inicia/detiene parquímetro, se suma +1 hora o se recarga saldo
-  useEffect(() => {
-    const isNowActive = Boolean(activeSession);
-    const currentHours = Number(activeSession?.scheduledHours || 0);
-    const currentBalance = Number(card?.balance || 0);
-
-    const sessionChanged = isNowActive !== prevSessionActiveRef.current;
-    const hoursChanged = isNowActive && currentHours !== prevScheduledHoursRef.current;
-    const balanceChanged = Math.abs(currentBalance - prevBalanceRef.current) >= 1;
-
-    prevSessionActiveRef.current = isNowActive;
-    prevScheduledHoursRef.current = currentHours;
-    prevBalanceRef.current = currentBalance;
-
-    if (
-      (sessionChanged || hoursChanged || balanceChanged) &&
-      getNotificationPermissionState() === 'granted'
-    ) {
-      dispatchBackgroundNotificationImmediate(latestContextRef.current, {
-        forceAlert: sessionChanged,
-      });
-    }
-  }, [activeSession?.id, activeSession?.scheduledHours, card?.balance]);
-
-  // Alerta automática fuera de la app cuando quedan <= 5 minutos de tiempo programado
-  useEffect(() => {
-    if (!activeSession || getNotificationPermissionState() !== 'granted') return;
-
-    const scheduledSeconds = (Number(activeSession.scheduledHours) || 1) * 3600;
-    const elapsed = Number(activeSession.secondsElapsed) || 0;
-    const remainingSeconds = scheduledSeconds - elapsed;
-
-    if (
-      remainingSeconds > 0 &&
-      remainingSeconds <= 300 &&
-      alertedExpiringSessionIdRef.current !== `${activeSession.id}-${activeSession.scheduledHours}`
-    ) {
-      alertedExpiringSessionIdRef.current = `${activeSession.id}-${activeSession.scheduledHours}`;
-      dispatchBackgroundNotificationImmediate(latestContextRef.current, {
-        forceAlert: true,
-      });
-    }
-  }, [activeSession?.id, activeSession?.scheduledHours, activeSession?.secondsElapsed]);
-
-  // Escuchar los controles ejecutados desde la notificación fuera de la aplicación
+  // Escuchar los botones de la notificación (+1 Hora, Recargar +$50, Cancelar / Iniciar Parqu)
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return undefined;
 
@@ -115,8 +63,8 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
       if (action === 'START_PARKING' && !latestContextRef.current.activeSession) {
         startParking('Espacio #1042 • Centro Histórico', 6.0, null, 1);
         sileo.success({
-          title: 'Parquímetro Iniciado desde Notificación',
-          description: 'Monitoreo activado fuera de la aplicación ($6.00/hr).',
+          title: 'Parquímetro Iniciado',
+          description: 'Monitoreo activado desde la notificación ($6.00/hr).',
         });
       } else if (action === 'ADD_HOUR') {
         const extra = Number(hoursAdded) || 1;
@@ -139,7 +87,7 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
         const txn = stopParkingAndAutoCharge();
         if (txn) {
           sileo.success({
-            title: 'Parquímetro Finalizado desde Notificación',
+            title: 'Parquímetro Finalizado',
             description: `Folio ${txn.folio} • Cobrado: $${txn.amount.toFixed(2)} MXN`,
           });
         }
@@ -170,21 +118,15 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     onOpenNFC,
   ]);
 
-  // Registrar Service Worker y solicitar permiso en el primer toque si aún está en 'default'
+  // Registrar Service Worker y pedir permiso en el primer toque (sin disparar notificación dentro de la app)
   useEffect(() => {
     registerParquServiceWorker();
 
     const handleUserInteraction = async () => {
-      const currentPerm = getNotificationPermissionState();
-      setPermissionState(currentPerm);
-      if (currentPerm === 'default') {
+      if (getNotificationPermissionState() === 'default') {
         const res = await requestParkingNotificationPermission();
-        setPermissionState(res);
         if (res === 'granted') {
           syncParquStateToServiceWorker(latestContextRef.current);
-          dispatchBackgroundNotificationImmediate(latestContextRef.current, {
-            forceAlert: false,
-          });
         }
       }
     };
@@ -195,79 +137,28 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     };
   }, []);
 
-  // Enviar ESTRICTAMENTE 1 sola notificación estilo Uber al salir/minimizar la aplicación
-  const triggerExitNotificationOnce = useCallback((forceAlert = true) => {
-    const now = Date.now();
-    if (now - lastNotificationSentAtRef.current < 2500) {
-      return null;
-    }
-    lastNotificationSentAtRef.current = now;
-    return dispatchBackgroundNotificationImmediate(latestContextRef.current, {
-      forceAlert,
-    });
-  }, []);
-
+  // Disparar ESTRICTAMENTE 1 sola notificación únicamente cuando visibilityState pasa a 'hidden'
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        triggerExitNotificationOnce(true);
+        if (hasSentWhileHiddenRef.current) return;
+        const now = Date.now();
+        if (now - lastExitTimestampRef.current < 5000) return;
+
+        hasSentWhileHiddenRef.current = true;
+        lastExitTimestampRef.current = now;
+        dispatchBackgroundNotificationImmediate(latestContextRef.current);
       } else if (document.visibilityState === 'visible') {
-        // Mantener la notificación viva en la barra del teléfono mientras usa la app
-        notifyAppForegrounded(true);
+        hasSentWhileHiddenRef.current = false;
+        notifyAppForegrounded();
       }
     };
 
-    const handlePageHide = () => {
-      triggerExitNotificationOnce(true);
-    };
-
-    const handleWindowBlur = () => {
-      // Si el usuario cambia de aplicación o bloquea pantalla
-      triggerExitNotificationOnce(false);
-    };
-
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('pagehide', handlePageHide);
-    window.addEventListener('blur', handleWindowBlur);
-
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('pagehide', handlePageHide);
-      window.removeEventListener('blur', handleWindowBlur);
     };
-  }, [triggerExitNotificationOnce]);
-
-  const handleEnableNotificationsClick = async () => {
-    const res = await requestParkingNotificationPermission();
-    setPermissionState(res);
-    if (res === 'granted') {
-      syncParquStateToServiceWorker(latestContextRef.current);
-      dispatchBackgroundNotificationImmediate(latestContextRef.current, {
-        forceAlert: true,
-      });
-      sileo.success({
-        title: 'Notificación en Vivo Activada',
-        description:
-          'Al salir de la app verás tu barra de parquímetro con controles rápidos (+1 Hora, Recargar y Cancelar).',
-      });
-    }
-  };
-
-  // Mostrar píldora flotante discreta únicamente si el usuario aún no ha autorizado las notificaciones
-  if (permissionState === 'default') {
-    return (
-      <div className="fixed bottom-4 right-4 z-40">
-        <button
-          type="button"
-          onClick={handleEnableNotificationsClick}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#01033E] hover:bg-[#0033FF] text-white text-xs font-bold shadow-xl border border-white/15 transition-all cursor-pointer active:scale-95"
-        >
-          <BellRing className="w-3.5 h-3.5 text-emerald-300 animate-bounce" />
-          <span>Activar Notificación Fuera de la App</span>
-        </button>
-      </div>
-    );
-  }
+  }, []);
 
   return null;
 };

@@ -248,9 +248,12 @@ export const registerParquServiceWorker = () => {
   }
   if (!swRegistrationPromise) {
     swRegistrationPromise = navigator.serviceWorker
-      .register('./sw.js', { scope: './' })
+      .register('./sw.js', { scope: './', updateViaCache: 'none' })
       .then((reg) => {
         cachedSwRegistration = reg;
+        if (typeof reg.update === 'function') {
+          reg.update().catch(() => {});
+        }
         return reg;
       })
       .catch(() => null);
@@ -258,6 +261,9 @@ export const registerParquServiceWorker = () => {
     navigator.serviceWorker.ready
       .then((reg) => {
         cachedSwRegistration = reg;
+        if (reg.active) {
+          reg.active.postMessage({ type: 'APP_FOREGROUNDED' });
+        }
       })
       .catch(() => {});
   }
@@ -460,7 +466,7 @@ export const syncParquStateToServiceWorker = (contextData) => {
   }
 };
 
-export const notifyAppForegrounded = (keepActiveNotification = true) => {
+export const notifyAppForegrounded = () => {
   if (typeof window === 'undefined') return;
   try {
     const targetWorker =
@@ -470,19 +476,21 @@ export const notifyAppForegrounded = (keepActiveNotification = true) => {
     if (targetWorker) {
       targetWorker.postMessage({
         type: 'APP_FOREGROUNDED',
-        keepNotification: Boolean(keepActiveNotification),
       });
+    }
+    if (cachedSwRegistration && typeof cachedSwRegistration.getNotifications === 'function') {
+      cachedSwRegistration
+        .getNotifications()
+        .then((list) => list.forEach((n) => n.close()))
+        .catch(() => {});
     }
   } catch {
     // ignore
   }
 };
 
-// Dispara de inmediato la notificación fuera de la aplicación con respaldo de 3 niveles
-export const dispatchBackgroundNotificationImmediate = (
-  contextData,
-  { forceAlert = false } = {}
-) => {
+// Dispara ESTRICTAMENTE 1 sola notificación al salir de la aplicación (sin duplicar entre SW y cliente)
+export const dispatchBackgroundNotificationImmediate = (contextData) => {
   const payload = buildParkingNotificationPayload(contextData);
 
   if (typeof window === 'undefined' || !('Notification' in window)) {
@@ -496,7 +504,7 @@ export const dispatchBackgroundNotificationImmediate = (
   const cardImage = buildUberCardDataUrlSync(payload);
   const actions = getSupportedNotificationActions(payload.isActive);
 
-  // 1. Notificar al Service Worker para que mantenga el bucle en vivo en segundo plano
+  // 1. Si el Service Worker está activo, delegar ÚNICAMENTE al Service Worker (evita doble notificación)
   try {
     const targetWorker =
       ('serviceWorker' in navigator && navigator.serviceWorker.controller) ||
@@ -510,25 +518,24 @@ export const dispatchBackgroundNotificationImmediate = (
             ...payload,
             preRenderedImage: cardImage,
           },
-          forceAlert,
         },
       });
+      return { sent: true, payload };
     }
   } catch {
     // ignore
   }
 
-  // 2. Mostrar de inmediato desde cachedSwRegistration (sin esperar al hilo asíncrono del SW)
-  // con fallback automático si el navegador rechaza `actions` o `image`
+  // 2. Solo si aún no hay Service Worker activo, mostrar 1 sola vez desde cachedSwRegistration
   const richOptions = {
     body: payload.body,
     icon: './parqu-logo-black.png',
     badge: './parqu-logo-black.png',
     image: cardImage,
     tag: SINGLE_NOTIFICATION_TAG,
-    renotify: Boolean(forceAlert),
-    silent: !forceAlert,
-    requireInteraction: true,
+    renotify: false,
+    silent: true,
+    requireInteraction: false,
     actions,
     data: {
       url: window.location.href,
@@ -541,21 +548,19 @@ export const dispatchBackgroundNotificationImmediate = (
     icon: './parqu-logo-black.png',
     badge: './parqu-logo-black.png',
     tag: SINGLE_NOTIFICATION_TAG,
-    renotify: Boolean(forceAlert),
-    silent: !forceAlert,
+    renotify: false,
+    silent: true,
   };
 
   if (cachedSwRegistration && typeof cachedSwRegistration.showNotification === 'function') {
     cachedSwRegistration
       .showNotification(payload.title, richOptions)
       .catch(() => {
-        // Fallback sin actions en caso de navegador móvil con restricciones
         const noActionsOpts = { ...richOptions };
         delete noActionsOpts.actions;
         return cachedSwRegistration.showNotification(payload.title, noActionsOpts);
       })
       .catch(() => {
-        // Fallback básico garantizado
         return cachedSwRegistration.showNotification(payload.title, basicOptions);
       })
       .catch(() => {});
@@ -563,16 +568,10 @@ export const dispatchBackgroundNotificationImmediate = (
     return { sent: true, payload };
   }
 
-  // 3. Fallback con Notification API directa si el Service Worker aún se está activando
-  try {
-    new Notification(payload.title, basicOptions);
-    return { sent: true, payload };
-  } catch {
-    return { sent: false, payload };
-  }
+  return { sent: false, payload };
 };
 
-export const sendParkingExitNotification = async (contextData, opts = { forceAlert: true }) => {
+export const sendParkingExitNotification = async (contextData) => {
   await registerParquServiceWorker();
-  return dispatchBackgroundNotificationImmediate(contextData, opts);
+  return dispatchBackgroundNotificationImmediate(contextData);
 };
