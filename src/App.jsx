@@ -29,6 +29,9 @@ const VehicleOwnerForm = lazy(() =>
 const TransactionHistory = lazy(() =>
   import('./components/TransactionHistory').then((m) => ({ default: m.TransactionHistory || m.default }))
 );
+const InspectorNFCView = lazy(() =>
+  import('./components/InspectorNFCView').then((m) => ({ default: m.InspectorNFCView || m.default }))
+);
 const HeroParallax = lazy(() =>
   import('./components/ui/hero-parallax').then((m) => ({ default: m.HeroParallax || m.default }))
 );
@@ -54,6 +57,16 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { triggerHaptic } from './utils/haptics';
 
+const getInitialNfcPlateFromUrl = () => {
+  if (typeof window === 'undefined') return '';
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return (params.get('nfc') || '').trim().toUpperCase();
+  } catch {
+    return '';
+  }
+};
+
 const MainContent = () => {
   const { 
     activeSession, 
@@ -65,7 +78,10 @@ const MainContent = () => {
     startParking, 
     stopParkingAndAutoCharge 
   } = useParking();
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'autopay', 'vehicle', 'history'
+  const initialNfcPlate = getInitialNfcPlateFromUrl();
+  const [activeTab, setActiveTab] = useState(() =>
+    initialNfcPlate ? 'inspector' : 'dashboard'
+  ); // 'dashboard', 'inspector', 'autopay', 'vehicle', 'history'
   const [showQRQuickModal, setShowQRQuickModal] = useState(false);
   const [showRechargeQuickModal, setShowRechargeQuickModal] = useState(false);
   const [rechargeAmt, setRechargeAmt] = useState(150);
@@ -436,6 +452,19 @@ const MainContent = () => {
       ),
     },
     {
+      title: 'Inspector Vial NFC',
+      value: 'inspector',
+      icon: ShieldCheck,
+      badge: 'EN VIVO',
+      content: (
+        <AnimeStaggerGroup triggerKey={activeTab} className="space-y-6">
+          <div className="anime-stagger-card">
+            <InspectorNFCView initialPlate={initialNfcPlate} />
+          </div>
+        </AnimeStaggerGroup>
+      ),
+    },
+    {
       title: 'Formato de Autocobro',
       value: 'autopay',
       icon: Zap,
@@ -634,18 +663,30 @@ const MainContent = () => {
                   </div>
                 </div>
 
-                <div className="bg-slate-100 rounded-xl p-2.5 mb-6 text-xs font-sans text-slate-800 flex items-center justify-between border-0 shadow-sm">
+                <div className="bg-slate-100 rounded-xl p-2.5 mb-4 text-xs font-sans text-slate-800 flex items-center justify-between border-0 shadow-sm">
                   <span>Placas: <strong className="text-black font-mono">{vehicle.plates}</strong></span>
-                  <span className="text-emerald-700 font-bold">● NFC Validado</span>
+                  <span className="text-emerald-700 font-bold">● NFC En Vivo</span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setShowQRQuickModal(false)}
-                  className="w-full py-2.5 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-sans font-bold transition shadow-md border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
-                >
-                  Cerrar Credencial NFC
-                </button>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowQRQuickModal(false);
+                      handleSelectFeature('inspector');
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-[#0033FF] hover:bg-[#0026CC] text-white text-xs font-sans font-bold transition shadow-md border-0 cursor-pointer"
+                  >
+                    Abrir Terminal de Inspector Vial NFC en Vivo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowQRQuickModal(false)}
+                    className="w-full py-2.5 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-sans font-bold transition shadow-md border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                  >
+                    Cerrar Credencial NFC
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -735,7 +776,7 @@ const MainContent = () => {
 };
 
 export default function App() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => !getInitialNfcPlateFromUrl());
 
   const handleStart = () => {
     setIsLoading(false);
@@ -743,7 +784,7 @@ export default function App() {
     setTimeout(() => {
       sileo.success({
         title: '¡Bienvenido a Parqu!',
-        description: 'Pase digital y red inteligente de parquímetros sincronizados.',
+        description: 'Pase digital y red inteligente de parquímetros sincronizados en tiempo real.',
       });
     }, 250);
   };

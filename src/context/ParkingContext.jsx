@@ -1,9 +1,15 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import { sileo } from 'sileo';
 import { generateTicketFolio } from '../utils/formatters';
 import {
   requestParkingNotificationPermission,
   sendParkingExitNotification,
 } from '../utils/parkingNotification';
+import {
+  publishVehicleStateToCloud,
+  subscribeToVehiclePlate,
+  DEVICE_INSTANCE_ID,
+} from '../utils/cloudSync';
 
 const ParkingContext = createContext();
 
@@ -15,6 +21,8 @@ const STORAGE_KEYS = {
   HISTORY: 'parkdigital_history',
   PINNED_LOCATIONS: 'parkdigital_pinned_locations',
   ACTIVE_SESSION: 'parkdigital_active_session',
+  INFRACTIONS: 'parkdigital_infractions',
+  LAST_INSPECTION: 'parkdigital_last_inspection',
 };
 
 const defaultVehicle = {
@@ -97,7 +105,6 @@ const defaultPinnedLocations = [
 ];
 
 export const ParkingProvider = ({ children }) => {
-  // Inicialización con persistencia ultra-segura en localStorage
   const [vehicle, setVehicle] = useState(() => {
     try {
       const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.VEHICLE) : null;
@@ -143,7 +150,6 @@ export const ParkingProvider = ({ children }) => {
     }
   });
 
-  // Bitácora de ubicaciones fijadas por el usuario en el mapa
   const [pinnedLocations, setPinnedLocations] = useState(() => {
     try {
       const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.PINNED_LOCATIONS) : null;
@@ -153,10 +159,29 @@ export const ParkingProvider = ({ children }) => {
     }
   });
 
-  // Punto activo fijado en el mapa
+  const [infractions, setInfractions] = useState(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.INFRACTIONS) : null;
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [lastInspection, setLastInspection] = useState(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.LAST_INSPECTION) : null;
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [cloudStatus, setCloudStatus] = useState('CONNECTED'); // 'CONNECTED' | 'SYNCING' | 'RECONNECTING' | 'LOCAL_ONLY'
+  const [lastCloudSyncAt, setLastCloudSyncAt] = useState(() => new Date().toISOString());
+
   const [activePinnedLocation, setActivePinnedLocation] = useState(null);
 
-  // Estado de sesión activa de estacionamiento (parquímetro metropolitano) con persistencia real
   const [activeSession, setActiveSession] = useState(() => {
     try {
       const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.ACTIVE_SESSION) : null;
@@ -179,8 +204,11 @@ export const ParkingProvider = ({ children }) => {
     }
   });
 
-  // Último recibo generado por el sistema de autocobro
   const [lastReceipt, setLastReceipt] = useState(null);
+
+  // Referencia para evitar bucle infinito cuando un cambio proviene de la nube remota
+  const isApplyingRemoteUpdateRef = useRef(false);
+  const lastRemoteTimestampRef = useRef(0);
 
   // Guardar en localStorage de forma segura ante cambios
   useEffect(() => {
@@ -233,6 +261,24 @@ export const ParkingProvider = ({ children }) => {
 
   useEffect(() => {
     try {
+      localStorage.setItem(STORAGE_KEYS.INFRACTIONS, JSON.stringify(infractions));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+  }, [infractions]);
+
+  useEffect(() => {
+    try {
+      if (lastInspection) {
+        localStorage.setItem(STORAGE_KEYS.LAST_INSPECTION, JSON.stringify(lastInspection));
+      }
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+  }, [lastInspection]);
+
+  useEffect(() => {
+    try {
       if (activeSession) {
         localStorage.setItem(STORAGE_KEYS.ACTIVE_SESSION, JSON.stringify(activeSession));
       } else {
@@ -243,17 +289,152 @@ export const ParkingProvider = ({ children }) => {
     }
   }, [activeSession]);
 
-  // Actualizadores de Estado
+  // Función central para publicar el estado actual a la nube en tiempo real
+  const syncNowToCloud = useCallback(
+    async (overrides = {}) => {
+      if (isApplyingRemoteUpdateRef.current) return;
+      const stateToPublish = {
+        vehicle: overrides.vehicle !== undefined ? overrides.vehicle : vehicle,
+        owner: overrides.owner !== undefined ? overrides.owner : owner,
+        card: overrides.card !== undefined ? overrides.card : card,
+        activeSession:
+          overrides.activeSession !== undefined ? overrides.activeSession : activeSession,
+        infractions: overrides.infractions !== undefined ? overrides.infractions : infractions,
+        lastInspection:
+          overrides.lastInspection !== undefined ? overrides.lastInspection : lastInspection,
+        transactions:
+          overrides.transactions !== undefined ? overrides.transactions : transactions,
+      };
+      const ok = await publishVehicleStateToCloud(stateToPublish);
+      if (ok) {
+        setLastCloudSyncAt(new Date().toISOString());
+        setCloudStatus('CONNECTED');
+      }
+    },
+    [vehicle, owner, card, activeSession, infractions, lastInspection, transactions]
+  );
+
+  // Suscripción en vivo a la placa actual para recibir cambios desde otro celular (ej. Inspector NFC o segundo dispositivo)
+  useEffect(() => {
+    const activePlate = vehicle?.plates || 'XYZ-7842';
+
+    const unsubscribe = subscribeToVehiclePlate(
+      activePlate,
+      (remoteEnvelope) => {
+        if (!remoteEnvelope || remoteEnvelope.deviceId === DEVICE_INSTANCE_ID) return;
+        if ((remoteEnvelope.timestamp || 0) <= lastRemoteTimestampRef.current) return;
+        lastRemoteTimestampRef.current = remoteEnvelope.timestamp || Date.now();
+
+        isApplyingRemoteUpdateRef.current = true;
+        setLastCloudSyncAt(remoteEnvelope.updatedAt || new Date().toISOString());
+
+        // Sincronizar sesión activa si cambió en otro dispositivo
+        if (remoteEnvelope.activeSession !== undefined) {
+          setActiveSession((prev) => {
+            const incoming = remoteEnvelope.activeSession;
+            if (!incoming) return null;
+            const wallSeconds = incoming.startTime
+              ? Math.floor((Date.now() - new Date(incoming.startTime).getTime()) / 1000)
+              : incoming.secondsElapsed || 0;
+            const ratePerSecond = (Number(incoming.ratePerHour) || 6.0) / 3600;
+            return {
+              ...incoming,
+              secondsElapsed: Math.max(0, wallSeconds),
+              currentCost: Number(
+                Math.min(wallSeconds * ratePerSecond, Number(incoming.maxLimit) || 180).toFixed(2)
+              ),
+            };
+          });
+        }
+
+        // Sincronizar tarjeta y saldo
+        if (remoteEnvelope.card) {
+          setCard((prev) => ({
+            ...prev,
+            ...remoteEnvelope.card,
+          }));
+        }
+
+        // Sincronizar infracciones / multas emitidas por el Agente de Tránsito NFC en otro dispositivo
+        if (Array.isArray(remoteEnvelope.infractions)) {
+          setInfractions((prev) => {
+            if (remoteEnvelope.infractions.length > prev.length) {
+              const newest = remoteEnvelope.infractions[0];
+              if (newest) {
+                sileo.error({
+                  title: `Boleta de Infracción Vial (${newest.folio})`,
+                  description: `Motivo: ${newest.reason} • Monto: $${Number(newest.amount).toFixed(2)} MXN`,
+                });
+              }
+            }
+            return remoteEnvelope.infractions;
+          });
+        }
+
+        // Sincronizar inspección aprobada por Tránsito
+        if (remoteEnvelope.lastInspection) {
+          setLastInspection((prev) => {
+            if (
+              (!prev || prev.id !== remoteEnvelope.lastInspection.id) &&
+              remoteEnvelope.lastInspection.result === 'APROBADO'
+            ) {
+              sileo.success({
+                title: 'Verificación NFC Oficial Aprobada',
+                description: `Agente ${remoteEnvelope.lastInspection.officerId} verificó tu pago vigente sin infracción.`,
+              });
+            }
+            return remoteEnvelope.lastInspection;
+          });
+        }
+
+        setTimeout(() => {
+          isApplyingRemoteUpdateRef.current = false;
+        }, 120);
+      },
+      (status) => {
+        setCloudStatus(status);
+      }
+    );
+
+    // Publicar estado inicial al conectar la placa
+    publishVehicleStateToCloud({
+      vehicle,
+      owner,
+      card,
+      activeSession,
+      infractions,
+      lastInspection,
+      transactions,
+    }).catch(() => {});
+
+    return () => {
+      unsubscribe();
+    };
+  }, [vehicle?.plates]);
+
+  // Actualizadores de Estado con publicación automática a la nube
   const updateVehicle = (newVehicleData) => {
-    setVehicle((prev) => ({ ...prev, ...newVehicleData }));
+    setVehicle((prev) => {
+      const next = { ...prev, ...newVehicleData };
+      syncNowToCloud({ vehicle: next });
+      return next;
+    });
   };
 
   const updateOwner = (newOwnerData) => {
-    setOwner((prev) => ({ ...prev, ...newOwnerData }));
+    setOwner((prev) => {
+      const next = { ...prev, ...newOwnerData };
+      syncNowToCloud({ owner: next });
+      return next;
+    });
   };
 
   const updateCard = (newCardData) => {
-    setCard((prev) => ({ ...prev, ...newCardData }));
+    setCard((prev) => {
+      const next = { ...prev, ...newCardData };
+      syncNowToCloud({ card: next });
+      return next;
+    });
   };
 
   const updateAutoPay = (newAutoPayData) => {
@@ -261,13 +442,17 @@ export const ParkingProvider = ({ children }) => {
   };
 
   const addBalance = (amount) => {
-    setCard((prev) => ({
-      ...prev,
-      balance: prev.balance + amount,
-    }));
+    setCard((prev) => {
+      const next = {
+        ...prev,
+        balance: prev.balance + amount,
+      };
+      syncNowToCloud({ card: next });
+      return next;
+    });
   };
 
-  // Temporizador para el parquímetro metropolitano en tiempo real (incluso si la app estuvo en segundo plano)
+  // Temporizador para el parquímetro metropolitano en tiempo real
   useEffect(() => {
     let timer;
     if (activeSession) {
@@ -293,12 +478,13 @@ export const ParkingProvider = ({ children }) => {
     return () => clearInterval(timer);
   }, [activeSession]);
 
-  // Registrar una nueva ubicación fijada en el mapa
   const registerPinnedLocation = (locationData) => {
     const newRecord = {
       id: 'PIN-' + Date.now(),
       name: locationData.name || 'Ubicación Fijada por Conductor',
-      address: locationData.address || `Lat: ${locationData.lat.toFixed(5)}, Lng: ${locationData.lng.toFixed(5)}`,
+      address:
+        locationData.address ||
+        `Lat: ${locationData.lat.toFixed(5)}, Lng: ${locationData.lng.toFixed(5)}`,
       lat: locationData.lat,
       lng: locationData.lng,
       date: new Date().toISOString(),
@@ -325,8 +511,13 @@ export const ParkingProvider = ({ children }) => {
     setActivePinnedLocation(null);
   };
 
-  // Iniciar estancia en parquímetro con coordenadas de ubicación fijada
-  const startParking = (zoneName = 'Espacio #1042 • Centro Histórico', ratePerHour = 6.00, coords = null, initialHours = 1) => {
+  // Iniciar estancia en parquímetro y publicar en vivo a la nube
+  const startParking = (
+    zoneName = 'Espacio #1042 • Centro Histórico',
+    ratePerHour = 6.00,
+    coords = null,
+    initialHours = 1
+  ) => {
     const newSession = {
       id: 'SESS-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
       zoneName,
@@ -338,10 +529,11 @@ export const ParkingProvider = ({ children }) => {
       scheduledHours: Number(initialHours) || 1,
       maxLimit: autoPay.maxLimitPerSession || 180.00,
     };
+    const nextCard = { ...card, status: 'EN_PARQUIMETRO' };
     setActiveSession(newSession);
-    setCard((prev) => ({ ...prev, status: 'EN_PARQUIMETRO' }));
+    setCard(nextCard);
+    syncNowToCloud({ activeSession: newSession, card: nextCard });
 
-    // Si viene con coordenadas, registrar automáticamente en la bitácora de ubicaciones
     if (coords && coords.lat && coords.lng) {
       const pinRecord = {
         id: 'PIN-' + Date.now(),
@@ -355,20 +547,20 @@ export const ParkingProvider = ({ children }) => {
         status: 'ACTIVA',
         ratePerHour,
       };
-      setPinnedLocations((prev) => [pinRecord, ...prev.filter(p => p.status !== 'ACTIVA')]);
+      setPinnedLocations((prev) => [pinRecord, ...prev.filter((p) => p.status !== 'ACTIVA')]);
       setActivePinnedLocation(pinRecord);
     }
 
-    // Solicitar permiso de notificación del sistema para que esté listo al salir de la app
     requestParkingNotificationPermission().catch(() => {});
   };
 
-  // Aumentar las horas programadas del parquímetro (desde la app o desde el bloque en barra de notificaciones)
+  // Aumentar las horas programadas del parquímetro y publicar a la nube
   const addParkingHours = (hoursToAdd = 1) => {
     const extra = Math.max(1, Number(hoursToAdd) || 1);
     setActiveSession((prev) => {
+      let updatedSession;
       if (!prev) {
-        const created = {
+        updatedSession = {
           id: 'SESS-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
           zoneName: 'Espacio #1042 • Centro Histórico',
           ratePerHour: 6.00,
@@ -379,18 +571,22 @@ export const ParkingProvider = ({ children }) => {
           scheduledHours: extra,
           maxLimit: autoPay.maxLimitPerSession || 180.00,
         };
-        setCard((c) => ({ ...c, status: 'EN_PARQUIMETRO' }));
-        return created;
+        const nextCard = { ...card, status: 'EN_PARQUIMETRO' };
+        setCard(nextCard);
+        syncNowToCloud({ activeSession: updatedSession, card: nextCard });
+        return updatedSession;
       }
       const nextHours = (Number(prev.scheduledHours) || 1) + extra;
-      return {
+      updatedSession = {
         ...prev,
         scheduledHours: nextHours,
       };
+      syncNowToCloud({ activeSession: updatedSession });
+      return updatedSession;
     });
   };
 
-  // Detener y ejecutar autocobro inmediato
+  // Detener y ejecutar autocobro inmediato y publicar a la nube
   const stopParkingAndAutoCharge = () => {
     if (!activeSession) return null;
 
@@ -398,16 +594,21 @@ export const ParkingProvider = ({ children }) => {
     const finalAmount = Math.max(2.00, activeSession.currentCost);
     const folio = generateTicketFolio();
 
-    const paymentMethodDesc = autoPay.fundingSource === 'CARD'
-      ? `Autocobro Débito Directo (${autoPay.bank || 'Tarjeta Registrada'})`
-      : 'Autocobro Saldo Tarjeta Digital';
+    const paymentMethodDesc =
+      autoPay.fundingSource === 'CARD'
+        ? `Autocobro Débito Directo (${autoPay.bank || 'Tarjeta Registrada'})`
+        : 'Autocobro Saldo Tarjeta Digital';
 
-    if (autoPay.fundingSource === 'WALLET_BALANCE') {
-      setCard((prev) => ({
-        ...prev,
-        balance: Math.max(0, prev.balance - finalAmount),
-      }));
-    }
+    const nextBalance =
+      autoPay.fundingSource === 'WALLET_BALANCE'
+        ? Math.max(0, card.balance - finalAmount)
+        : card.balance;
+
+    const nextCard = {
+      ...card,
+      balance: nextBalance,
+      status: 'ACTIVA',
+    };
 
     const newTxn = {
       id: 'TXN-' + Date.now(),
@@ -421,18 +622,157 @@ export const ParkingProvider = ({ children }) => {
       status: 'COMPLETADO',
     };
 
-    setTransactions((prev) => [newTxn, ...prev]);
+    const nextTransactions = [newTxn, ...transactions];
+    setTransactions(nextTransactions);
     setActiveSession(null);
-    setCard((prev) => ({ ...prev, status: 'ACTIVA' }));
+    setCard(nextCard);
     setLastReceipt(newTxn);
 
-    // Marcar ubicación activa fijada como completada en la bitácora
+    syncNowToCloud({
+      activeSession: null,
+      card: nextCard,
+      transactions: nextTransactions,
+    });
+
     setPinnedLocations((prev) =>
-      prev.map((pin) => (pin.status === 'ACTIVA' ? { ...pin, status: 'COMPLETADO', folio } : pin))
+      prev.map((pin) =>
+        pin.status === 'ACTIVA' ? { ...pin, status: 'COMPLETADO', folio } : pin
+      )
     );
     if (activePinnedLocation) {
       setActivePinnedLocation((prev) => (prev ? { ...prev, status: 'COMPLETADO', folio } : null));
     }
+
+    return newTxn;
+  };
+
+  // Emitir multa/infracción vial desde el Modo Inspector Vial NFC (se sincroniza en vivo al conductor)
+  const issueInfraction = ({
+    targetState = null,
+    reason = 'Estacionamiento en zona de parquímetro sin pago activo verificado vía NFC',
+    amount = 542.85,
+    officerId = 'OFICIAL-TR-084',
+    zone = 'Polígono Centro Histórico',
+  } = {}) => {
+    const folio = 'MUL-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+    const newInfraction = {
+      id: 'INF-' + Date.now(),
+      folio,
+      date: new Date().toISOString(),
+      plate: targetState?.plates || vehicle.plates,
+      reason,
+      amount: Number(amount) || 542.85,
+      discountAmount: Number(((Number(amount) || 542.85) * 0.5).toFixed(2)),
+      officerId,
+      zone,
+      status: 'PENDIENTE', // 'PENDIENTE' | 'PAGADA'
+    };
+
+    const inspectionRecord = {
+      id: 'INSP-' + Date.now(),
+      date: new Date().toISOString(),
+      officerId,
+      plate: newInfraction.plate,
+      result: 'INFRACCION',
+      folio,
+    };
+
+    if (
+      !targetState ||
+      (targetState.plates || '').toUpperCase() === (vehicle.plates || '').toUpperCase()
+    ) {
+      const nextInfractions = [newInfraction, ...infractions];
+      setInfractions(nextInfractions);
+      setLastInspection(inspectionRecord);
+      syncNowToCloud({
+        infractions: nextInfractions,
+        lastInspection: inspectionRecord,
+      });
+    } else {
+      // Si el oficial está inspeccionando otra placa remota, publicar directamente a la placa inspeccionada
+      const remoteInf = [newInfraction, ...(targetState.infractions || [])];
+      publishVehicleStateToCloud({
+        ...targetState,
+        vehicle: targetState.vehicle || { plates: targetState.plates },
+        infractions: remoteInf,
+        lastInspection: inspectionRecord,
+      });
+    }
+
+    return newInfraction;
+  };
+
+  // Registrar inspección vial aprobada (Pago vigente en orden)
+  const recordInspectionApproval = ({
+    targetState = null,
+    officerId = 'OFICIAL-TR-084',
+    notes = 'Pago de parquímetro vigente verificado por chip NFC',
+  } = {}) => {
+    const inspectionRecord = {
+      id: 'INSP-' + Date.now(),
+      date: new Date().toISOString(),
+      officerId,
+      plate: targetState?.plates || vehicle.plates,
+      result: 'APROBADO',
+      notes,
+    };
+
+    if (
+      !targetState ||
+      (targetState.plates || '').toUpperCase() === (vehicle.plates || '').toUpperCase()
+    ) {
+      setLastInspection(inspectionRecord);
+      syncNowToCloud({ lastInspection: inspectionRecord });
+    } else {
+      publishVehicleStateToCloud({
+        ...targetState,
+        vehicle: targetState.vehicle || { plates: targetState.plates },
+        lastInspection: inspectionRecord,
+      });
+    }
+
+    return inspectionRecord;
+  };
+
+  // Pagar una multa/infracción con 50% de descuento por pronto pago en línea
+  const payInfraction = (infractionId) => {
+    const target = infractions.find((inf) => inf.id === infractionId);
+    if (!target || target.status === 'PAGADA') return null;
+
+    const finalPayAmount = target.discountAmount || Number((target.amount * 0.5).toFixed(2));
+    const nextInfractions = infractions.map((inf) =>
+      inf.id === infractionId
+        ? { ...inf, status: 'PAGADA', paidAt: new Date().toISOString() }
+        : inf
+    );
+
+    const nextCard = {
+      ...card,
+      balance: Math.max(0, card.balance - finalPayAmount),
+    };
+
+    const newTxn = {
+      id: 'TXN-' + Date.now(),
+      folio: target.folio,
+      date: new Date().toISOString(),
+      zone: `Pago Infracción Vial (${target.zone})`,
+      durationMinutes: 0,
+      amount: finalPayAmount,
+      method: 'Pago de Multa con 50% Descuento Pronto Pago',
+      plate: vehicle.plates,
+      status: 'COMPLETADO',
+    };
+
+    const nextTransactions = [newTxn, ...transactions];
+    setInfractions(nextInfractions);
+    setCard(nextCard);
+    setTransactions(nextTransactions);
+
+    syncNowToCloud({
+      infractions: nextInfractions,
+      card: nextCard,
+      transactions: nextTransactions,
+    });
 
     return newTxn;
   };
@@ -462,6 +802,14 @@ export const ParkingProvider = ({ children }) => {
         registerPinnedLocation,
         removePinnedLocation,
         clearPinnedLocations,
+        infractions,
+        lastInspection,
+        issueInfraction,
+        recordInspectionApproval,
+        payInfraction,
+        cloudStatus,
+        lastCloudSyncAt,
+        syncNowToCloud,
       }}
     >
       {children}
