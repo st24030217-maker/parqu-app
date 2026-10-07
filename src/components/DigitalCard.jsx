@@ -16,7 +16,7 @@ import { CardContainer, CardBody, CardItem } from './ui/3d-card';
 import { AnimeCounter } from './ui/anime-counter';
 import { AnimeCardSheen } from './ui/anime-card-sheen';
 
-// Sonido táctil sintetizado con Web Audio API únicamente cuando se mueve/desliza la tarjeta (sin reproductor ni iconos)
+// Sonido táctil sintetizado con Web Audio API únicamente cuando se mueve/desliza la tarjeta
 const playCardMoveSound = () => {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -48,7 +48,7 @@ const playCardMoveSound = () => {
       ctx.close().catch(() => {});
     }, 250);
   } catch {
-    // Fallback silencioso si el navegador bloquea audio antes de interacción
+    // Fallback silencioso
   }
 };
 
@@ -59,12 +59,24 @@ export const CARD_DESIGNS = [
     shortName: 'Tarjeta White',
     badge: 'WHITE • 01',
     image: './cards/parqu-card-white.jpg',
-    // Logo Parqu cambia a color grafito/negro en la tarjeta blanca
+    // Logo Parqu y textos en color grafito/negro de alto contraste sobre la tarjeta blanca
     logoColor: '#0f172a',
-    logoPillClass:
-      'bg-white/90 text-slate-900 border border-slate-300/80 shadow-[0_6px_20px_rgba(15,23,42,0.14)] backdrop-blur-md',
-    dataPanelClass:
-      'bg-slate-900/78 text-white border border-white/25 backdrop-blur-xl shadow-[0_10px_30px_rgba(15,23,42,0.35)]',
+    logoPillStyle: {
+      backgroundColor: 'rgba(255, 255, 255, 0.92)',
+      borderColor: 'rgba(15, 23, 42, 0.15)',
+    },
+    dataPanelStyle: {
+      backgroundColor: 'rgba(255, 255, 255, 0.92)',
+      borderColor: 'rgba(15, 23, 42, 0.15)',
+      boxShadow: '0 10px 28px rgba(15, 23, 42, 0.18)',
+    },
+    plateBadgeStyle: {
+      backgroundColor: '#0f172a',
+      color: '#ffffff',
+    },
+    primaryTextColor: '#0f172a',
+    secondaryTextColor: '#475569',
+    accentIconColor: '#0033FF',
     glowClass: 'from-slate-300/70 via-white/60 to-slate-400/60',
   },
   {
@@ -73,12 +85,24 @@ export const CARD_DESIGNS = [
     shortName: 'Tarjeta Blue',
     badge: 'BLUE • 02',
     image: './cards/parqu-card-blue.jpg',
-    // Logo Parqu cambia a color azul eléctrico en la tarjeta azul
+    // Logo Parqu en azul eléctrico y panel inferior azul marino profundo con letras blancas nítidas
     logoColor: '#0044FF',
-    logoPillClass:
-      'bg-white/92 text-[#0044FF] border border-blue-200/90 shadow-[0_6px_20px_rgba(0,51,255,0.28)] backdrop-blur-md',
-    dataPanelClass:
-      'bg-[#01033E]/78 text-white border border-white/25 backdrop-blur-xl shadow-[0_10px_30px_rgba(1,3,62,0.45)]',
+    logoPillStyle: {
+      backgroundColor: 'rgba(255, 255, 255, 0.94)',
+      borderColor: 'rgba(0, 68, 255, 0.25)',
+    },
+    dataPanelStyle: {
+      backgroundColor: 'rgba(1, 12, 58, 0.88)',
+      borderColor: 'rgba(255, 255, 255, 0.24)',
+      boxShadow: '0 10px 30px rgba(1, 3, 62, 0.45)',
+    },
+    plateBadgeStyle: {
+      backgroundColor: '#0033FF',
+      color: '#ffffff',
+    },
+    primaryTextColor: '#ffffff',
+    secondaryTextColor: '#cbd5e1',
+    accentIconColor: '#38bdf8',
     glowClass: 'from-[#0033FF]/70 via-sky-400/60 to-[#807DFE]/70',
   },
   {
@@ -87,12 +111,24 @@ export const CARD_DESIGNS = [
     shortName: 'Tarjeta Red',
     badge: 'RED • 03',
     image: './cards/parqu-card-red.jpg',
-    // Logo Parqu cambia a color rojo vibrante en la tarjeta roja
+    // Logo Parqu en rojo vibrante y panel inferior vino profundo con letras blancas nítidas
     logoColor: '#e11d24',
-    logoPillClass:
-      'bg-white/94 text-[#e11d24] border border-red-200/90 shadow-[0_6px_20px_rgba(225,29,36,0.28)] backdrop-blur-md',
-    dataPanelClass:
-      'bg-red-950/75 text-white border border-white/25 backdrop-blur-xl shadow-[0_10px_30px_rgba(127,29,29,0.45)]',
+    logoPillStyle: {
+      backgroundColor: 'rgba(255, 255, 255, 0.94)',
+      borderColor: 'rgba(225, 29, 36, 0.25)',
+    },
+    dataPanelStyle: {
+      backgroundColor: 'rgba(88, 10, 18, 0.88)',
+      borderColor: 'rgba(255, 255, 255, 0.24)',
+      boxShadow: '0 10px 30px rgba(88, 10, 18, 0.45)',
+    },
+    plateBadgeStyle: {
+      backgroundColor: '#e11d24',
+      color: '#ffffff',
+    },
+    primaryTextColor: '#ffffff',
+    secondaryTextColor: '#fecdd3',
+    accentIconColor: '#fda4af',
     glowClass: 'from-red-500/70 via-orange-500/60 to-rose-500/70',
   },
 ];
@@ -112,7 +148,6 @@ export const DigitalCard = () => {
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [rechargeAmount, setRechargeAmount] = useState(100);
   const [slideDirection, setSlideDirection] = useState(1);
-  // Cuando el usuario elige la tarjeta deseada, el menú se oculta y muestra el botón "Cambiar el diseño de tu tarjeta"
   const [isEditingDesign, setIsEditingDesign] = useState(false);
 
   const currentDesignId = card?.designId || 'white';
@@ -182,10 +217,10 @@ export const DigitalCard = () => {
   const isParked = activeSession !== null;
 
   return (
-    <div className="w-full space-y-3.5">
-      {/* Encabezado limpio sin iconos de estrellitas ni subtítulo extra */}
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="text-xs uppercase tracking-wider font-bold text-slate-700 font-sans">
+    <div className="w-full space-y-3">
+      {/* Encabezado limpio adaptado a celular y escritorio */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <h3 className="text-[11px] sm:text-xs uppercase tracking-wider font-bold text-slate-700 font-sans">
           Tu Tarjeta Digital de Parquímetro
         </h3>
 
@@ -193,7 +228,7 @@ export const DigitalCard = () => {
           <button
             type="button"
             onClick={() => setIsEditingDesign(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-white/85 hover:bg-[#0033FF] text-slate-800 hover:text-white border border-slate-200/90 text-xs font-bold transition shadow-sm cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-white hover:bg-[#0033FF] text-slate-800 hover:text-white border border-slate-200/90 text-[11px] sm:text-xs font-bold transition shadow-sm cursor-pointer active:scale-95"
           >
             Cambiar el diseño de tu tarjeta
           </button>
@@ -201,7 +236,7 @@ export const DigitalCard = () => {
       </div>
 
       {/* ══════════════════════════════════════════════════════════════
-          MENÚ DE CAMBIO DE DISEÑO (SE OCULTA AL ELEGIR LA TARJETA)
+          MENÚ DE CAMBIO DE DISEÑO (ADAPTADO A CELULAR Y ESCRITORIO)
       ══════════════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {isEditingDesign && (
@@ -211,23 +246,23 @@ export const DigitalCard = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.98 }}
             transition={{ duration: 0.22 }}
-            className="flex items-center justify-between gap-2 sm:gap-3 bg-white/80 backdrop-blur-xl border border-slate-200/90 rounded-2xl px-3 py-2.5 shadow-sm"
+            className="flex items-center justify-between gap-2 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-2xl px-2.5 py-2 sm:px-3.5 sm:py-2.5 shadow-sm"
           >
             <button
               type="button"
               onClick={handlePrevDesign}
               aria-label="Tarjeta anterior"
-              className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#0033FF] text-slate-800 hover:text-white flex items-center justify-center transition-all duration-200 cursor-pointer border-0 shadow-sm active:scale-95 shrink-0"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-100 hover:bg-[#0033FF] text-slate-800 hover:text-white flex items-center justify-center transition-all duration-200 cursor-pointer border-0 shadow-sm active:scale-95 shrink-0"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-3 flex-1 min-w-0">
-              <div className="text-center">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-[#0033FF] font-bold block">
-                  DISEÑO {currentIndex + 1} DE {CARD_DESIGNS.length} • {activeDesign.badge}
+            <div className="flex items-center justify-between sm:justify-center gap-2 sm:gap-3 flex-1 min-w-0 px-1">
+              <div className="text-left sm:text-center min-w-0">
+                <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-[#0033FF] font-bold block truncate">
+                  {currentIndex + 1}/{CARD_DESIGNS.length} • {activeDesign.badge}
                 </span>
-                <span className="text-xs sm:text-sm font-black text-slate-900 truncate block">
+                <span className="text-[11px] sm:text-sm font-black text-slate-900 truncate block">
                   {activeDesign.name}
                 </span>
               </div>
@@ -235,10 +270,10 @@ export const DigitalCard = () => {
               <button
                 type="button"
                 onClick={handleConfirmDesign}
-                className="px-3 py-1.5 rounded-xl bg-[#0033FF] hover:bg-[#0026cc] text-white text-[11px] font-bold flex items-center gap-1.5 shadow-sm transition cursor-pointer border-0 shrink-0"
+                className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-[#0033FF] hover:bg-[#0026cc] text-white text-[10px] sm:text-[11px] font-bold flex items-center gap-1 shadow-sm transition cursor-pointer border-0 shrink-0 active:scale-95"
               >
-                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Elegir diseño</span>
+                <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
+                <span>Elegir</span>
               </button>
             </div>
 
@@ -246,7 +281,7 @@ export const DigitalCard = () => {
               type="button"
               onClick={handleNextDesign}
               aria-label="Siguiente tarjeta"
-              className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#0033FF] text-slate-800 hover:text-white flex items-center justify-center transition-all duration-200 cursor-pointer border-0 shadow-sm active:scale-95 shrink-0"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-100 hover:bg-[#0033FF] text-slate-800 hover:text-white flex items-center justify-center transition-all duration-200 cursor-pointer border-0 shadow-sm active:scale-95 shrink-0"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -255,17 +290,17 @@ export const DigitalCard = () => {
       </AnimatePresence>
 
       {/* ══════════════════════════════════════════════════════════════
-          TARJETA DIGITAL CON SCROLL HORIZONTAL FLUIDO Y LOGO CAMBIANTE DE COLOR
+          TARJETA DIGITAL ADAPTADA A CELULAR Y ESCRITORIO CON LETRAS DE ALTO CONTRASTE
       ══════════════════════════════════════════════════════════════ */}
       <AnimeCardSheen>
         <CardContainer className="w-full">
           <div className="relative w-full group">
             {/* Resplandor dinámico acorde al color de la tarjeta activa */}
             <div
-              className={`absolute -inset-1.5 rounded-[28px] sm:rounded-[32px] blur-xl opacity-55 transition-all duration-700 group-hover:opacity-90 bg-gradient-to-r ${activeDesign.glowClass}`}
+              className={`absolute -inset-1 sm:-inset-1.5 rounded-[24px] sm:rounded-[32px] blur-xl opacity-55 transition-all duration-700 group-hover:opacity-90 bg-gradient-to-r ${activeDesign.glowClass}`}
             />
 
-            <CardBody className="relative w-full aspect-[860/522] min-h-[225px] sm:min-h-[285px] md:min-h-[320px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_24px_60px_rgba(15,23,42,0.28)] border border-white/40 select-none">
+            <CardBody className="relative w-full aspect-[860/522] min-h-[205px] sm:min-h-[285px] md:min-h-[320px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(15,23,42,0.22)] border border-slate-200/60 select-none">
               {/* Pista de Scroll Horizontal Animada con las 3 Tarjetas */}
               <motion.div
                 className="absolute inset-0 flex w-full h-full cursor-grab active:cursor-grabbing"
@@ -282,9 +317,9 @@ export const DigitalCard = () => {
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.18}
                 onDragEnd={(_, info) => {
-                  if (info.offset.x < -45) {
+                  if (info.offset.x < -40) {
                     handleNextDesign();
-                  } else if (info.offset.x > 45) {
+                  } else if (info.offset.x > 40) {
                     handlePrevDesign();
                   }
                 }}
@@ -322,13 +357,14 @@ export const DigitalCard = () => {
                 })}
               </motion.div>
 
-              {/* Esquina Superior Izquierda: Logo de PARQU que cambia de color según la tarjeta (sin iconos ni badges a la derecha) */}
+              {/* Esquina Superior Izquierda: Logo de PARQU que cambia de color según la tarjeta */}
               <CardItem
                 translateZ="45"
-                className="relative z-10 w-full flex items-center justify-start p-3.5 sm:p-5 pointer-events-none"
+                className="relative z-10 w-full flex items-center justify-start p-2.5 sm:p-5 pointer-events-none"
               >
                 <div
-                  className={`flex items-center gap-2.5 px-3.5 py-1.5 rounded-full transition-all duration-500 ${activeDesign.logoPillClass}`}
+                  style={activeDesign.logoPillStyle}
+                  className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full border backdrop-blur-md shadow-sm transition-all duration-500"
                 >
                   {/* Logotipo oficial Parqu con máscara vectorial que cambia de color (Negro / Azul / Rojo) */}
                   <div
@@ -344,61 +380,84 @@ export const DigitalCard = () => {
                       WebkitMaskPosition: 'center',
                       maskPosition: 'center',
                     }}
-                    className="h-5 sm:h-6 w-12 sm:w-14 transition-colors duration-500 shrink-0"
+                    className="h-4 sm:h-6 w-10 sm:w-14 transition-colors duration-500 shrink-0"
                   />
                   <span
                     style={{ color: activeDesign.logoColor }}
-                    className="font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-colors duration-500"
+                    className="font-mono text-[8px] sm:text-[10px] font-black uppercase tracking-wider transition-colors duration-500"
                   >
                     {card?.customLabel || 'PARQU PASS'}
                   </span>
                 </div>
               </CardItem>
 
-              {/* Bloque Inferior Izquierdo 3D con los Datos del Usuario */}
+              {/* Bloque Inferior Izquierdo 3D con Alto Contraste Total en Celular y Escritorio */}
               <CardItem
                 translateZ="65"
-                className="absolute inset-x-0 bottom-0 z-10 p-3 sm:p-4 pointer-events-none"
+                className="absolute inset-x-0 bottom-0 z-10 p-2 sm:p-4 pointer-events-none"
               >
                 <motion.div
                   key={activeDesign.id + '-data'}
-                  initial={{ opacity: 0.75, x: slideDirection * 18 }}
+                  initial={{ opacity: 0.8, x: slideDirection * 16 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ type: 'spring', stiffness: 220, damping: 24 }}
-                  className={`w-full sm:max-w-[78%] rounded-2xl px-3.5 py-2.5 sm:px-4 sm:py-3 transition-colors duration-500 ${activeDesign.dataPanelClass}`}
+                  style={activeDesign.dataPanelStyle}
+                  className="w-[86%] sm:max-w-[78%] rounded-xl sm:rounded-2xl px-2.5 py-2 sm:px-4 sm:py-3 border backdrop-blur-xl transition-all duration-500"
                 >
-                  <div className="flex items-center justify-between gap-2.5 flex-wrap">
+                  <div className="flex items-center justify-between gap-2 sm:gap-3 flex-nowrap">
                     {/* Placas y Titular */}
-                    <div className="flex items-center gap-2.5">
-                      <div className="px-2.5 py-1 rounded-xl font-mono text-xs sm:text-sm font-black tracking-wider bg-white/15 text-white border border-white/20 shadow-inner">
+                    <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+                      <div
+                        style={activeDesign.plateBadgeStyle}
+                        className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl font-mono text-[10px] sm:text-sm font-black tracking-wider shadow-sm shrink-0"
+                      >
                         {formatPlate(vehicle.plates)}
                       </div>
-                      <div className="text-left">
-                        <span className="text-[8px] sm:text-[9px] font-mono uppercase tracking-wider block text-white/75">
+                      <div className="text-left min-w-0">
+                        <span
+                          style={{ color: activeDesign.secondaryTextColor }}
+                          className="text-[7.5px] sm:text-[9px] font-mono uppercase tracking-wider block truncate font-bold"
+                        >
                           {vehicle.brand || 'Vehículo'} {vehicle.model || ''}
                         </span>
-                        <span className="text-xs sm:text-sm font-black uppercase tracking-wide flex items-center gap-1 text-white">
-                          <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-300" />
-                          {owner.fullName || 'NOMBRE DEL TITULAR'}
+                        <span
+                          style={{ color: activeDesign.primaryTextColor }}
+                          className="text-[10px] sm:text-sm font-black uppercase tracking-wide flex items-center gap-1 truncate"
+                        >
+                          <User
+                            style={{ color: activeDesign.accentIconColor }}
+                            className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 shrink-0"
+                          />
+                          <span className="truncate">
+                            {owner.fullName || 'NOMBRE DEL TITULAR'}
+                          </span>
                         </span>
                       </div>
                     </div>
 
                     {/* Saldo en vivo y Número de Tarjeta */}
-                    <div className="text-right ml-auto">
-                      <span className="text-[8px] sm:text-[9px] font-mono uppercase tracking-wider block text-white/75">
+                    <div className="text-right ml-auto shrink-0">
+                      <span
+                        style={{ color: activeDesign.secondaryTextColor }}
+                        className="text-[7px] sm:text-[9px] font-mono uppercase tracking-wider block font-bold"
+                      >
                         SALDO DISPONIBLE
                       </span>
-                      <div className="text-xs sm:text-sm font-black font-mono text-white">
+                      <div
+                        style={{ color: activeDesign.primaryTextColor }}
+                        className="text-[11px] sm:text-sm font-black font-mono leading-tight"
+                      >
                         <AnimeCounter
                           value={card.balance}
                           prefix="$"
                           decimals={2}
                           suffix=" MXN"
-                          className="text-white"
                         />
                       </div>
-                      <span className="text-[8px] sm:text-[9px] font-mono block text-white/70">
+                      <span
+                        style={{ color: activeDesign.secondaryTextColor }}
+                        className="text-[7.5px] sm:text-[9px] font-mono block font-semibold"
+                      >
                         {card.cardNumber || '4890 •••• •••• 9142'}
                       </span>
                     </div>
@@ -410,18 +469,20 @@ export const DigitalCard = () => {
         </CardContainer>
       </AnimeCardSheen>
 
-      {/* Botones de acción rápida debajo de la tarjeta */}
+      {/* Botones de acción rápida debajo de la tarjeta adaptados a celular */}
       <div className="flex items-center justify-between text-xs text-slate-600 px-1 font-mono flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <span className="text-slate-500 text-[11px]">ID TAG: {card.rfidTag}</span>
+          <span className="text-slate-500 text-[10px] sm:text-[11px]">
+            ID TAG: {card.rfidTag}
+          </span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             type="button"
             aria-label="Abrir modal para recargar saldo"
             onClick={() => setShowRechargeModal(true)}
-            className="text-slate-700 hover:text-[#0033FF] font-bold flex items-center gap-1.5 transition cursor-pointer rounded-lg bg-transparent border-0"
+            className="text-slate-700 hover:text-[#0033FF] text-[11px] sm:text-xs font-bold flex items-center gap-1 transition cursor-pointer rounded-lg bg-transparent border-0"
           >
             <CurrencyDollarIcon size={14} className="text-[#0033FF]" />
             Recargar Saldo
@@ -430,7 +491,7 @@ export const DigitalCard = () => {
             type="button"
             aria-label="Abrir credencial NFC oficial para agente de tránsito"
             onClick={() => setShowQRModal(true)}
-            className="text-slate-700 hover:text-[#0033FF] font-bold flex items-center gap-1 transition cursor-pointer rounded-lg bg-transparent border-0"
+            className="text-slate-700 hover:text-[#0033FF] text-[11px] sm:text-xs font-bold flex items-center gap-1 transition cursor-pointer rounded-lg bg-transparent border-0"
           >
             <Wifi className="w-3.5 h-3.5 rotate-90 text-[#0033FF]" />
             Credencial NFC Oficial
@@ -446,24 +507,24 @@ export const DigitalCard = () => {
           aria-labelledby="card-qr-dialog-title"
           className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4"
         >
-          <div className="bg-[#01033E] rounded-3xl border-0 max-w-sm w-full p-6 text-center shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-[#01033E] rounded-3xl border-0 max-w-sm w-full p-5 sm:p-6 text-center shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
             <h3
               id="card-qr-dialog-title"
-              className="text-lg font-bold text-white mb-1 font-sans"
+              className="text-base sm:text-lg font-bold text-white mb-1 font-sans"
             >
               Credencial NFC de Inspección
             </h3>
-            <p className="text-xs text-[#D4D6E6]/80 mb-6 font-sans">
+            <p className="text-xs text-[#D4D6E6]/80 mb-5 font-sans">
               Lectura NFC sin contacto para agentes de tránsito y lectores de parquímetro
             </p>
 
             {/* Emisor NFC Contactless Animado */}
-            <div className="py-6 flex flex-col items-center justify-center mb-4">
-              <div className="relative w-36 h-36 rounded-full bg-gradient-to-br from-[#0033FF] to-[#807DFE] flex items-center justify-center shadow-[0_0_40px_rgba(0,51,255,0.6)]">
+            <div className="py-4 sm:py-6 flex flex-col items-center justify-center mb-4">
+              <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-gradient-to-br from-[#0033FF] to-[#807DFE] flex items-center justify-center shadow-[0_0_40px_rgba(0,51,255,0.6)]">
                 <span className="absolute inset-0 rounded-full bg-[#0033FF]/40 animate-ping" />
                 <span className="absolute -inset-3 rounded-full border-2 border-[#D4D6E6]/30" />
                 <div className="relative z-10 flex flex-col items-center justify-center text-white">
-                  <Wifi className="w-14 h-14 rotate-90 text-white" />
+                  <Wifi className="w-12 h-12 sm:w-14 sm:h-14 rotate-90 text-white" />
                   <span className="text-xs font-mono font-black tracking-widest mt-1">
                     NFC ACTIVO
                   </span>
@@ -471,7 +532,7 @@ export const DigitalCard = () => {
               </div>
             </div>
 
-            <div className="bg-white/10 rounded-2xl p-3 text-left font-sans text-xs space-y-1 mb-6 border-0 shadow-inner">
+            <div className="bg-white/10 rounded-2xl p-3 text-left font-sans text-xs space-y-1 mb-5 border-0 shadow-inner">
               <div className="flex justify-between">
                 <span className="text-[#D4D6E6]/70">Diseño de Tarjeta:</span>
                 <span className="font-bold text-white font-mono">{activeDesign.name}</span>
@@ -520,13 +581,13 @@ export const DigitalCard = () => {
           aria-labelledby="card-recharge-dialog-title"
           className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4"
         >
-          <div className="bg-[#01033E] rounded-3xl border-0 max-w-sm w-full p-6 shadow-2xl relative">
+          <div className="bg-[#01033E] rounded-3xl border-0 max-w-sm w-full p-5 sm:p-6 shadow-2xl relative">
             <div className="w-12 h-12 rounded-2xl bg-[#0033FF]/20 text-[#807DFE] flex items-center justify-center mx-auto mb-3 shadow-md border-0">
               <CurrencyDollarIcon size={24} strokeWidth={2} />
             </div>
             <h3
               id="card-recharge-dialog-title"
-              className="text-lg font-bold text-white mb-1 font-sans text-center"
+              className="text-base sm:text-lg font-bold text-white mb-1 font-sans text-center"
             >
               Recargar Saldo de Parquímetro
             </h3>

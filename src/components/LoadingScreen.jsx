@@ -118,10 +118,10 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
   // Calcula la posición dinámica en el abanico (izquierda, centro-frente, derecha) adaptada a celular y escritorio
   const getPhonePositionStyle = (phoneIndex) => {
     const diff = (phoneIndex - activeIndex + 3) % 3;
-    const offsetX = isMobileView ? 76 : 122;
-    const offsetY = isMobileView ? 14 : 26;
-    const activeScale = isMobileView ? 0.72 : 1.02;
-    const sideScale = isMobileView ? 0.61 : 0.85;
+    const offsetX = isMobileView ? 68 : 122;
+    const offsetY = isMobileView ? 12 : 26;
+    const activeScale = isMobileView ? 0.65 : 1.02;
+    const sideScale = isMobileView ? 0.55 : 0.85;
 
     // diff === 0 -> Teléfono activo al frente en el centro
     if (diff === 0) {
@@ -161,17 +161,17 @@ const AppPresentationMockups = memo(({ plates, balance, onEnter }) => {
   const currentStep = PRESENTATION_STEPS[activeIndex];
 
   return (
-    <div className="relative w-full max-w-[350px] sm:max-w-[580px] flex flex-col items-center select-none mx-auto">
+    <div className="relative w-full max-w-[340px] sm:max-w-[580px] flex flex-col items-center select-none mx-auto">
       <style>{`
         @keyframes parquFanFloat {
           0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
+          50% { transform: translateY(-6px); }
         }
       `}</style>
       {/* ── ABANICO INTERACTIVO DE LOS 3 TELÉFONOS CON MOVIMIENTO CONTINUO ── */}
       <div
         style={{ animation: 'parquFanFloat 4s ease-in-out infinite' }}
-        className="relative w-full h-[335px] sm:h-[510px] flex items-center justify-center"
+        className="relative w-full h-[295px] sm:h-[510px] flex items-center justify-center"
       >
         {/* Resplandor atmosférico detrás de la presentación */}
         <div
@@ -728,7 +728,7 @@ export const LoadingScreen = ({ onComplete }) => {
         transition: 'transform 0.65s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.45s ease',
         willChange: 'transform, opacity',
       }}
-      className="fixed inset-0 w-screen h-screen z-50 overflow-y-auto overflow-x-hidden select-none pointer-events-auto bg-white font-sans flex items-center justify-center px-4 sm:px-10 lg:px-16"
+      className="fixed inset-0 w-screen h-[100dvh] z-50 overflow-y-auto overflow-x-hidden select-none pointer-events-auto bg-white font-sans flex items-center justify-center px-3 sm:px-10 lg:px-16 py-3 sm:py-0"
     >
       {/* 
         ══════════════════════════════════════════════════════════════
@@ -773,16 +773,16 @@ export const LoadingScreen = ({ onComplete }) => {
           FASE 2: PANTALLA INICIAL DE BIENVENIDA EN FONDO BLANCO CON BOTÓN "EMPECEMOS"
           ══════════════════════════════════════════════════════════════
         */
-        <div className="relative z-10 w-full max-w-[1280px] mx-auto py-3 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-8 lg:gap-6 items-center animate-in fade-in duration-500">
+        <div className="relative z-10 w-full max-w-[1280px] mx-auto my-auto py-2 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-8 lg:gap-6 items-center animate-in fade-in duration-500">
           
           {/* COLUMNA IZQUIERDA: LOGO DE PARQU 100% TRANSPARENTE, SLOGAN Y ÚNICAMENTE EL BOTÓN "EMPECEMOS" */}
-          <div className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2.5 sm:space-y-7">
+          <div className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2 sm:space-y-7">
             {/* Logotipo Oficial Parqu 100% Transparente para Fondo Blanco */}
             <div className="relative flex items-center justify-center bg-transparent">
               <img
                 src="./parqu-logo-black.png"
                 alt="Parqu Logo"
-                className="h-14 sm:h-28 md:h-32 w-auto object-contain bg-transparent relative z-10"
+                className="h-12 sm:h-28 md:h-32 w-auto object-contain bg-transparent relative z-10"
               />
             </div>
 
@@ -817,9 +817,7 @@ export const LoadingScreen = ({ onComplete }) => {
 
       {/* 
         ══════════════════════════════════════════════════════════════
-        FASE 3: PEQUEÑO LOGIN / REGISTRO CON TODAS LAS ANIMACIONES Y LOGOS 100% TRANSPARENTES
-        Incluye: AnimeCardSheen (3D Tilt + Haz Holográfico), Anime.js Elastic + Stagger,
-        FlipFadeText 3D, AnimeCounter, Ondas en Vivo y RadialGlowButton
+        FASE 3: PEQUEÑO LOGIN / REGISTRO ADAPTADO A CELULAR Y ESCRITORIO
         ══════════════════════════════════════════════════════════════
       */}
       {showAuthModal && (
@@ -827,43 +825,43 @@ export const LoadingScreen = ({ onComplete }) => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="parqu-auth-title"
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
         >
-          <AnimeCardSheen className="w-full max-w-[380px]">
+          <AnimeCardSheen className="w-full max-w-[360px] sm:max-w-[380px] my-auto">
             <div
               ref={authCardRef}
-              className="relative w-full rounded-3xl bg-[#070B2E]/90 border border-white/15 p-5 sm:p-6 text-white shadow-[0_28px_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl overflow-hidden"
+              className="relative w-full max-h-[92dvh] overflow-y-auto overflow-x-hidden rounded-3xl bg-[#070B2E]/95 border border-white/15 p-4 sm:p-6 text-white shadow-[0_28px_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl"
             >
               {/* Botón cerrar */}
               <button
                 type="button"
                 aria-label="Cerrar ventana de acceso"
                 onClick={() => setShowAuthModal(false)}
-                className="absolute top-4 right-4 z-20 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-[#D4D6E6] hover:text-white transition cursor-pointer border-0"
+                className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-20 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-[#D4D6E6] hover:text-white transition cursor-pointer border-0"
               >
                 <X className="w-4 h-4" />
               </button>
 
               {/* Encabezado de Bienvenida con Logo 100% Transparente (sin recuadro ni bordes) */}
               <div className="relative z-10 text-center mb-1 bg-transparent border-0 shadow-none">
-                <div className="flex items-center justify-center mb-2 bg-transparent border-0 shadow-none">
+                <div className="flex items-center justify-center mb-1.5 sm:mb-2 bg-transparent border-0 shadow-none">
                   <img
                     src="./parqu-logo-white.png"
                     alt="Parqu"
-                    className="h-9 sm:h-11 w-auto object-contain bg-transparent border-0 shadow-none"
+                    className="h-8 sm:h-11 w-auto object-contain bg-transparent border-0 shadow-none"
                   />
                 </div>
 
                 <h2
                   id="parqu-auth-title"
-                  className="text-lg sm:text-xl font-black tracking-tight text-white bg-transparent"
+                  className="text-base sm:text-xl font-black tracking-tight text-white bg-transparent"
                 >
                   {authMode === 'login' ? 'Bienvenido de vuelta' : 'Bienvenido a Parqu'}
                 </h2>
               </div>
 
-              {/* Animación CurvedLoop-JS-CSS 100% transparente y de lado a lado completo */}
-              <div className="relative z-10 -mx-5 sm:-mx-6 w-[calc(100%+2.5rem)] sm:w-[calc(100%+3rem)] my-1.5 bg-transparent border-0 shadow-none overflow-visible">
+              {/* Animación CurvedLoop-JS-CSS 100% transparente y de lado a lado completo en celular y escritorio */}
+              <div className="relative z-10 -mx-4 sm:-mx-6 w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] my-1 sm:my-1.5 bg-transparent border-0 shadow-none overflow-visible">
                 <CurvedLoop
                   marqueeText={
                     authMode === 'login'
