@@ -8,16 +8,17 @@ import {
   syncParquStateToServiceWorker,
   notifyAppForegrounded,
   dispatchBackgroundNotificationImmediate,
-  buildParkingNotificationPayload,
-  drawLiveUberBlockFrame,
 } from '../utils/parkingNotification';
+
+const EXIT_LOCK_STORAGE_KEY = 'parqu_single_exit_notify_ts';
+const MIN_COOLDOWN_MS = 15000;
 
 /**
  * ExitNotificationManager
- * - CERO símbolos ASCII anticuados
- * - CERO spam: envía ESTRICTAMENTE 1 sola notificación al salir de la app (hasSentWhileHiddenRef)
- * - Motor en vivo a 30/60 FPS en Canvas + autoPictureInPicture para mostrar el bloque estilo Uber
- *   con el auto y el reloj moviéndose en tiempo real fuera de la aplicación.
+ * - Envía ESTRICTAMENTE 1 SOLA notificación al salir de la aplicación.
+ * - NO se desbloquea automáticamente por parpadeos de visibilityState al bajar la barra de notificaciones.
+ * - Solo permite una nueva notificación cuando el usuario vuelve a tocar activamente dentro de la app
+ *   después de al menos 15 segundos.
  */
 export const ExitNotificationManager = ({ onOpenNFC }) => {
   const {
@@ -43,11 +44,8 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     transactions,
   });
 
-  const hasSentWhileHiddenRef = useRef(false);
+  const hasSentForCurrentSessionExitRef = useRef(false);
   const lastExitTimestampRef = useRef(0);
-  const liveCanvasRef = useRef(null);
-  const liveVideoRef = useRef(null);
-  const streamInitializedRef = useRef(false);
 
   // Sincronizar el estado en memoria del Service Worker
   useEffect(() => {
@@ -55,33 +53,6 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     latestContextRef.current = ctx;
     syncParquStateToServiceWorker(ctx);
   }, [owner, vehicle, card, autoPay, activeSession, transactions]);
-
-  // Motor de renderizado en vivo (30 FPS) para el bloque flotante nativo (Picture-in-Picture Live Activity)
-  useEffect(() => {
-    const canvas = liveCanvasRef.current;
-    if (!canvas) return undefined;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return undefined;
-
-    let animTick = 0;
-    const renderTick = () => {
-      animTick += 1;
-      const payload = buildParkingNotificationPayload(latestContextRef.current);
-      // Movimiento continuo fluido en vivo del auto sobre la barra
-      const baseRatio = payload.isActive
-        ? Math.min(0.86, Math.max(0.18, (payload.progressPercent || 25) / 100))
-        : 0.25;
-      const liveWave = Math.min(
-        0.9,
-        Math.max(0.14, baseRatio + Math.sin(animTick * 0.08) * 0.04)
-      );
-      drawLiveUberBlockFrame(ctx, canvas.width, canvas.height, payload, liveWave);
-    };
-
-    renderTick();
-    const intervalId = setInterval(renderTick, 120);
-    return () => clearInterval(intervalId);
-  }, []);
 
   // Escuchar los botones de la notificación (+1 Hora, Recargar +$50, Cancelar / Iniciar Parqu)
   useEffect(() => {
@@ -149,97 +120,78 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     onOpenNFC,
   ]);
 
-  // Inicializar Service Worker y stream de video silencioso en vivo al primer toque del usuario
+  // Inicializar el nuevo Service Worker (parqu-sw-v2.js) y limpiar cualquier SW viejo en caché
   useEffect(() => {
     registerParquServiceWorker();
 
-    const handleUserInteraction = async () => {
+    const handleFirstInteraction = async () => {
       if (getNotificationPermissionState() === 'default') {
         const res = await requestParkingNotificationPermission();
         if (res === 'granted') {
           syncParquStateToServiceWorker(latestContextRef.current);
         }
       }
-
-      // Activar el stream del canvas en vivo para autoPictureInPicture al salir de la app
-      if (
-        !streamInitializedRef.current &&
-        liveCanvasRef.current &&
-        liveVideoRef.current &&
-        typeof liveCanvasRef.current.captureStream === 'function'
-      ) {
-        try {
-          const stream = liveCanvasRef.current.captureStream(15);
-          liveVideoRef.current.srcObject = stream;
-          liveVideoRef.current.autoPictureInPicture = true;
-          liveVideoRef.current.play().catch(() => {});
-          streamInitializedRef.current = true;
-        } catch {
-          // ignore
-        }
-      }
     };
 
-    window.addEventListener('click', handleUserInteraction, { once: true });
+    window.addEventListener('click', handleFirstInteraction, { once: true });
     return () => {
-      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('click', handleFirstInteraction);
     };
   }, []);
 
-  // Disparar ESTRICTAMENTE 1 sola notificación únicamente cuando visibilityState pasa a 'hidden'
+  // Candado estricto: 1 sola notificación al salir de la app
   useEffect(() => {
+    const readLastSavedTs = () => {
+      try {
+        return Number(sessionStorage.getItem(EXIT_LOCK_STORAGE_KEY) || 0);
+      } catch {
+        return 0;
+      }
+    };
+
+    const writeLastSavedTs = (ts) => {
+      try {
+        sessionStorage.setItem(EXIT_LOCK_STORAGE_KEY, String(ts));
+      } catch {
+        // ignore
+      }
+    };
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        if (hasSentWhileHiddenRef.current) return;
+        if (hasSentForCurrentSessionExitRef.current) return;
+
         const now = Date.now();
-        if (now - lastExitTimestampRef.current < 5000) return;
+        const lastTs = Math.max(lastExitTimestampRef.current, readLastSavedTs());
+        if (now - lastTs < MIN_COOLDOWN_MS) return;
 
-        hasSentWhileHiddenRef.current = true;
+        hasSentForCurrentSessionExitRef.current = true;
         lastExitTimestampRef.current = now;
-        dispatchBackgroundNotificationImmediate(latestContextRef.current);
+        writeLastSavedTs(now);
 
-        // Intentar abrir el bloque flotante en vivo (Picture-in-Picture) si el navegador lo permite
-        if (
-          liveVideoRef.current &&
-          streamInitializedRef.current &&
-          document.pictureInPictureEnabled &&
-          !document.pictureInPictureElement &&
-          typeof liveVideoRef.current.requestPictureInPicture === 'function'
-        ) {
-          liveVideoRef.current.requestPictureInPicture().catch(() => {});
-        }
+        dispatchBackgroundNotificationImmediate(latestContextRef.current);
       } else if (document.visibilityState === 'visible') {
-        hasSentWhileHiddenRef.current = false;
         notifyAppForegrounded();
-        if (
-          document.pictureInPictureElement &&
-          typeof document.exitPictureInPicture === 'function'
-        ) {
-          document.exitPictureInPicture().catch(() => {});
-        }
+      }
+    };
+
+    // Solo re-armar el candado cuando el usuario toca activamente dentro de la app visible
+    const handleActiveUserReturn = () => {
+      if (document.visibilityState !== 'visible') return;
+      const now = Date.now();
+      const lastTs = Math.max(lastExitTimestampRef.current, readLastSavedTs());
+      if (now - lastTs >= MIN_COOLDOWN_MS) {
+        hasSentForCurrentSessionExitRef.current = false;
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pointerdown', handleActiveUserReturn, { passive: true });
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pointerdown', handleActiveUserReturn);
     };
   }, []);
 
-  return (
-    <div
-      aria-hidden="true"
-      className="fixed -left-[9999px] -top-[9999px] w-px h-px overflow-hidden opacity-0 pointer-events-none"
-    >
-      <canvas ref={liveCanvasRef} width={640} height={236} />
-      <video
-        ref={liveVideoRef}
-        muted
-        playsInline
-        autoPictureInPicture
-        width={320}
-        height={118}
-      />
-    </div>
-  );
+  return null;
 };

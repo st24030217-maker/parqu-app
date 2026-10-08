@@ -1,4 +1,5 @@
-// Service Worker de Parqu - Limpia cualquier intervalo previo y muestra ESTRICTAMENTE 1 SOLA NOTIFICACIÓN
+// Service Worker v2 de Parqu - ESTRICTAMENTE 1 SOLA NOTIFICACIÓN
+// CERO intervalos, CERO repeticiones, CERO spam.
 
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 const NTFY_BASE_URL = 'https://ntfy.sh';
@@ -109,6 +110,7 @@ async function showOneNotification(state, isActionUpdate = false) {
   if (isShowingLock || !self.registration || !self.registration.showNotification) return;
 
   const now = Date.now();
+  // Si no es un clic directo en un botón de la notificación, bloquear cualquier duplicado por 15 segundos
   if (!isActionUpdate && now - lastShownAt < 15000) {
     return;
   }
@@ -228,6 +230,7 @@ self.addEventListener('message', (event) => {
     return;
   }
 
+  // Nuevo canal único v2: muestra 1 sola vez y jamás repite
   if (event.data.type === 'PARQU_SINGLE_NOTIFY_V2') {
     if (event.data.payload && event.data.payload.state) {
       latestParquState = event.data.payload.state;

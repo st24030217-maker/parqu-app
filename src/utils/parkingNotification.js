@@ -1,12 +1,12 @@
-// Motor de Bloque Nativo en Vivo Fuera de la Aplicación (Estilo Uber Live Activity)
-// - CERO símbolos ASCII anticuados
-// - CERO bucles de notificaciones repetidas: 1 sola notificación nativa en la barra de notificaciones
-// - Renderizador en vivo a 60 FPS (drawLiveUberBlockFrame) para Picture-in-Picture Nativo (iOS / Android / Desktop)
+// Motor de 1 Sola Notificación Nativa en la Barra de Notificaciones
+// - Desregistra cualquier /sw.js viejo en caché y usa /parqu-sw-v2.js
+// - Candado de 15 segundos: jamás envía más de 1 notificación
 
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 
 let swRegistrationPromise = null;
 let cachedSwRegistration = null;
+let lastClientDispatchAt = 0;
 
 function detectIsIOS() {
   if (typeof navigator === 'undefined') return false;
@@ -61,7 +61,6 @@ function drawTopDownCar(ctx, centerX, centerY, isActive) {
   const x = centerX - carW / 2;
   const y = centerY - carH / 2;
 
-  // Estela luminosa suave en vivo detrás del auto
   if (isActive) {
     const trailGrad = ctx.createLinearGradient(x - 42, centerY, x + 4, centerY);
     trailGrad.addColorStop(0, 'rgba(56, 189, 248, 0)');
@@ -92,7 +91,6 @@ function drawTopDownCar(ctx, centerX, centerY, isActive) {
   ctx.fill();
 }
 
-// Dibuja un fotograma en vivo a 60 FPS del bloque estilo Uber Live Activity
 export function drawLiveUberBlockFrame(ctx, width, height, payload, smoothWaveRatio = null) {
   ctx.clearRect(0, 0, width, height);
 
@@ -215,19 +213,23 @@ export const registerParquServiceWorker = () => {
     return Promise.resolve(null);
   }
   if (!swRegistrationPromise) {
+    // Detener y eliminar cualquier Service Worker antiguo (/sw.js) que tuviera setInterval en caché
     if (typeof navigator.serviceWorker.getRegistrations === 'function') {
       navigator.serviceWorker
         .getRegistrations()
         .then((regs) => {
           regs.forEach((r) => {
-            if (typeof r.update === 'function') r.update().catch(() => {});
             if (r.active) {
+              r.active.postMessage({ type: 'APP_FOREGROUNDED' });
               r.active.postMessage({ type: 'STOP_ALL_LOOPS' });
             }
-            if (typeof r.getNotifications === 'function') {
-              r.getNotifications()
-                .then((list) => list.forEach((n) => n.close()))
-                .catch(() => {});
+            const scriptUrl =
+              (r.active && r.active.scriptURL) ||
+              (r.installing && r.installing.scriptURL) ||
+              (r.waiting && r.waiting.scriptURL) ||
+              '';
+            if (scriptUrl && !scriptUrl.includes('parqu-sw-v2.js')) {
+              r.unregister().catch(() => {});
             }
           });
         })
@@ -235,7 +237,7 @@ export const registerParquServiceWorker = () => {
     }
 
     swRegistrationPromise = navigator.serviceWorker
-      .register('./sw.js', { scope: './', updateViaCache: 'none' })
+      .register('./parqu-sw-v2.js', { scope: './', updateViaCache: 'none' })
       .then((reg) => {
         cachedSwRegistration = reg;
         if (typeof reg.update === 'function') {
@@ -248,9 +250,6 @@ export const registerParquServiceWorker = () => {
     navigator.serviceWorker.ready
       .then((reg) => {
         cachedSwRegistration = reg;
-        if (reg.active) {
-          reg.active.postMessage({ type: 'APP_FOREGROUNDED' });
-        }
       })
       .catch(() => {});
   }
@@ -357,7 +356,7 @@ export const buildParkingNotificationPayload = ({
         : `${minutes}m ${String(seconds).padStart(2, '0')}s`;
     const progressPercent = Math.min(100, Math.max(18, Math.round(progressRatio * 100)));
 
-    const title = `Estancia activa • ${clockStr} (Restan ${remainingMinutes}m)`;
+    const title = `Estancia activa • ${clockStr} (${scheduledHours}h)`;
     const body = `${plates} • ${carDesc} • Cobro: $${cost} MXN • Saldo: $${balance} MXN`;
 
     return {
@@ -392,7 +391,7 @@ export const buildParkingNotificationPayload = ({
   }
 
   const title = `Parqu • Tarifa $6.00/hr • Saldo $${balance} MXN`;
-  const body = `${plates} • ${carDesc} • Controles rápidos activos fuera de la app`;
+  const body = `${plates} • ${carDesc} • Listo para estacionar`;
 
   return {
     title,
@@ -430,18 +429,15 @@ export const syncParquStateToServiceWorker = (contextData) => {
   const payload = buildParkingNotificationPayload(contextData);
 
   try {
-    if ('serviceWorker' in navigator) {
-      if (navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-          type: 'SYNC_PARQU_STATE',
-          payload,
-        });
-      } else if (cachedSwRegistration && cachedSwRegistration.active) {
-        cachedSwRegistration.active.postMessage({
-          type: 'SYNC_PARQU_STATE',
-          payload,
-        });
-      }
+    const targetWorker =
+      ('serviceWorker' in navigator && navigator.serviceWorker.controller) ||
+      (cachedSwRegistration && cachedSwRegistration.active);
+
+    if (targetWorker) {
+      targetWorker.postMessage({
+        type: 'SYNC_PARQU_STATE',
+        payload,
+      });
     }
   } catch {
     // ignore
@@ -458,20 +454,15 @@ export const notifyAppForegrounded = () => {
     if (targetWorker) {
       targetWorker.postMessage({
         type: 'APP_FOREGROUNDED',
+        closeNotifications: false,
       });
-    }
-    if (cachedSwRegistration && typeof cachedSwRegistration.getNotifications === 'function') {
-      cachedSwRegistration
-        .getNotifications()
-        .then((list) => list.forEach((n) => n.close()))
-        .catch(() => {});
     }
   } catch {
     // ignore
   }
 };
 
-// Dispara ESTRICTAMENTE 1 solo bloque nativo en la barra de notificaciones
+// Dispara ESTRICTAMENTE 1 sola notificación con candado duro de 15 segundos
 export const dispatchBackgroundNotificationImmediate = (contextData) => {
   const payload = buildParkingNotificationPayload(contextData);
 
@@ -483,17 +474,23 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
     return { sent: false, payload };
   }
 
+  const now = Date.now();
+  if (now - lastClientDispatchAt < 15000) {
+    return { sent: false, payload };
+  }
+  lastClientDispatchAt = now;
+
   const cardImage = buildUberCardDataUrlSync(payload);
   const actions = getSupportedNotificationActions(payload.isActive);
 
   try {
     const targetWorker =
-      ('serviceWorker' in navigator && navigator.serviceWorker.controller) ||
-      (cachedSwRegistration && cachedSwRegistration.active);
+      (cachedSwRegistration && cachedSwRegistration.active) ||
+      ('serviceWorker' in navigator && navigator.serviceWorker.controller);
 
     if (targetWorker) {
       targetWorker.postMessage({
-        type: 'APP_BACKGROUNDED',
+        type: 'PARQU_SINGLE_NOTIFY_V2',
         payload: {
           state: {
             ...payload,
@@ -507,55 +504,24 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
     // ignore
   }
 
-  const richOptions = {
-    body: payload.body,
-    icon: './parqu-logo-black.png',
-    badge: './parqu-logo-black.png',
-    image: cardImage,
-    tag: SINGLE_NOTIFICATION_TAG,
-    renotify: false,
-    silent: true,
-    requireInteraction: true,
-    actions,
-    data: {
-      url: window.location.href,
-      timestamp: Date.now(),
-    },
-  };
-
-  const basicOptions = {
-    body: payload.body,
-    icon: './parqu-logo-black.png',
-    badge: './parqu-logo-black.png',
-    tag: SINGLE_NOTIFICATION_TAG,
-    renotify: false,
-    silent: true,
-    requireInteraction: true,
-  };
-
   if (cachedSwRegistration && typeof cachedSwRegistration.showNotification === 'function') {
-    const closePrevPromise =
-      typeof cachedSwRegistration.getNotifications === 'function'
-        ? cachedSwRegistration
-            .getNotifications()
-            .then((list) => list.forEach((n) => n.close()))
-            .catch(() => {})
-        : Promise.resolve();
+    const richOptions = {
+      body: payload.body,
+      icon: './parqu-logo-black.png',
+      badge: './parqu-logo-black.png',
+      image: cardImage,
+      tag: SINGLE_NOTIFICATION_TAG,
+      renotify: false,
+      silent: true,
+      requireInteraction: true,
+      actions,
+      data: {
+        url: window.location.href,
+        timestamp: now,
+      },
+    };
 
-    closePrevPromise.then(() => {
-      cachedSwRegistration
-        .showNotification(payload.title, richOptions)
-        .catch(() => {
-          const noActionsOpts = { ...richOptions };
-          delete noActionsOpts.actions;
-          return cachedSwRegistration.showNotification(payload.title, noActionsOpts);
-        })
-        .catch(() => {
-          return cachedSwRegistration.showNotification(payload.title, basicOptions);
-        })
-        .catch(() => {});
-    });
-
+    cachedSwRegistration.showNotification(payload.title, richOptions).catch(() => {});
     return { sent: true, payload };
   }
 
