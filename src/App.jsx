@@ -211,19 +211,17 @@ const MainContent = () => {
     {
       id: 'multi-step-loader',
       icon: Activity,
-      title: 'Diagnóstico en Vivo',
-      subtitle: 'Multi-Step Loader',
-      badge: 'ANIMACIÓN',
-      badgeClassName: 'bg-white/50 text-slate-800 border border-slate-200/50 font-mono font-bold',
+      title: 'Alerta Push & Control en Vivo',
+      subtitle: 'Web Push (FCM / VAPID)',
+      badge: 'PUSH ACTIVO',
+      badgeClassName: 'bg-emerald-100 text-emerald-800 border border-emerald-200 font-mono font-bold',
       iconBg: 'bg-white/50 border border-slate-200/50 text-black',
       borderClassName: 'border-slate-200/50 hover:border-slate-300/80 bg-white/40 hover:bg-white/60 backdrop-blur-xl shadow-none',
       glowGradient: 'from-slate-100/50 via-transparent to-transparent',
+      footerText: 'Extender +1h o probar Push bloqueado',
       activeStatus: true,
       onClick: () => {
-        sileo.success({
-          title: 'Diagnóstico de Red Activo',
-          description: 'Sensores de enlace y protocolo de parquímetros sincronizados al 100%.',
-        });
+        window.dispatchEvent(new CustomEvent('parqu:open-push-modal'));
       },
     },
   ];
@@ -487,6 +485,7 @@ const MainContent = () => {
 
         <ExitNotificationManager
           onOpenNFC={() => setShowQRQuickModal(true)}
+          onNavigateToMeter={() => handleSelectFeature('dashboard')}
         />
 
         {/* Banner de Sesión Activa si está en otra pestaña con soporte completo de teclado */}

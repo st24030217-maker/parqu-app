@@ -1,4 +1,4 @@
-// Service Worker v2 de Parqu - ESTRICTAMENTE 1 SOLA NOTIFICACIÓN
+// Service Worker v2 de Parqu - ESTRICTAMENTE 1 SOLA NOTIFICACIÓN + WEB PUSH (FCM / VAPID)
 // CERO intervalos, CERO repeticiones, CERO spam.
 
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
@@ -29,7 +29,7 @@ function getSupportedSwActions(isActive) {
   const fullActions = isActive
     ? [
         { action: 'add_hour', title: '+1 Hora ($6)' },
-        { action: 'cancel_parking', title: 'Cancelar Parqu' },
+        { action: 'cancel_parking', title: 'Finalizar Estancia' },
         { action: 'add_balance_50', title: 'Recargar +$50' },
       ]
     : [
@@ -106,11 +106,11 @@ async function closeAllNotifications() {
   }
 }
 
-async function showOneNotification(state, isActionUpdate = false) {
+async function showOneNotification(state, isActionUpdate = false, customOverride = null) {
   if (isShowingLock || !self.registration || !self.registration.showNotification) return;
 
   const now = Date.now();
-  // Si no es un clic directo en un botón de la notificación, bloquear cualquier duplicado por 15 segundos
+  // Si no es un clic directo o push explícito, bloquear cualquier duplicado por 15 segundos
   if (!isActionUpdate && now - lastShownAt < 15000) {
     return;
   }
@@ -125,10 +125,10 @@ async function showOneNotification(state, isActionUpdate = false) {
     const balance = Number(s.balance ?? 320).toFixed(0);
     const scheduledHours = Math.max(1, Number(s.scheduledHours) || 1);
 
-    let title = `Parqu • Tarifa $6.00/hr • Saldo $${balance} MXN`;
-    let body = `${plates} • ${carDesc} • Listo para estacionar`;
+    let title = customOverride?.title || `Parqu • Tarifa $6.00/hr • Saldo $${balance} MXN`;
+    let body = customOverride?.body || `${plates} • ${carDesc} • Toca para abrir control rápido`;
 
-    if (s.isActive && s.startTime) {
+    if (!customOverride?.title && s.isActive && s.startTime) {
       const elapsedSeconds = Math.max(
         Number(s.baseSeconds) || 0,
         Math.floor((Date.now() - new Date(s.startTime).getTime()) / 1000)
@@ -158,7 +158,8 @@ async function showOneNotification(state, isActionUpdate = false) {
       requireInteraction: true,
       actions: getSupportedSwActions(Boolean(s.isActive)),
       data: {
-        url: './',
+        url: './?modal=push',
+        openModal: true,
         timestamp: now,
       },
     };
@@ -173,6 +174,11 @@ async function showOneNotification(state, isActionUpdate = false) {
         tag: SINGLE_NOTIFICATION_TAG,
         renotify: false,
         silent: true,
+        data: {
+          url: './?modal=push',
+          openModal: true,
+          timestamp: now,
+        },
       };
       await self.registration.showNotification(title, fallbackOpts);
     }
@@ -202,6 +208,39 @@ async function broadcastActionToClients(actionObj) {
   }
 }
 
+// Listener nativo de Web Push (RFC 8030 / FCM / Apple Push Service)
+self.addEventListener('push', (event) => {
+  let pushPayload = {};
+  if (event.data) {
+    try {
+      pushPayload = event.data.json();
+    } catch {
+      pushPayload = { body: event.data.text() };
+    }
+  }
+
+  if (pushPayload.data && typeof pushPayload.data === 'object') {
+    latestParquState = {
+      ...(latestParquState || {}),
+      ...pushPayload.data,
+    };
+  }
+
+  event.waitUntil(
+    Promise.all([
+      showOneNotification(
+        latestParquState,
+        Boolean(pushPayload.priority === 'high'),
+        pushPayload.title ? { title: pushPayload.title, body: pushPayload.body } : null
+      ),
+      broadcastActionToClients({
+        action: 'OPEN_HIGH_PRIORITY_MODAL',
+        alertReason: pushPayload.data?.alertReason || 'PUSH_RECEIVED',
+      }),
+    ])
+  );
+});
+
 self.addEventListener('message', (event) => {
   if (!event.data) return;
 
@@ -230,7 +269,7 @@ self.addEventListener('message', (event) => {
     return;
   }
 
-  // Nuevo canal único v2: muestra 1 sola vez y jamás repite
+  // Canal único v2: muestra 1 sola vez y jamás repite
   if (event.data.type === 'PARQU_SINGLE_NOTIFY_V2') {
     if (event.data.payload && event.data.payload.state) {
       latestParquState = event.data.payload.state;
@@ -257,7 +296,11 @@ self.addEventListener('notificationclick', (event) => {
     event.waitUntil(
       Promise.all([
         showOneNotification(latestParquState, true),
-        broadcastActionToClients({ action: 'START_PARKING', startTime: nowIso }),
+        broadcastActionToClients({
+          action: 'START_PARKING',
+          startTime: nowIso,
+          openHighPriorityModal: true,
+        }),
         publishStateFromServiceWorker(latestParquState),
       ])
     );
@@ -281,7 +324,12 @@ self.addEventListener('notificationclick', (event) => {
     event.waitUntil(
       Promise.all([
         showOneNotification(latestParquState, true),
-        broadcastActionToClients({ action: 'ADD_HOUR', hoursAdded: 1, scheduledHours: nextHours }),
+        broadcastActionToClients({
+          action: 'ADD_HOUR',
+          hoursAdded: 1,
+          scheduledHours: nextHours,
+          openHighPriorityModal: true,
+        }),
         publishStateFromServiceWorker(latestParquState),
       ])
     );
@@ -313,7 +361,11 @@ self.addEventListener('notificationclick', (event) => {
     event.waitUntil(
       Promise.all([
         showOneNotification(latestParquState, true),
-        broadcastActionToClients({ action: 'CANCEL_PARKING', amount: finalCharge }),
+        broadcastActionToClients({
+          action: 'CANCEL_PARKING',
+          amount: finalCharge,
+          openHighPriorityModal: true,
+        }),
         publishStateFromServiceWorker(latestParquState),
       ])
     );
@@ -332,7 +384,11 @@ self.addEventListener('notificationclick', (event) => {
     event.waitUntil(
       Promise.all([
         showOneNotification(latestParquState, true),
-        broadcastActionToClients({ action: 'ADD_BALANCE', amount: 50 }),
+        broadcastActionToClients({
+          action: 'ADD_BALANCE',
+          amount: 50,
+          openHighPriorityModal: true,
+        }),
         publishStateFromServiceWorker(latestParquState),
       ])
     );
@@ -342,16 +398,22 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if ('focus' in client) {
-          return client.focus();
+    Promise.all([
+      broadcastActionToClients({
+        action: 'OPEN_HIGH_PRIORITY_MODAL',
+        alertReason: 'NOTIFICATION_TAP',
+      }),
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+        for (const client of clientList) {
+          if ('focus' in client) {
+            return client.focus();
+          }
         }
-      }
-      if (self.clients.openWindow) {
-        return self.clients.openWindow('./');
-      }
-      return null;
-    })
+        if (self.clients.openWindow) {
+          return self.clients.openWindow('./?modal=push');
+        }
+        return null;
+      }),
+    ])
   );
 });

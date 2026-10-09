@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { sileo } from 'sileo';
 import { useParking } from '../context/ParkingContext';
+import { HighPriorityPushModal } from './modals/HighPriorityPushModal';
 import {
   registerParquServiceWorker,
   getNotificationPermissionState,
@@ -8,6 +9,7 @@ import {
   syncParquStateToServiceWorker,
   notifyAppForegrounded,
   dispatchBackgroundNotificationImmediate,
+  subscribeToWebPush,
 } from '../utils/parkingNotification';
 
 const EXIT_LOCK_STORAGE_KEY = 'parqu_single_exit_notify_ts';
@@ -16,11 +18,11 @@ const MIN_COOLDOWN_MS = 15000;
 /**
  * ExitNotificationManager
  * - Envía ESTRICTAMENTE 1 SOLA notificación al salir de la aplicación.
- * - NO se desbloquea automáticamente por parpadeos de visibilityState al bajar la barra de notificaciones.
- * - Solo permite una nueva notificación cuando el usuario vuelve a tocar activamente dentro de la app
- *   después de al menos 15 segundos.
+ * - Suscribe al dispositivo a Web Push estándar (VAPID / FCM / Apple Push Service).
+ * - Abre el Modal Interactivo de Alta Prioridad cuando el usuario toca la notificación Push
+ *   o cuando faltan 10 minutos para vencer la estancia.
  */
-export const ExitNotificationManager = ({ onOpenNFC }) => {
+export const ExitNotificationManager = ({ onOpenNFC, onNavigateToMeter }) => {
   const {
     owner,
     vehicle,
@@ -35,6 +37,8 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     transactions,
   } = useParking();
 
+  const [showHighPriorityModal, setShowHighPriorityModal] = useState(false);
+
   const latestContextRef = useRef({
     owner,
     vehicle,
@@ -46,6 +50,7 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
 
   const hasSentForCurrentSessionExitRef = useRef(false);
   const lastExitTimestampRef = useRef(0);
+  const warnedTenMinForSessionRef = useRef(null);
 
   // Sincronizar el estado en memoria del Service Worker
   useEffect(() => {
@@ -54,13 +59,56 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     syncParquStateToServiceWorker(ctx);
   }, [owner, vehicle, card, autoPay, activeSession, transactions]);
 
-  // Escuchar los botones de la notificación (+1 Hora, Recargar +$50, Cancelar / Iniciar Parqu)
+  // Abrir el modal si el usuario entró desde una notificación Push (?modal=push) o evento global
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('modal') === 'push') {
+        setShowHighPriorityModal(true);
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    } catch {
+      // ignore
+    }
+
+    const handleOpenCustomModal = () => setShowHighPriorityModal(true);
+    window.addEventListener('parqu:open-push-modal', handleOpenCustomModal);
+    return () => window.removeEventListener('parqu:open-push-modal', handleOpenCustomModal);
+  }, []);
+
+  // Alerta automática de Alta Prioridad cuando falten <= 10 minutos de la estancia activa
+  useEffect(() => {
+    if (!activeSession || !activeSession.startTime) return;
+    const sessionKey = activeSession.id || activeSession.startTime;
+    if (warnedTenMinForSessionRef.current === sessionKey) return;
+
+    const scheduledHours = Math.max(1, Number(activeSession.scheduledHours) || 1);
+    const totalSeconds = scheduledHours * 3600;
+    const elapsed = Math.max(
+      Number(activeSession.secondsElapsed) || 0,
+      Math.floor((Date.now() - new Date(activeSession.startTime).getTime()) / 1000)
+    );
+    const remainingSec = totalSeconds - elapsed;
+
+    if (remainingSec > 0 && remainingSec <= 600) {
+      warnedTenMinForSessionRef.current = sessionKey;
+      setShowHighPriorityModal(true);
+    }
+  }, [activeSession]);
+
+  // Escuchar los botones de la notificación y el toque en la alerta Push
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return undefined;
 
     const handleSwMessage = (event) => {
       if (!event.data || event.data.type !== 'PARQU_SW_ACTION') return;
-      const { action, amount, hoursAdded, scheduledHours, enabled } = event.data;
+      const { action, amount, hoursAdded, scheduledHours, enabled, openHighPriorityModal } =
+        event.data;
+
+      if (action === 'OPEN_HIGH_PRIORITY_MODAL' || openHighPriorityModal) {
+        setShowHighPriorityModal(true);
+      }
 
       if (action === 'START_PARKING' && !latestContextRef.current.activeSession) {
         startParking('Espacio #1042 • Centro Histórico', 6.0, null, 1);
@@ -120,7 +168,7 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     onOpenNFC,
   ]);
 
-  // Inicializar el nuevo Service Worker (parqu-sw-v2.js) y limpiar cualquier SW viejo en caché
+  // Inicializar el Service Worker (parqu-sw-v2.js) y suscripción Web Push (VAPID / FCM)
   useEffect(() => {
     registerParquServiceWorker();
 
@@ -129,7 +177,10 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
         const res = await requestParkingNotificationPermission();
         if (res === 'granted') {
           syncParquStateToServiceWorker(latestContextRef.current);
+          subscribeToWebPush().catch(() => {});
         }
+      } else if (getNotificationPermissionState() === 'granted') {
+        subscribeToWebPush().catch(() => {});
       }
     };
 
@@ -175,7 +226,6 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
       }
     };
 
-    // Solo re-armar el candado cuando el usuario toca activamente dentro de la app visible
     const handleActiveUserReturn = () => {
       if (document.visibilityState !== 'visible') return;
       const now = Date.now();
@@ -193,5 +243,11 @@ export const ExitNotificationManager = ({ onOpenNFC }) => {
     };
   }, []);
 
-  return null;
+  return (
+    <HighPriorityPushModal
+      isOpen={showHighPriorityModal}
+      onClose={() => setShowHighPriorityModal(false)}
+      onNavigateToMeter={onNavigateToMeter}
+    />
+  );
 };

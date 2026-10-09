@@ -532,3 +532,133 @@ export const sendParkingExitNotification = async (contextData) => {
   await registerParquServiceWorker();
   return dispatchBackgroundNotificationImmediate(contextData);
 };
+
+// ============================================================================
+// WEB PUSH ESTÁNDAR (VAPID / FCM / APPLE PUSH) + API SERVERLESS EN VERCEL
+// ============================================================================
+
+export const PARQU_VAPID_PUBLIC_KEY =
+  'BFjAAnsl4IG6qPfODHCl4oVBDCVJc1ThM0aDeitfYKutnTN4TEtaypZunWrehoE64KZgp53RxMknC0Ko2yeqM_A';
+
+const PUSH_SUB_STORAGE_KEY = 'parqu_web_push_subscription_v2';
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+export async function subscribeToWebPush() {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+    return null;
+  }
+
+  try {
+    const perm = await requestParkingNotificationPermission();
+    if (perm !== 'granted') return null;
+
+    const reg = (await registerParquServiceWorker()) || (await navigator.serviceWorker.ready);
+    if (!reg || !reg.pushManager) return null;
+
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(PARQU_VAPID_PUBLIC_KEY),
+      });
+    }
+
+    if (sub) {
+      try {
+        localStorage.setItem(PUSH_SUB_STORAGE_KEY, JSON.stringify(sub.toJSON()));
+      } catch {
+        // ignore
+      }
+    }
+    return sub;
+  } catch {
+    return null;
+  }
+}
+
+export async function getActiveWebPushSubscription() {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+    return null;
+  }
+  try {
+    const reg = cachedSwRegistration || (await navigator.serviceWorker.ready);
+    if (reg && reg.pushManager) {
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) return sub.toJSON();
+    }
+  } catch {
+    // ignore
+  }
+  try {
+    const saved = localStorage.getItem(PUSH_SUB_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Envía una notificación Push real de Alta Prioridad a través de /api/push (FCM / Apple Push / VAPID).
+ * Si el navegador no soporta PushManager (ej. HTTP local), usa el fallback nativo del Service Worker.
+ */
+export async function sendServerWebPushNotification(contextData, options = {}) {
+  const payload = buildParkingNotificationPayload(contextData);
+  const delayMs = Number(options.delayMs) || 0;
+  const customTitle = options.title || payload.title;
+  const customBody = options.body || payload.body;
+
+  try {
+    let subJson = await getActiveWebPushSubscription();
+    if (!subJson) {
+      const newSub = await subscribeToWebPush();
+      if (newSub) subJson = newSub.toJSON();
+    }
+
+    if (subJson && subJson.endpoint) {
+      const res = await fetch('/api/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subscription: subJson,
+          delayMs,
+          payload: {
+            title: customTitle,
+            body: customBody,
+            priority: 'high',
+            data: {
+              ...payload,
+              alertReason: options.alertReason || 'HIGH_PRIORITY_PUSH',
+            },
+          },
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.ok) {
+          return { sent: true, via: 'web-push-server', payload };
+        }
+      }
+    }
+  } catch {
+    // Fallback al Service Worker local si no hay conexión al endpoint serverless
+  }
+
+  if (delayMs > 0) {
+    await new Promise((r) => setTimeout(r, delayMs));
+  }
+  lastClientDispatchAt = 0; // Permitir disparo explícito solicitado por el usuario
+  const fallback = dispatchBackgroundNotificationImmediate(contextData);
+  return { ...fallback, via: 'service-worker-local' };
+}
+
