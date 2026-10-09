@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParking } from '../../context/ParkingContext';
 import { sileo } from 'sileo';
-import { InfiniteMenu } from './InfiniteMenu';
 import { OptionWheel } from './OptionWheel';
 import { triggerHaptic } from '../../utils/haptics';
 import {
   Play,
   Square,
+  RefreshCw,
   Zap,
   Wifi,
   MapPin,
@@ -20,12 +20,14 @@ import {
   ArrowDown,
   Check,
   Copy,
+  ExternalLink,
+  Sliders,
+  ShieldCheck,
   Sparkles,
   Volume2,
   VolumeX,
-  Globe,
-  Disc,
 } from 'lucide-react';
+import { PlugConnectedIcon } from '../icons';
 import { isAudioEnabled, setAudioEnabled, playMovementNote } from '../../utils/wheelAudio';
 
 function formatTimeFromSeconds(totalSecs = 0) {
@@ -43,10 +45,7 @@ export const MENU_ITEMS = [
     icon: Play,
     actionTarget: 'dashboard',
     badge: 'ACTIVO',
-    description: 'Control de estancia segundo a segundo, saldo y contador inteligente.',
-    palette: ['#01033E', '#0033FF', '#38bdf8'],
-    tileCode: '01',
-    tileSub: '$6.00 / HR',
+    description: 'Control de estancia segundo a segundo, saldo y contador inteligente.'
   },
   {
     id: 'recharge',
@@ -56,10 +55,7 @@ export const MENU_ITEMS = [
     icon: CreditCard,
     actionTarget: 'recharge',
     badge: 'EXPRESS',
-    description: 'Añade saldo instantáneo a tu tarjeta virtual sin comisiones.',
-    palette: ['#022c22', '#059669', '#34d399'],
-    tileCode: '02',
-    tileSub: 'SIN COMISIÓN',
+    description: 'Añade saldo instantáneo a tu tarjeta virtual sin comisiones.'
   },
   {
     id: 'autopay',
@@ -69,10 +65,7 @@ export const MENU_ITEMS = [
     icon: Zap,
     actionTarget: 'autopay',
     badge: '0 FILAS',
-    description: 'Debitado automático continuo a $6.00/hr sin boletos físicos.',
-    palette: ['#090d16', '#312e81', '#f59e0b'],
-    tileCode: '03',
-    tileSub: 'DÉBITO AUTO',
+    description: 'Debitado automático continuo a $6.00/hr sin boletos físicos.'
   },
   {
     id: 'qr-credential',
@@ -82,10 +75,7 @@ export const MENU_ITEMS = [
     icon: Wifi,
     actionTarget: 'qr-credential',
     badge: 'NFC AES-256',
-    description: 'Presenta tu pase NFC contactless ante oficiales de tránsito.',
-    palette: ['#001a66', '#0284c7', '#7dd3fc'],
-    tileCode: '04',
-    tileSub: 'NFC AES-256',
+    description: 'Presenta tu pase NFC contactless ante oficiales de tránsito.'
   },
   {
     id: 'parking-map',
@@ -95,10 +85,7 @@ export const MENU_ITEMS = [
     icon: MapPin,
     actionTarget: 'dashboard',
     badge: 'EN VIVO',
-    description: 'Fija el espacio de tu automóvil o navega por los cajones disponibles.',
-    palette: ['#0f172a', '#0d9488', '#2dd4bf'],
-    tileCode: '05',
-    tileSub: 'GPS & RUTAS 3D',
+    description: 'Fija el espacio de tu automóvil o navega por los cajones disponibles.'
   },
   {
     id: 'vehicle',
@@ -108,10 +95,7 @@ export const MENU_ITEMS = [
     icon: Car,
     actionTarget: 'vehicle',
     badge: 'OFICIAL',
-    description: 'Consulta y actualiza placas, modelo y conductor registrado.',
-    palette: ['#18181b', '#334155', '#94a3b8'],
-    tileCode: '06',
-    tileSub: 'PLACAS & DATOS',
+    description: 'Consulta y actualiza placas, modelo y conductor registrado.'
   },
   {
     id: 'history',
@@ -121,189 +105,9 @@ export const MENU_ITEMS = [
     icon: History,
     actionTarget: 'history',
     badge: 'AUDITABLE',
-    description: 'Registro histórico y recibos foliados con hora y costo exacto.',
-    palette: ['#1e1b4b', '#4338ca', '#a5b4fc'],
-    tileCode: '07',
-    tileSub: 'FOLIOS OFICIALES',
+    description: 'Registro histórico y recibos foliados con hora y costo exacto.'
   },
 ];
-
-function drawTileIcon(ctx, id, cx, cy, color) {
-  ctx.save();
-  ctx.strokeStyle = color;
-  ctx.fillStyle = color;
-  ctx.lineWidth = 10;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-
-  if (id === 'dashboard') {
-    // Play triangle + meter arc
-    ctx.beginPath();
-    ctx.arc(cx, cy, 46, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cx - 12, cy - 20);
-    ctx.lineTo(cx + 22, cy);
-    ctx.lineTo(cx - 12, cy + 20);
-    ctx.closePath();
-    ctx.fill();
-  } else if (id === 'recharge') {
-    // Credit card
-    ctx.beginPath();
-    ctx.roundRect(cx - 48, cy - 32, 96, 64, 12);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cx - 48, cy - 10);
-    ctx.lineTo(cx + 48, cy - 10);
-    ctx.stroke();
-    ctx.fillRect(cx - 32, cy + 8, 26, 10);
-  } else if (id === 'autopay') {
-    // Lightning bolt
-    ctx.beginPath();
-    ctx.moveTo(cx + 6, cy - 46);
-    ctx.lineTo(cx - 28, cy + 4);
-    ctx.lineTo(cx + 2, cy + 4);
-    ctx.lineTo(cx - 6, cy + 46);
-    ctx.lineTo(cx + 28, cy - 4);
-    ctx.lineTo(cx - 2, cy - 4);
-    ctx.closePath();
-    ctx.fill();
-  } else if (id === 'qr-credential') {
-    // Contactless waves
-    for (let r = 18; r <= 48; r += 15) {
-      ctx.beginPath();
-      ctx.arc(cx - 16, cy, r, -Math.PI / 3, Math.PI / 3);
-      ctx.stroke();
-    }
-    ctx.beginPath();
-    ctx.arc(cx - 22, cy, 6, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (id === 'parking-map') {
-    // Map pin
-    ctx.beginPath();
-    ctx.arc(cx, cy - 10, 28, Math.PI, 0, false);
-    ctx.bezierCurveTo(cx + 28, cy + 14, cx, cy + 44, cx, cy + 44);
-    ctx.bezierCurveTo(cx, cy + 44, cx - 28, cy + 14, cx - 28, cy - 10);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(cx, cy - 10, 10, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (id === 'vehicle') {
-    // Car front silhouette
-    ctx.beginPath();
-    ctx.roundRect(cx - 46, cy - 8, 92, 36, 10);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cx - 34, cy - 8);
-    ctx.lineTo(cx - 22, cy - 32);
-    ctx.lineTo(cx + 22, cy - 32);
-    ctx.lineTo(cx + 34, cy - 8);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(cx - 26, cy + 10, 6, 0, Math.PI * 2);
-    ctx.arc(cx + 26, cy + 10, 6, 0, Math.PI * 2);
-    ctx.fill();
-  } else {
-    // History clock
-    ctx.beginPath();
-    ctx.arc(cx, cy, 44, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - 24);
-    ctx.lineTo(cx, cy);
-    ctx.lineTo(cx + 18, cy + 12);
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function generateParquTileDataUrl(item) {
-  if (typeof document === 'undefined') return '/card-designs/card-blue.png';
-  const canvas = document.createElement('canvas');
-  const size = 512;
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return '/card-designs/card-blue.png';
-
-  const [c1, c2, accent] = item.palette || ['#01033E', '#0033FF', '#38bdf8'];
-
-  // Background gradient
-  const grad = ctx.createLinearGradient(0, 0, size, size);
-  grad.addColorStop(0, c1);
-  grad.addColorStop(1, c2);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, size, size);
-
-  // Radial glow
-  const glow = ctx.createRadialGradient(size * 0.78, size * 0.22, 10, size * 0.78, size * 0.22, size * 0.65);
-  glow.addColorStop(0, `${accent}55`);
-  glow.addColorStop(1, 'transparent');
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, size, size);
-
-  // Subtle architectural grid lines
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
-  ctx.lineWidth = 2;
-  for (let p = 64; p < size; p += 64) {
-    ctx.beginPath();
-    ctx.moveTo(p, 0);
-    ctx.lineTo(p, size);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(0, p);
-    ctx.lineTo(size, p);
-    ctx.stroke();
-  }
-
-  // Inner glass frame
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.roundRect(28, 28, size - 56, size - 56, 44);
-  ctx.stroke();
-
-  // Top Header Pill: PARQU + Number
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.14)';
-  ctx.beginPath();
-  ctx.roundRect(56, 56, 150, 44, 22);
-  ctx.fill();
-
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '800 22px ui-monospace, SFMono-Regular, Menlo, monospace';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(`PARQU ${item.tileCode}`, 76, 79);
-
-  // Status dot on top right
-  ctx.fillStyle = accent;
-  ctx.beginPath();
-  ctx.arc(size - 76, 78, 12, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Center circular icon emblem
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-  ctx.beginPath();
-  ctx.arc(size / 2, size / 2 - 22, 86, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = `${accent}99`;
-  ctx.lineWidth = 3;
-  ctx.stroke();
-
-  drawTileIcon(ctx, item.id, size / 2, size / 2 - 22, '#ffffff');
-
-  // Bottom Title & Subtitle
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'center';
-  ctx.font = '900 38px system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.fillText(item.shortLabel.toUpperCase(), size / 2, size - 118);
-
-  ctx.fillStyle = accent;
-  ctx.font = '700 21px ui-monospace, SFMono-Regular, Menlo, monospace';
-  ctx.fillText(item.tileSub || item.badge, size / 2, size - 72);
-
-  return canvas.toDataURL('image/png');
-}
 
 export const OrbitalWheelMenu = ({
   activeTab,
@@ -327,7 +131,6 @@ export const OrbitalWheelMenu = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [copied, setCopied] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [menuMode, setMenuMode] = useState('infinite'); // 'infinite' (@react-bits/InfiniteMenu-JS-CSS) | 'wheel'
 
   // Detección reactiva de tamaño de pantalla
   useEffect(() => {
@@ -339,7 +142,7 @@ export const OrbitalWheelMenu = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Sincronizar índice si el tab activo cambia desde otra parte de la app
+  // Sincronizar índice del OptionWheel si el tab activo cambia desde otra parte de la app
   useEffect(() => {
     if (!activeTab) return;
     const foundIdx = MENU_ITEMS.findIndex(
@@ -350,32 +153,14 @@ export const OrbitalWheelMenu = ({
     }
   }, [activeTab]);
 
-  // Items formateados para @react-bits/InfiniteMenu-JS-CSS
-  const infiniteMenuItems = useMemo(() => {
-    return MENU_ITEMS.map((item) => ({
-      ...item,
-      image: generateParquTileDataUrl(item),
-      title: item.shortLabel,
-      description: item.description,
-    }));
-  }, []);
-
   const currentItem = MENU_ITEMS[selectedIndex] || MENU_ITEMS[0];
   const CurrentIcon = currentItem?.icon || Sparkles;
 
   // Acción principal: Abrir función y hacer scroll suave hacia abajo al sistema
-  const handleNavigateAndScroll = useCallback((targetTab, itemId) => {
+  const handleNavigateAndScroll = useCallback((targetTab) => {
     triggerHaptic();
-    if (itemId === 'recharge' && onOpenRecharge) {
-      onOpenRecharge();
-      return;
-    }
-    if (itemId === 'qr-credential' && onOpenQR) {
-      onOpenQR();
-      return;
-    }
     onSelectTab?.(targetTab);
-
+    
     // Desplazamiento fluido hacia abajo al sistema interactivo
     setTimeout(() => {
       const targetEl = document.getElementById('system-tabs-container') || document.getElementById('interactive-system');
@@ -383,24 +168,10 @@ export const OrbitalWheelMenu = ({
         targetEl.scrollIntoView({ behavior: 'smooth' });
       }
     }, 50);
-  }, [onSelectTab, onOpenRecharge, onOpenQR]);
+  }, [onSelectTab]);
 
   const handleWheelChange = useCallback((idx) => {
-    setSelectedIndex((prev) => {
-      if (prev !== idx) {
-        playMovementNote(idx, 0.85);
-      }
-      return idx;
-    });
-  }, []);
-
-  const handleInfiniteActiveChange = useCallback((_item, idx) => {
-    setSelectedIndex((prev) => {
-      if (prev !== idx) {
-        playMovementNote(idx, 0.85);
-      }
-      return idx;
-    });
+    setSelectedIndex(idx);
   }, []);
 
   const handleStartParking = useCallback(() => {
@@ -462,7 +233,7 @@ export const OrbitalWheelMenu = ({
       playMovementNote(selectedIndex, 1.0);
       sileo.success({
         title: 'Música interactiva activada',
-        description: 'Notas melódicas y acústicas en cada giro del menú 3D.'
+        description: 'Notas melódicas y acústicas en cada giro de la ruleta.'
       });
     } else {
       sileo.info({
@@ -473,62 +244,32 @@ export const OrbitalWheelMenu = ({
   }, [soundActive, selectedIndex]);
 
   return (
-    <section
+    <section 
       aria-label="Menú 3D de navegación y acceso al sistema"
       className={`w-full bg-transparent border-0 shadow-none relative py-3 sm:py-6 font-sans ${className}`}
     >
       {/* ═══ ENCABEZADO MINIMALISTA TOTALMENTE TRANSPARENTE ═══ */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-2 sm:mb-4">
-        <div className="flex items-center gap-2">
-          {/* Toggle de música y efectos sonoros interactivos */}
-          <button
-            type="button"
-            aria-label={soundActive ? 'Silenciar música de giros' : 'Activar música de giros'}
-            onClick={handleToggleSound}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 hover:bg-slate-200 text-slate-700 hover:text-black transition-all text-[11px] font-sans font-semibold cursor-pointer shadow-sm active:scale-95"
-            title={soundActive ? 'Música interactiva activa al girar' : 'Activar música en movimientos'}
-          >
-            {soundActive ? (
-              <>
-                <Volume2 size={13} className="text-black" />
-                <span>Música Activa</span>
-              </>
-            ) : (
-              <>
-                <VolumeX size={13} className="text-slate-400" />
-                <span className="text-slate-500">Silenciado</span>
-              </>
-            )}
-          </button>
-
-          {/* Selector de vista: InfiniteMenu 3D Sphere vs OptionWheel */}
-          <div className="inline-flex items-center rounded-full bg-slate-100/90 p-0.5 text-[11px] font-sans font-semibold shadow-sm">
-            <button
-              type="button"
-              onClick={() => setMenuMode('infinite')}
-              className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
-                menuMode === 'infinite'
-                  ? 'bg-black text-white shadow-sm'
-                  : 'text-slate-600 hover:text-black'
-              }`}
-            >
-              <Globe size={12} />
-              <span>Infinite Sphere 3D</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setMenuMode('wheel')}
-              className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full transition-all cursor-pointer ${
-                menuMode === 'wheel'
-                  ? 'bg-black text-white shadow-sm'
-                  : 'text-slate-600 hover:text-black'
-              }`}
-            >
-              <Disc size={12} />
-              <span>Ruleta</span>
-            </button>
-          </div>
-        </div>
+      <div className="flex items-center justify-between gap-4 mb-2 sm:mb-4">
+        {/* Toggle de música y efectos sonoros interactivos */}
+        <button
+          type="button"
+          aria-label={soundActive ? 'Silenciar música de giros' : 'Activar música de giros'}
+          onClick={handleToggleSound}
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 hover:bg-slate-200 text-slate-700 hover:text-black transition-all text-[11px] font-sans font-semibold cursor-pointer shadow-sm active:scale-95"
+          title={soundActive ? 'Música interactiva activa al girar' : 'Activar música en movimientos'}
+        >
+          {soundActive ? (
+            <>
+              <Volume2 size={13} className="text-black" />
+              <span>Música Activa</span>
+            </>
+          ) : (
+            <>
+              <VolumeX size={13} className="text-slate-400" />
+              <span className="text-slate-500">Silenciado</span>
+            </>
+          )}
+        </button>
 
         <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400">
           <span className="font-bold text-slate-900">0{selectedIndex + 1}</span>
@@ -537,8 +278,8 @@ export const OrbitalWheelMenu = ({
         </div>
       </div>
 
-      {/* ═══ ESCENARIO PRINCIPAL: CONTENIDO TRANSPARENTE + INFINITEMENU 3D ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
+      {/* ═══ ESCENARIO PRINCIPAL: CONTENIDO TRANSPARENTE + OPTIONWHEEL 3D ═══ */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-14 items-center">
         
         {/* ═══ COLUMNA IZQUIERDA: DETALLES DE LA FUNCIÓN (TOTALMENTE TRANSPARENTE, SIN BORDES) ═══ */}
         <div className="lg:col-span-5 flex flex-col justify-center space-y-4 sm:space-y-5">
@@ -687,7 +428,7 @@ export const OrbitalWheelMenu = ({
             <button
               type="button"
               aria-label={`Abrir ${currentItem.label} y descender al sistema`}
-              onClick={() => handleNavigateAndScroll(currentItem.actionTarget, currentItem.id)}
+              onClick={() => handleNavigateAndScroll(currentItem.actionTarget)}
               className="w-full sm:w-auto px-5 py-2 sm:px-6 sm:py-2.5 rounded-full bg-black hover:bg-neutral-800 text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 shadow-md transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
             >
               <span>Abrir en el Sistema</span>
@@ -775,7 +516,7 @@ export const OrbitalWheelMenu = ({
               {currentItem.id === 'parking-map' && (
                 <button
                   type="button"
-                  onClick={() => handleNavigateAndScroll('dashboard', 'parking-map')}
+                  onClick={() => handleNavigateAndScroll('dashboard')}
                   className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border-0 shadow-sm"
                 >
                   <MapPin size={12} />
@@ -786,7 +527,7 @@ export const OrbitalWheelMenu = ({
               {currentItem.id === 'vehicle' && (
                 <button
                   type="button"
-                  onClick={() => handleNavigateAndScroll('vehicle', 'vehicle')}
+                  onClick={() => handleNavigateAndScroll('vehicle')}
                   className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border-0 shadow-sm"
                 >
                   <Car size={12} />
@@ -797,7 +538,7 @@ export const OrbitalWheelMenu = ({
               {currentItem.id === 'history' && (
                 <button
                   type="button"
-                  onClick={() => handleNavigateAndScroll('history', 'history')}
+                  onClick={() => handleNavigateAndScroll('history')}
                   className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border-0 shadow-sm"
                 >
                   <History size={12} />
@@ -809,77 +550,56 @@ export const OrbitalWheelMenu = ({
 
         </div>
 
-        {/* ═══ COLUMNA DERECHA: @react-bits/InfiniteMenu-JS-CSS (ESFERA 3D WEBGL2) ═══ */}
+        {/* ═══ COLUMNA DERECHA: OPTIONWHEEL 3D TOTALMENTE TRANSPARENTE (SIN CAJAS NI BORDES) ═══ */}
         <div className="lg:col-span-7 flex flex-col items-center justify-center relative">
-          {menuMode === 'infinite' ? (
-            <div className="w-full h-[360px] sm:h-[440px] md:h-[480px] relative rounded-3xl overflow-hidden bg-transparent">
-              <InfiniteMenu
-                items={infiniteMenuItems}
-                count={84}
-                tileSize={0.72}
-                roundness={0.26}
-                zoom={1.55}
-                pullBack={0.9}
-                stretch={0.65}
-                inertia={0.65}
-                autoplay={4.5}
-                grayscale={false}
-                dim={0.35}
-                intro={true}
-                showInfo={true}
-                theme="light"
-                accentColor="#01033E"
-                backgroundColor="transparent"
-                selectedIndex={selectedIndex}
-                onActiveChange={handleInfiniteActiveChange}
-                onItemClick={(item) => handleNavigateAndScroll(item.actionTarget, item.id)}
-              />
-            </div>
-          ) : (
-            <div className="w-full h-[220px] sm:h-[360px] md:h-[400px] relative bg-transparent border-0 shadow-none overflow-hidden">
-              <OptionWheel
-                items={MENU_ITEMS}
-                selectedIndex={selectedIndex}
-                onChange={handleWheelChange}
-                onSelect={(_idx, item) => handleNavigateAndScroll(item.actionTarget, item.id)}
-                textColor="#94a3b8"
-                activeColor="#020617"
-                side="left"
-                fontSize={isMobile ? 1.05 : 2.0}
-                spacing={isMobile ? 1.28 : 1.6}
-                curve={isMobile ? 0.72 : 0.88}
-                tilt={isMobile ? 4.2 : 5.6}
-                blur={2.8}
-                fade={0.38}
-                minOpacity={0.06}
-                smoothing={45}
-                inset={isMobile ? 8 : 32}
-                loop={true}
-                draggable={true}
-                renderItem={(item, isSelected) => {
-                  const ItemIcon = item?.icon || Sparkles;
-                  return (
-                    <span className="inline-flex items-center gap-2 sm:gap-4 transition-all duration-200">
-                      <span
-                        className={`inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full transition-all duration-200 ${
-                          isSelected
-                            ? 'bg-black text-white shadow-sm scale-105 sm:scale-110'
-                            : 'bg-transparent text-slate-400'
-                        }`}
-                      >
-                        {ItemIcon && <ItemIcon size={isMobile ? 12 : 16} />}
-                      </span>
-                      <span className={`tracking-tight ${isSelected ? 'font-black text-slate-950' : 'font-medium'}`}>
-                        {item.label}
-                      </span>
+          
+          {/* Contenedor del OptionWheel 100% transparente sin bordes ni sombras de caja */}
+          <div 
+            className="w-full h-[220px] sm:h-[360px] md:h-[400px] relative bg-transparent border-0 shadow-none overflow-hidden"
+          >
+            {/* Componente OptionWheel de React Bits con difuminado infinito sobre blanco */}
+            <OptionWheel
+              items={MENU_ITEMS}
+              selectedIndex={selectedIndex}
+              onChange={handleWheelChange}
+              onSelect={(idx, item) => handleNavigateAndScroll(item.actionTarget)}
+              textColor="#94a3b8"
+              activeColor="#020617"
+              side={isMobile ? 'left' : 'left'}
+              fontSize={isMobile ? 1.05 : 2.0}
+              spacing={isMobile ? 1.28 : 1.6}
+              curve={isMobile ? 0.72 : 0.88}
+              tilt={isMobile ? 4.2 : 5.6}
+              blur={2.8}
+              fade={0.38}
+              minOpacity={0.06}
+              smoothing={45}
+              inset={isMobile ? 8 : 32}
+              loop={true}
+              draggable={true}
+              renderItem={(item, isSelected) => {
+                const ItemIcon = item?.icon || Sparkles;
+                return (
+                  <span className="inline-flex items-center gap-2 sm:gap-4 transition-all duration-200">
+                    <span 
+                      className={`inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full transition-all duration-200 ${
+                        isSelected 
+                          ? 'bg-black text-white shadow-sm scale-105 sm:scale-110' 
+                          : 'bg-transparent text-slate-400'
+                      }`}
+                    >
+                      {ItemIcon && <ItemIcon size={isMobile ? 12 : 16} />}
                     </span>
-                  );
-                }}
-              />
-            </div>
-          )}
+                    <span className={`tracking-tight ${isSelected ? 'font-black text-slate-950' : 'font-medium'}`}>
+                      {item.label}
+                    </span>
+                  </span>
+                );
+              }}
+            />
+          </div>
 
-          {/* Controles de navegación y acceso al sistema */}
+          {/* Controles de navegación y acceso al sistema (sin textos invasivos) */}
           <div className="flex items-center justify-between w-full px-2 pt-2 text-[11px] font-sans">
             <div className="flex items-center gap-1.5">
               <button
@@ -910,7 +630,7 @@ export const OrbitalWheelMenu = ({
 
             <button
               type="button"
-              onClick={() => handleNavigateAndScroll(currentItem.actionTarget, currentItem.id)}
+              onClick={() => handleNavigateAndScroll(currentItem.actionTarget)}
               className="text-slate-600 hover:text-black font-bold flex items-center gap-1 cursor-pointer transition-colors"
             >
               <span>Descender al sistema</span>
