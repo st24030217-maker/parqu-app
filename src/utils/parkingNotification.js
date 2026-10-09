@@ -356,14 +356,30 @@ export const buildParkingNotificationPayload = ({
         : `${minutes}m ${String(seconds).padStart(2, '0')}s`;
     const progressPercent = Math.min(100, Math.max(18, Math.round(progressRatio * 100)));
 
-    const title = `Estancia activa • ${clockStr} (${scheduledHours}h)`;
-    const body = `${plates} • ${carDesc} • Cobro: $${cost} MXN • Saldo: $${balance} MXN`;
+    let endTimeStr = '';
+    try {
+      const startMs = activeSession.startTime
+        ? new Date(activeSession.startTime).getTime()
+        : Date.now();
+      const endMs = startMs + scheduledHours * 3600 * 1000;
+      endTimeStr = new Date(endMs).toLocaleTimeString('es-MX', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      endTimeStr = '';
+    }
+
+    const zoneName = activeSession.zoneName || 'Espacio #1042 • Centro Histórico';
+    const title = `🟢 Parqu En Vivo • ${clockStr} (Restan ${remainingMinutes} min)`;
+    const body = `${plates} • Cobro: $${cost} MXN${endTimeStr ? ` • Vence ${endTimeStr}` : ''} • ${zoneName}`;
 
     return {
       title,
       body,
       clockStr,
       timeLabel,
+      endTimeStr,
       hours,
       minutes,
       seconds,
@@ -374,7 +390,7 @@ export const buildParkingNotificationPayload = ({
       rate: rate.toFixed(2),
       maxLimit,
       progressPercent,
-      zoneName: activeSession.zoneName || 'Espacio #1042 • Centro Histórico',
+      zoneName,
       startTime: activeSession.startTime,
       baseSeconds: elapsedSeconds,
       isActive: true,
@@ -398,6 +414,7 @@ export const buildParkingNotificationPayload = ({
     body,
     clockStr: '00:00:00',
     timeLabel: '00m 00s',
+    endTimeStr: '',
     hours: 0,
     minutes: 0,
     seconds: 0,
@@ -422,6 +439,22 @@ export const buildParkingNotificationPayload = ({
     autoPayStatus,
     historyText,
   };
+};
+
+export const resetNotificationExitLock = () => {
+  lastClientDispatchAt = 0;
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.removeItem('parqu_single_exit_notify_ts');
+    const targetWorker =
+      ('serviceWorker' in navigator && navigator.serviceWorker.controller) ||
+      (cachedSwRegistration && cachedSwRegistration.active);
+    if (targetWorker) {
+      targetWorker.postMessage({ type: 'RESET_EXIT_LOCK' });
+    }
+  } catch {
+    // ignore
+  }
 };
 
 export const syncParquStateToServiceWorker = (contextData) => {
@@ -462,9 +495,14 @@ export const notifyAppForegrounded = () => {
   }
 };
 
-// Dispara ESTRICTAMENTE 1 sola notificación con candado duro de 15 segundos
+// Dispara ESTRICTAMENTE 1 sola notificación al salir de la app ÚNICAMENTE cuando el parquímetro está activo
 export const dispatchBackgroundNotificationImmediate = (contextData) => {
   const payload = buildParkingNotificationPayload(contextData);
+
+  // Solo desplegar notificación si el parquímetro está ACTIVO
+  if (!payload.isActive) {
+    return { sent: false, payload };
+  }
 
   if (typeof window === 'undefined' || !('Notification' in window)) {
     return { sent: false, payload };
@@ -475,13 +513,40 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
   }
 
   const now = Date.now();
-  if (now - lastClientDispatchAt < 15000) {
+  if (now - lastClientDispatchAt < 12000) {
     return { sent: false, payload };
   }
   lastClientDispatchAt = now;
 
   const cardImage = buildUberCardDataUrlSync(payload);
   const actions = getSupportedNotificationActions(payload.isActive);
+
+  // Respaldo Web Push keepalive por si iOS/Android congela el hilo JS al cerrar la app
+  try {
+    const savedSubStr = localStorage.getItem('parqu_web_push_subscription_v2');
+    if (savedSubStr) {
+      const subJson = JSON.parse(savedSubStr);
+      if (subJson && subJson.endpoint) {
+        fetch('/api/push', {
+          method: 'POST',
+          keepalive: true,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subscription: subJson,
+            delayMs: 0,
+            payload: {
+              title: payload.title,
+              body: payload.body,
+              priority: 'high',
+              data: payload,
+            },
+          }),
+        }).catch(() => {});
+      }
+    }
+  } catch {
+    // ignore
+  }
 
   try {
     const targetWorker =

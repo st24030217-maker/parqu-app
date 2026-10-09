@@ -1,5 +1,6 @@
-// Service Worker v2 de Parqu - ESTRICTAMENTE 1 SOLA NOTIFICACIÓN + WEB PUSH (FCM / VAPID)
-// CERO intervalos, CERO repeticiones, CERO spam.
+// Service Worker v2 de Parqu - SEGUIMIENTO DE PARQUÍMETRO EN VIVO AL SALIR DE LA APP
+// - Muestra ESTRICTAMENTE 1 SOLA notificación cuando el parquímetro está activo y sales de la app.
+// - CERO intervalos repetitivos, CERO símbolos ASCII, CERO spam.
 
 const SINGLE_NOTIFICATION_TAG = 'parqu-single-live-notification';
 const NTFY_BASE_URL = 'https://ntfy.sh';
@@ -35,10 +36,22 @@ function getSupportedSwActions(isActive) {
     : [
         { action: 'start_parking', title: 'Iniciar Parqu ($6)' },
         { action: 'add_balance_50', title: 'Recargar +$50' },
-        { action: 'add_hour', title: '+1 Hora ($6)' },
       ];
 
   return fullActions.slice(0, maxSupported);
+}
+
+function formatEndTime(startTimeIso, scheduledHours) {
+  try {
+    const startMs = startTimeIso ? new Date(startTimeIso).getTime() : Date.now();
+    const endMs = startMs + Math.max(1, Number(scheduledHours) || 1) * 3600 * 1000;
+    return new Date(endMs).toLocaleTimeString('es-MX', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '';
+  }
 }
 
 async function publishStateFromServiceWorker(s) {
@@ -109,9 +122,15 @@ async function closeAllNotifications() {
 async function showOneNotification(state, isActionUpdate = false, customOverride = null) {
   if (isShowingLock || !self.registration || !self.registration.showNotification) return;
 
+  const s = state || latestParquState || {};
+  // Solo mostrar seguimiento cuando el parquímetro está activo (o si fue una acción explícita)
+  if (!s.isActive && !isActionUpdate && !customOverride) {
+    return;
+  }
+
   const now = Date.now();
-  // Si no es un clic directo o push explícito, bloquear cualquier duplicado por 15 segundos
-  if (!isActionUpdate && now - lastShownAt < 15000) {
+  // Candado estricto: evita que el envío local + Web Push keepalive generen 2 notificaciones al salir
+  if (!isActionUpdate && now - lastShownAt < 12000) {
     return;
   }
 
@@ -119,14 +138,14 @@ async function showOneNotification(state, isActionUpdate = false, customOverride
   lastShownAt = now;
 
   try {
-    const s = state || latestParquState || {};
     const plates = s.plates || 'XYZ-7842';
     const carDesc = s.carDesc || 'Volkswagen Jetta';
     const balance = Number(s.balance ?? 320).toFixed(0);
     const scheduledHours = Math.max(1, Number(s.scheduledHours) || 1);
+    const zoneName = s.zoneName || 'Espacio #1042 • Centro Histórico';
 
-    let title = customOverride?.title || `Parqu • Tarifa $6.00/hr • Saldo $${balance} MXN`;
-    let body = customOverride?.body || `${plates} • ${carDesc} • Toca para abrir control rápido`;
+    let title = customOverride?.title || `Parqu • Estancia Finalizada • Saldo $${balance} MXN`;
+    let body = customOverride?.body || `${plates} • ${carDesc}`;
 
     if (!customOverride?.title && s.isActive && s.startTime) {
       const elapsedSeconds = Math.max(
@@ -137,14 +156,20 @@ async function showOneNotification(state, isActionUpdate = false, customOverride
       const minutes = Math.floor((elapsedSeconds % 3600) / 60);
       const seconds = elapsedSeconds % 60;
       const clockStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+      const totalScheduledSeconds = scheduledHours * 3600;
+      const remainingSeconds = Math.max(0, totalScheduledSeconds - elapsedSeconds);
+      const remainingMinutes = Math.ceil(remainingSeconds / 60);
+      const endTimeStr = formatEndTime(s.startTime, scheduledHours);
+
       const rate = Number(s.rate || 6.0);
       const cost = Math.min(
         Number(s.maxLimit || 180),
         Number(((elapsedSeconds * (rate / 3600)) || 0).toFixed(2))
       ).toFixed(2);
 
-      title = `Estancia activa • ${clockStr} (${scheduledHours}h)`;
-      body = `${plates} • ${carDesc} • Cobro: $${cost} MXN • Saldo: $${balance} MXN`;
+      title = `🟢 Parqu En Vivo • ${clockStr} (Restan ${remainingMinutes} min)`;
+      body = `${plates} • Cobro: $${cost} MXN${endTimeStr ? ` • Vence ${endTimeStr}` : ''} • ${zoneName}`;
     }
 
     const options = {
@@ -226,18 +251,14 @@ self.addEventListener('push', (event) => {
     };
   }
 
+  const isExplicitTest = pushPayload.data?.alertReason === 'LOCK_SCREEN_TEST';
+
   event.waitUntil(
-    Promise.all([
-      showOneNotification(
-        latestParquState,
-        Boolean(pushPayload.priority === 'high'),
-        pushPayload.title ? { title: pushPayload.title, body: pushPayload.body } : null
-      ),
-      broadcastActionToClients({
-        action: 'OPEN_HIGH_PRIORITY_MODAL',
-        alertReason: pushPayload.data?.alertReason || 'PUSH_RECEIVED',
-      }),
-    ])
+    showOneNotification(
+      latestParquState,
+      isExplicitTest,
+      pushPayload.title ? { title: pushPayload.title, body: pushPayload.body } : null
+    )
   );
 });
 
@@ -245,10 +266,26 @@ self.addEventListener('message', (event) => {
   if (!event.data) return;
 
   if (event.data.type === 'SYNC_PARQU_STATE') {
+    const nextPayload = event.data.payload || {};
+    const wasActive = Boolean(latestParquState?.isActive);
     latestParquState = {
       ...(latestParquState || {}),
-      ...(event.data.payload || {}),
+      ...nextPayload,
     };
+    // Si acaba de iniciar el parquímetro, liberar el candado para que al salir de la app notifique de inmediato
+    if (!wasActive && latestParquState.isActive) {
+      lastShownAt = 0;
+    }
+    // Si finalizó el parquímetro dentro de la app, limpiar la notificación de la barra
+    if (wasActive && !latestParquState.isActive) {
+      lastShownAt = 0;
+      event.waitUntil(closeAllNotifications());
+    }
+    return;
+  }
+
+  if (event.data.type === 'RESET_EXIT_LOCK') {
+    lastShownAt = 0;
     return;
   }
 
@@ -269,7 +306,7 @@ self.addEventListener('message', (event) => {
     return;
   }
 
-  // Canal único v2: muestra 1 sola vez y jamás repite
+  // Canal único v2: muestra 1 sola notificación al salir de la app con parquímetro activo
   if (event.data.type === 'PARQU_SINGLE_NOTIFY_V2') {
     if (event.data.payload && event.data.payload.state) {
       latestParquState = event.data.payload.state;
@@ -358,9 +395,11 @@ self.addEventListener('notificationclick', (event) => {
       balance: nextBalance,
     };
 
+    event.notification.close();
+
     event.waitUntil(
       Promise.all([
-        showOneNotification(latestParquState, true),
+        closeAllNotifications(),
         broadcastActionToClients({
           action: 'CANCEL_PARKING',
           amount: finalCharge,

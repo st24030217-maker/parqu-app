@@ -4,6 +4,8 @@ import { generateTicketFolio } from '../utils/formatters';
 import {
   requestParkingNotificationPermission,
   sendParkingExitNotification,
+  resetNotificationExitLock,
+  subscribeToWebPush,
 } from '../utils/parkingNotification';
 import {
   publishVehicleStateToCloud,
@@ -558,7 +560,14 @@ export const ParkingProvider = ({ children }) => {
       setActivePinnedLocation(pinRecord);
     }
 
-    requestParkingNotificationPermission().catch(() => {});
+    resetNotificationExitLock();
+    requestParkingNotificationPermission()
+      .then((perm) => {
+        if (perm === 'granted') {
+          subscribeToWebPush().catch(() => {});
+        }
+      })
+      .catch(() => {});
   };
 
   // Aumentar las horas programadas del parquímetro y publicar a la nube
