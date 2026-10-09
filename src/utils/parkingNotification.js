@@ -56,38 +56,66 @@ function drawRoundedRect(ctx, x, y, w, h, r) {
 }
 
 function drawTopDownCar(ctx, centerX, centerY, isActive) {
-  const carW = 56;
-  const carH = 26;
+  const carW = 68;
+  const carH = 30;
   const x = centerX - carW / 2;
   const y = centerY - carH / 2;
 
   if (isActive) {
-    const trailGrad = ctx.createLinearGradient(x - 42, centerY, x + 4, centerY);
-    trailGrad.addColorStop(0, 'rgba(56, 189, 248, 0)');
-    trailGrad.addColorStop(1, 'rgba(56, 189, 248, 0.65)');
+    // Haz de luz de los faros delanteros
+    ctx.save();
+    const beamGrad = ctx.createLinearGradient(x + carW - 2, centerY, x + carW + 38, centerY);
+    beamGrad.addColorStop(0, 'rgba(56, 189, 248, 0.55)');
+    beamGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+    ctx.fillStyle = beamGrad;
+    ctx.beginPath();
+    ctx.moveTo(x + carW - 2, y + 4);
+    ctx.lineTo(x + carW + 38, y - 6);
+    ctx.lineTo(x + carW + 38, y + carH + 6);
+    ctx.lineTo(x + carW - 2, y + carH - 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // Estela luminosa trasera
+    const trailGrad = ctx.createLinearGradient(x - 54, centerY, x + 4, centerY);
+    trailGrad.addColorStop(0, 'rgba(0, 51, 255, 0)');
+    trailGrad.addColorStop(1, 'rgba(56, 189, 248, 0.75)');
     ctx.fillStyle = trailGrad;
-    drawRoundedRect(ctx, x - 40, centerY - 5, 44, 10, 5);
+    drawRoundedRect(ctx, x - 52, centerY - 6, 56, 12, 6);
     ctx.fill();
   }
 
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
-  drawRoundedRect(ctx, x + 2, y + 3, carW, carH, 10);
+  // Sombra inferior del vehículo
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+  drawRoundedRect(ctx, x + 2, y + 4, carW, carH, 12);
   ctx.fill();
 
+  // Carrocería principal blanca perlada
   ctx.fillStyle = '#ffffff';
-  drawRoundedRect(ctx, x, y, carW, carH, 10);
+  drawRoundedRect(ctx, x, y, carW, carH, 12);
   ctx.fill();
 
+  // Parabrisas delantero
+  ctx.fillStyle = '#0f172a';
+  drawRoundedRect(ctx, x + 40, y + 4, 13, carH - 8, 4);
+  ctx.fill();
+
+  // Medallón trasero
   ctx.fillStyle = '#1e293b';
-  drawRoundedRect(ctx, x + 34, y + 3, 11, carH - 6, 3.5);
+  drawRoundedRect(ctx, x + 7, y + 5, 9, carH - 10, 3);
   ctx.fill();
 
-  ctx.fillStyle = '#334155';
-  drawRoundedRect(ctx, x + 6, y + 4, 7, carH - 8, 2.5);
+  // Toldo panorámico azul Parqu
+  ctx.fillStyle = isActive ? '#0033FF' : '#475569';
+  drawRoundedRect(ctx, x + 19, y + 4.5, 18, carH - 9, 4);
   ctx.fill();
 
-  ctx.fillStyle = isActive ? '#0033FF' : '#d97706';
-  drawRoundedRect(ctx, x + 16, y + 4, 14, carH - 8, 3);
+  // Faros LED delanteros
+  ctx.fillStyle = '#38bdf8';
+  drawRoundedRect(ctx, x + carW - 4, y + 4, 3, 5, 1.5);
+  ctx.fill();
+  drawRoundedRect(ctx, x + carW - 4, y + carH - 9, 3, 5, 1.5);
   ctx.fill();
 }
 
@@ -99,102 +127,159 @@ export function drawLiveUberBlockFrame(ctx, width, height, payload, smoothWaveRa
   const balance = Number(payload.balance ?? 320).toFixed(0);
   const clockStr = payload.clockStr || '00:00:00';
   const cost = payload.cost || '0.00';
-  const remainingLabel = `${payload.remainingMinutes || 60}m`;
+  const remainingMinutes = payload.remainingMinutes ?? 60;
+  const endTimeStr = payload.endTimeStr || '';
+  const zoneName = payload.zoneName || 'Espacio #1042 • Centro Histórico';
 
-  const cardX = 8;
-  const cardY = 6;
-  const cardW = width - 16;
-  const cardH = height - 12;
+  const cardX = 10;
+  const cardY = 8;
+  const cardW = width - 20;
+  const cardH = height - 16;
 
+  // Fondo oscuro profundo estilo Uber / Apple Live Activity
   const grad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
-  grad.addColorStop(0, '#14161b');
-  grad.addColorStop(1, '#0b0d11');
+  grad.addColorStop(0, '#0f131d');
+  grad.addColorStop(1, '#07090e');
   ctx.fillStyle = grad;
   drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 32);
   ctx.fill();
 
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 2;
   ctx.strokeStyle = payload.isActive
-    ? 'rgba(56, 189, 248, 0.38)'
-    : 'rgba(255, 255, 255, 0.14)';
+    ? 'rgba(56, 189, 248, 0.42)'
+    : 'rgba(255, 255, 255, 0.15)';
   ctx.stroke();
 
+  // 1. FILA SUPERIOR: Badge En Vivo + Zona + Saldo NFC
+  ctx.fillStyle = payload.isActive ? '#0033FF' : '#1e293b';
+  drawRoundedRect(ctx, cardX + 28, cardY + 22, 166, 32, 16);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(cardX + 46, cardY + 38, 5, 0, Math.PI * 2);
+  ctx.fillStyle = payload.isActive ? '#34d399' : '#94a3b8';
+  ctx.fill();
+
   ctx.textAlign = 'left';
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 21px sans-serif';
-  ctx.fillText('Parqu', cardX + 30, cardY + 40);
+  ctx.font = 'bold 14px sans-serif';
+  ctx.fillText('PARQU EN VIVO', cardX + 60, cardY + 43);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 15px sans-serif';
+  ctx.fillText(zoneName.slice(0, 34), cardX + 208, cardY + 43);
+
+  // Pastilla derecha: Saldo NFC
+  ctx.fillStyle = 'rgba(16, 185, 129, 0.14)';
+  drawRoundedRect(ctx, cardX + cardW - 204, cardY + 22, 176, 32, 16);
+  ctx.fill();
 
   ctx.textAlign = 'right';
-  ctx.fillStyle = '#38bdf8';
-  ctx.font = 'bold 16px sans-serif';
-  ctx.fillText(`Saldo NFC: $${balance} MXN`, cardX + cardW - 30, cardY + 40);
+  ctx.fillStyle = '#34d399';
+  ctx.font = 'bold 15px sans-serif';
+  ctx.fillText(`SALDO: $${balance} MXN`, cardX + cardW - 44, cardY + 43);
 
+  // 2. FILA CENTRAL: Reloj Gigante en Vivo (Izquierda) + Cobro Acumulado (Derecha)
   ctx.textAlign = 'left';
+  ctx.fillStyle = '#64748b';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText('TIEMPO EN PARQUÍMETRO', cardX + 28, cardY + 84);
+
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 34px sans-serif';
+  ctx.font = 'bold 50px monospace';
+  ctx.fillText(payload.isActive ? clockStr : '00:00:00', cardX + 28, cardY + 136);
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 18px sans-serif';
   ctx.fillText(
     payload.isActive
-      ? `Estancia activa • ${clockStr}`
-      : `Parqu listo • $6.00/hr`,
-    cardX + 30,
-    cardY + 90
+      ? `Restan ${remainingMinutes} min${endTimeStr ? ` • Vence ${endTimeStr}` : ''}`
+      : 'Tarifa oficial $6.00 MXN / hr',
+    cardX + 28,
+    cardY + 166
   );
 
-  ctx.fillStyle = '#9ca3af';
-  ctx.font = '21px sans-serif';
-  ctx.fillText(
-    payload.isActive
-      ? `${plates} • ${carDesc} • $${cost} MXN (Restan ${remainingLabel})`
-      : `${plates} • ${carDesc} • Saldo $${balance} MXN`,
-    cardX + 30,
-    cardY + 124
-  );
+  // Derecha: Cobro en vivo y Placas
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#64748b';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText('COBRO ACUMULADO ($6/HR)', cardX + cardW - 28, cardY + 84);
 
-  const barLeft = cardX + 30;
-  const barRight = cardX + cardW - 34;
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 46px monospace';
+  ctx.fillText(`$${cost} MXN`, cardX + cardW - 28, cardY + 136);
+
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText(`${plates} • ${carDesc}`, cardX + cardW - 28, cardY + 166);
+
+  // 3. FILA INFERIOR: Barra de Progreso Estilo Uber con Auto en Movimiento (CERO ASCII)
+  const barLeft = cardX + 34;
+  const barRight = cardX + cardW - 38;
   const barWidth = barRight - barLeft;
-  const barY = cardY + 174;
+  const barY = cardY + 222;
 
-  ctx.fillStyle = '#4b5563';
-  drawRoundedRect(ctx, barLeft, barY - 3.5, barWidth, 7, 3.5);
+  ctx.fillStyle = '#1e293b';
+  drawRoundedRect(ctx, barLeft, barY - 5, barWidth, 10, 5);
   ctx.fill();
 
   const progressRatio =
     typeof smoothWaveRatio === 'number'
       ? smoothWaveRatio
       : payload.isActive
-        ? Math.min(0.88, Math.max(0.22, (payload.progressPercent || 28) / 100))
-        : 0.28;
+        ? Math.min(0.9, Math.max(0.18, (payload.progressPercent || 25) / 100))
+        : 0.22;
 
   const carX = barLeft + Math.round(barWidth * progressRatio);
-  const fillWidth = Math.max(14, carX - barLeft);
+  const fillWidth = Math.max(18, carX - barLeft);
 
   const barGrad = ctx.createLinearGradient(barLeft, barY, carX, barY);
   barGrad.addColorStop(0, '#0033FF');
-  barGrad.addColorStop(0.55, '#38bdf8');
+  barGrad.addColorStop(0.6, '#38bdf8');
   barGrad.addColorStop(1, '#ffffff');
   ctx.fillStyle = barGrad;
-  drawRoundedRect(ctx, barLeft, barY - 3.5, fillWidth, 7, 3.5);
+  drawRoundedRect(ctx, barLeft, barY - 5, fillWidth, 10, 5);
+  ctx.fill();
+
+  // Punto inicial y punto meta
+  ctx.beginPath();
+  ctx.arc(barLeft, barY, 7, 0, Math.PI * 2);
+  ctx.fillStyle = '#38bdf8';
   ctx.fill();
 
   ctx.beginPath();
-  ctx.arc(barRight, barY, 9, 0, Math.PI * 2);
-  ctx.fillStyle = '#6b7280';
+  ctx.arc(barRight, barY, 10, 0, Math.PI * 2);
+  ctx.fillStyle = '#334155';
   ctx.fill();
 
   ctx.beginPath();
-  ctx.arc(barRight, barY, 3.5, 0, Math.PI * 2);
-  ctx.fillStyle = '#111318';
+  ctx.arc(barRight, barY, 4.5, 0, Math.PI * 2);
+  ctx.fillStyle = '#38bdf8';
   ctx.fill();
 
   drawTopDownCar(ctx, carX, barY, Boolean(payload.isActive));
+
+  // Etiquetas debajo de la barra
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#64748b';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText('INICIO ESTANCIA', barLeft, cardY + 262);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText(
+    endTimeStr ? `FIN PROGRAMADO: ${endTimeStr}` : `META: ${payload.scheduledHours || 1} HORA(S)`,
+    barRight,
+    cardY + 262
+  );
 }
 
 export function buildUberCardDataUrlSync(payload) {
   if (typeof document === 'undefined') return undefined;
   try {
-    const width = 640;
-    const height = 236;
+    const width = 800;
+    const height = 292;
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
