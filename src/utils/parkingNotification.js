@@ -459,7 +459,10 @@ export const buildParkingNotificationPayload = ({
     const title = `🟢 Parqu En Vivo • ${clockStr} (Restan ${remainingMinutes} min)`;
     const body = `${plates} • Cobro: $${cost} MXN${endTimeStr ? ` • Vence ${endTimeStr}` : ''} • ${zoneName}`;
 
+    const sessionId = activeSession.id || activeSession.startTime || 'active-session';
+
     return {
+      sessionId,
       title,
       body,
       clockStr,
@@ -495,6 +498,7 @@ export const buildParkingNotificationPayload = ({
   const body = `${plates} • ${carDesc} • Listo para estacionar`;
 
   return {
+    sessionId: null,
     title,
     body,
     clockStr: '00:00:00',
@@ -531,6 +535,7 @@ export const resetNotificationExitLock = () => {
   if (typeof window === 'undefined') return;
   try {
     sessionStorage.removeItem('parqu_single_exit_notify_ts');
+    localStorage.removeItem('parqu_notified_session_id');
     const targetWorker =
       ('serviceWorker' in navigator && navigator.serviceWorker.controller) ||
       (cachedSwRegistration && cachedSwRegistration.active);
@@ -580,12 +585,12 @@ export const notifyAppForegrounded = () => {
   }
 };
 
-// Dispara ESTRICTAMENTE 1 sola notificación al salir de la app ÚNICAMENTE cuando el parquímetro está activo
+// Dispara ESTRICTAMENTE 1 sola notificación por estancia de parquímetro activa
 export const dispatchBackgroundNotificationImmediate = (contextData) => {
   const payload = buildParkingNotificationPayload(contextData);
 
   // Solo desplegar notificación si el parquímetro está ACTIVO
-  if (!payload.isActive) {
+  if (!payload.isActive || !payload.sessionId) {
     return { sent: false, payload };
   }
 
@@ -597,41 +602,25 @@ export const dispatchBackgroundNotificationImmediate = (contextData) => {
     return { sent: false, payload };
   }
 
+  // Candado permanente por sessionId: 1 estancia iniciada = 1 sola notificación
+  try {
+    const alreadyNotifiedSession = localStorage.getItem('parqu_notified_session_id');
+    if (alreadyNotifiedSession === payload.sessionId) {
+      return { sent: false, payload };
+    }
+    localStorage.setItem('parqu_notified_session_id', payload.sessionId);
+  } catch {
+    // ignore
+  }
+
   const now = Date.now();
-  if (now - lastClientDispatchAt < 12000) {
+  if (now - lastClientDispatchAt < 25000) {
     return { sent: false, payload };
   }
   lastClientDispatchAt = now;
 
   const cardImage = buildUberCardDataUrlSync(payload);
   const actions = getSupportedNotificationActions(payload.isActive);
-
-  // Respaldo Web Push keepalive por si iOS/Android congela el hilo JS al cerrar la app
-  try {
-    const savedSubStr = localStorage.getItem('parqu_web_push_subscription_v2');
-    if (savedSubStr) {
-      const subJson = JSON.parse(savedSubStr);
-      if (subJson && subJson.endpoint) {
-        fetch('/api/push', {
-          method: 'POST',
-          keepalive: true,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            subscription: subJson,
-            delayMs: 0,
-            payload: {
-              title: payload.title,
-              body: payload.body,
-              priority: 'high',
-              data: payload,
-            },
-          }),
-        }).catch(() => {});
-      }
-    }
-  } catch {
-    // ignore
-  }
 
   try {
     const targetWorker =

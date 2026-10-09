@@ -10,17 +10,13 @@ import {
   notifyAppForegrounded,
   dispatchBackgroundNotificationImmediate,
   subscribeToWebPush,
-  resetNotificationExitLock,
 } from '../utils/parkingNotification';
-
-const EXIT_LOCK_STORAGE_KEY = 'parqu_single_exit_notify_ts';
-const MIN_COOLDOWN_MS = 12000;
 
 /**
  * ExitNotificationManager
- * - Cuando le das a "Iniciar Parquímetro" y cierras o sales de la aplicación,
- *   despliega ESTRICTAMENTE 1 notificación dándole seguimiento a tu parquímetro en vivo.
- * - Si el parquímetro NO está activo, no envía notificaciones al salir.
+ * - 1 Estancia de Parquímetro = ESTRICTAMENTE 1 SOLA Notificación al salir de la app.
+ * - Bloqueado por sessionId en memoria, localStorage y Service Worker.
+ * - Jamás se rearma por toques ni por parpadeos de la barra de notificaciones.
  */
 export const ExitNotificationManager = ({ onOpenNFC, onNavigateToMeter }) => {
   const {
@@ -48,10 +44,8 @@ export const ExitNotificationManager = ({ onOpenNFC, onNavigateToMeter }) => {
     transactions,
   });
 
-  const hasSentForCurrentSessionExitRef = useRef(false);
-  const lastExitTimestampRef = useRef(0);
+  const notifiedSessionIdRef = useRef(null);
   const warnedTenMinForSessionRef = useRef(null);
-  const lastActiveSessionIdRef = useRef(null);
 
   // Sincronizar el estado en memoria del Service Worker
   useEffect(() => {
@@ -59,16 +53,8 @@ export const ExitNotificationManager = ({ onOpenNFC, onNavigateToMeter }) => {
     latestContextRef.current = ctx;
     syncParquStateToServiceWorker(ctx);
 
-    // Si acaba de iniciar un nuevo parquímetro, liberar el candado para que al salir de la app despliegue la notificación de inmediato
-    const currentId = activeSession ? activeSession.id || activeSession.startTime : null;
-    if (currentId && currentId !== lastActiveSessionIdRef.current) {
-      lastActiveSessionIdRef.current = currentId;
-      hasSentForCurrentSessionExitRef.current = false;
-      lastExitTimestampRef.current = 0;
-      resetNotificationExitLock();
-      subscribeToWebPush().catch(() => {});
-    } else if (!currentId) {
-      lastActiveSessionIdRef.current = null;
+    if (!activeSession) {
+      notifiedSessionIdRef.current = null;
     }
   }, [owner, vehicle, card, autoPay, activeSession, transactions]);
 
@@ -90,7 +76,7 @@ export const ExitNotificationManager = ({ onOpenNFC, onNavigateToMeter }) => {
     return () => window.removeEventListener('parqu:open-push-modal', handleOpenCustomModal);
   }, []);
 
-  // Alerta automática cuando falten <= 10 minutos de la estancia activa
+  // Alerta automática dentro de la app cuando falten <= 10 minutos de la estancia activa
   useEffect(() => {
     if (!activeSession || !activeSession.startTime) return;
     const sessionKey = activeSession.id || activeSession.startTime;
@@ -181,7 +167,7 @@ export const ExitNotificationManager = ({ onOpenNFC, onNavigateToMeter }) => {
     onOpenNFC,
   ]);
 
-  // Inicializar el Service Worker (parqu-sw-v2.js) y suscripción Web Push (VAPID / FCM)
+  // Inicializar el Service Worker (parqu-sw-v2.js) y suscripción Web Push
   useEffect(() => {
     registerParquServiceWorker();
 
@@ -203,68 +189,28 @@ export const ExitNotificationManager = ({ onOpenNFC, onNavigateToMeter }) => {
     };
   }, []);
 
-  // Al salir o cerrar la app con el parquímetro iniciado: desplegar 1 sola notificación de seguimiento en vivo
+  // 1 SOLA notificación por sesión de parquímetro activa al salir de la app
   useEffect(() => {
-    const readLastSavedTs = () => {
-      try {
-        return Number(sessionStorage.getItem(EXIT_LOCK_STORAGE_KEY) || 0);
-      } catch {
-        return 0;
-      }
-    };
-
-    const writeLastSavedTs = (ts) => {
-      try {
-        sessionStorage.setItem(EXIT_LOCK_STORAGE_KEY, String(ts));
-      } catch {
-        // ignore
-      }
-    };
-
-    const triggerLiveTrackingNotificationOnExit = () => {
-      // ÚNICAMENTE si el usuario ya le dio a "Iniciar Parquímetro"
-      if (!latestContextRef.current.activeSession) return;
-      if (hasSentForCurrentSessionExitRef.current) return;
-
-      const now = Date.now();
-      const lastTs = Math.max(lastExitTimestampRef.current, readLastSavedTs());
-      if (now - lastTs < MIN_COOLDOWN_MS) return;
-
-      hasSentForCurrentSessionExitRef.current = true;
-      lastExitTimestampRef.current = now;
-      writeLastSavedTs(now);
-
-      dispatchBackgroundNotificationImmediate(latestContextRef.current);
-    };
-
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        triggerLiveTrackingNotificationOnExit();
+        const currentSession = latestContextRef.current.activeSession;
+        if (!currentSession) return;
+
+        const sessionKey = currentSession.id || currentSession.startTime;
+        if (!sessionKey) return;
+
+        if (notifiedSessionIdRef.current === sessionKey) return;
+        notifiedSessionIdRef.current = sessionKey;
+
+        dispatchBackgroundNotificationImmediate(latestContextRef.current);
       } else if (document.visibilityState === 'visible') {
         notifyAppForegrounded();
       }
     };
 
-    const handlePageHide = () => {
-      triggerLiveTrackingNotificationOnExit();
-    };
-
-    const handleActiveUserReturn = () => {
-      if (document.visibilityState !== 'visible') return;
-      const now = Date.now();
-      const lastTs = Math.max(lastExitTimestampRef.current, readLastSavedTs());
-      if (now - lastTs >= MIN_COOLDOWN_MS) {
-        hasSentForCurrentSessionExitRef.current = false;
-      }
-    };
-
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('pagehide', handlePageHide);
-    window.addEventListener('pointerdown', handleActiveUserReturn, { passive: true });
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('pagehide', handlePageHide);
-      window.removeEventListener('pointerdown', handleActiveUserReturn);
     };
   }, []);
 
