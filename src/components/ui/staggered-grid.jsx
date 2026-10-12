@@ -1,6 +1,7 @@
 import React, { useRef, memo } from 'react';
 import HeroText from './hero-shutter-text';
 import CloudSky from './cloud-sky';
+import { ArrowRight, Wifi } from 'lucide-react';
 
 export const StaggeredGrid = memo(function StaggeredGrid({
   centerText = "BIENVENIDOS A PARQU",
@@ -10,69 +11,105 @@ export const StaggeredGrid = memo(function StaggeredGrid({
   const containerRef = useRef(null);
 
   return (
-    <div ref={containerRef} className={`relative w-full overflow-hidden text-white ${className}`}>
+    <div ref={containerRef} className={`relative w-full overflow-hidden bg-[#0a0a0d] text-white ${className}`}>
       
-      {/* ═══ 1. HERO SECTION CON ORIGINKIT CLOUD-SKY (FONDO DE NUBES OFICIAL) Y HERO SHUTTER TEXT ═══ */}
-      <section className="relative z-10 min-h-[390px] sm:min-h-[600px] flex flex-col items-center justify-center text-center px-3 sm:px-4 pt-20 sm:pt-28 pb-12 sm:pb-28 overflow-hidden">
+      {/* ═══ 1. HERO SECTION CON RADIAL VIOLET GLOW (#8b5cf6) Y ESTÉTICA KAGE STUDIO ═══ */}
+      <section className="relative z-10 min-h-[430px] sm:min-h-[620px] flex flex-col items-center justify-center text-center px-3 sm:px-4 pt-14 sm:pt-24 pb-14 sm:pb-24 overflow-hidden">
         
-        {/* Fondo Animado WebGL Cloud-Sky de OriginKit - 100% Fluido e Interactivo */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-auto">
+        {/* Fondo WebGL Cloud-Sky adaptado al lienzo #0a0a0d y acento violeta #8b5cf6 */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-auto opacity-55">
           <CloudSky 
-            background="#01033E"
-            baseColor="#0033FF"
-            accentColor="#D4D6E6"
-            density={85}
-            speed={45}
+            background="#0a0a0d"
+            baseColor="#8b5cf6"
+            accentColor="#a78bfa"
+            density={72}
+            speed={36}
             size={125}
-            clouds={{ softness: 85, shadow: 80, cirrus: 40 }}
-            sun={{ x: 78, y: 90, glow: "rgba(128, 125, 254, 0.85)" }}
-            pointer={{ parallax: 130, wind: 100, damping: 25 }}
+            clouds={{ softness: 88, shadow: 85, cirrus: 35 }}
+            sun={{ x: 50, y: 78, glow: "rgba(139, 92, 246, 0.75)" }}
+            pointer={{ parallax: 110, wind: 85, damping: 25 }}
             pauseWhenLoading={true}
             className="w-full h-full"
           />
-          {/* Capas sutiles de sombreado y transición para contraste perfecto */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#01033E]/20 via-transparent to-[#01033E]/95 pointer-events-none" />
-          <div className="absolute inset-x-0 bottom-0 h-24 sm:h-32 bg-gradient-to-t from-[#01033E] to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0d]/50 via-transparent to-[#0a0a0d] pointer-events-none" />
         </div>
 
-        {/* Badge Superior */}
-        <div className="relative z-10 mb-2.5 sm:mb-4 inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#01033E]/55 backdrop-blur-sm border-0 text-xs font-mono text-[#D4D6E6] shadow-md">
-          <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-          <span className="tracking-[0.08em] sm:tracking-[0.2em] uppercase font-bold text-[8px] sm:text-[11px]">SISTEMA INTELIGENTE DE PARQUÍMETROS</span>
-          <span className="text-[#807DFE] hidden xs:inline">•</span>
-          <span className="text-[9px] sm:text-[10px] font-bold text-[#807DFE] hidden xs:inline">2026 OFFICIAL</span>
+        {/* Single Radial Violet Glow reserved for the Hero */}
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[560px] sm:w-[860px] h-[360px] sm:h-[520px] pointer-events-none z-0"
+          style={{
+            background: 'radial-gradient(ellipse at center, rgba(139, 92, 246, 0.24) 0%, rgba(139, 92, 246, 0.07) 45%, transparent 72%)',
+          }}
+        />
+
+        {/* Monospace Eyebrow Pill */}
+        <div className="relative z-10 mb-4 sm:mb-5 inline-flex items-center gap-2 px-3 sm:px-3.5 py-1 rounded-full bg-[#0d0d11]/90 border border-white/[0.08] text-[11px] sm:text-xs font-mono text-[#a1a1aa]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6] shrink-0" />
+          <span className="tracking-[0.14em] uppercase font-medium text-[#e4e4e7] text-[10px] sm:text-[11px]">
+            SISTEMA INTELIGENTE DE PARQUÍMETROS
+          </span>
+          <span className="text-white/20 hidden xs:inline">•</span>
+          <span className="text-[10px] sm:text-[11px] font-semibold text-[#a78bfa] hidden xs:inline tracking-wider">
+            2026 STUDIO
+          </span>
         </div>
 
-        {/* Hero Text Shutter */}
-        <div className="relative z-10 max-w-5xl mx-auto w-full">
+        {/* Display Headline with -2% tracking */}
+        <div className="relative z-10 max-w-5xl mx-auto w-full tracking-[-0.02em]">
           <HeroText
             text={centerText}
             className="bg-transparent"
           />
         </div>
 
-        {/* Subtítulo Hero */}
-        <p className="relative z-10 mt-2 sm:mt-4 text-[11px] sm:text-sm md:text-base text-[#D4D6E6] font-sans max-w-2xl mx-auto leading-snug sm:leading-relaxed px-2 sm:px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
-          La plataforma metropolitana que elimina las filas y las monedas. Autocobro continuo a $6.00/hr con tecnología NFC de <strong className="text-white">SSS.Solutions</strong>.
+        {/* Muted Subcopy (#a1a1aa) */}
+        <p className="relative z-10 mt-3 sm:mt-4 text-xs sm:text-base text-[#a1a1aa] font-sans max-w-2xl mx-auto leading-relaxed px-2 sm:px-4">
+          La plataforma metropolitana que elimina las filas y las monedas. Autocobro continuo a <span className="text-white font-mono">$6.00/hr</span> con verificación NFC y telemetría en vivo de <strong className="text-white font-semibold">SSS.Solutions</strong>.
         </p>
 
-        {/* Barra de Estadísticas Clave */}
-        <div className="relative z-10 mt-5 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 max-w-4xl w-full mx-auto px-1 sm:px-4">
-          <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
-            <div className="text-sm sm:text-xl font-black text-white font-mono">$6.00</div>
-            <div className="text-[8px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">MXN por Hora</div>
+        {/* Two CTAs: Filled Violet Primary + Ghost Hairline Secondary */}
+        <div className="relative z-10 mt-6 sm:mt-7 flex flex-wrap items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => onSelectFeature && onSelectFeature('dashboard')}
+            className="h-10 px-4 rounded-lg bg-[#8b5cf6] hover:bg-[#9b6ff7] text-white text-xs sm:text-[13px] font-semibold transition-all flex items-center gap-2 cursor-pointer border-0 shadow-[0_0_24px_rgba(139,92,246,0.35)]"
+          >
+            <span>Iniciar Parquímetro</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onSelectFeature && onSelectFeature('autopay')}
+            className="h-10 px-4 rounded-lg bg-transparent border border-white/[0.08] hover:border-white/[0.16] hover:bg-white/[0.03] text-[#e4e4e7] hover:text-white text-xs sm:text-[13px] font-medium transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <Wifi className="w-3.5 h-3.5 rotate-90 text-[#a78bfa]" />
+            <span>Configurar Autocobro</span>
+          </button>
+        </div>
+
+        {/* Small Muted Platform / Compatibility Note */}
+        <div className="relative z-10 mt-3 text-[11px] font-mono text-[#71717a] tracking-wide">
+          Compatible con iOS, Android, Web Push (VAPID) y terminales NFC municipales
+        </div>
+
+        {/* Barra de Estadísticas Clave con bordes hairline 1px white/8% */}
+        <div className="relative z-10 mt-7 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 max-w-4xl w-full mx-auto px-1 sm:px-4">
+          <div className="p-3 sm:p-4 rounded-xl bg-[linear-gradient(180deg,rgba(255,255,255,0.03)_0%,rgba(255,255,255,0.008)_100%)] bg-[#0d0d11] border border-white/[0.08] hover:border-white/[0.15] text-center transition-colors">
+            <div className="text-sm sm:text-xl font-bold text-white font-mono">$6.00</div>
+            <div className="text-[9px] sm:text-[10px] text-[#a1a1aa] font-mono uppercase tracking-wider mt-0.5">MXN por Hora</div>
           </div>
-          <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
-            <div className="text-sm sm:text-xl font-black text-emerald-400 font-mono">NFC Activo</div>
-            <div className="text-[8px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">Sin Contacto</div>
+          <div className="p-3 sm:p-4 rounded-xl bg-[linear-gradient(180deg,rgba(255,255,255,0.03)_0%,rgba(255,255,255,0.008)_100%)] bg-[#0d0d11] border border-white/[0.08] hover:border-white/[0.15] text-center transition-colors">
+            <div className="text-sm sm:text-xl font-bold text-[#a78bfa] font-mono">NFC Activo</div>
+            <div className="text-[9px] sm:text-[10px] text-[#a1a1aa] font-mono uppercase tracking-wider mt-0.5">Sin Contacto</div>
           </div>
-          <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
-            <div className="text-sm sm:text-xl font-black text-[#807DFE] font-mono">AES-256</div>
-            <div className="text-[8px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">Cifrado Bancario</div>
+          <div className="p-3 sm:p-4 rounded-xl bg-[linear-gradient(180deg,rgba(255,255,255,0.03)_0%,rgba(255,255,255,0.008)_100%)] bg-[#0d0d11] border border-white/[0.08] hover:border-white/[0.15] text-center transition-colors">
+            <div className="text-sm sm:text-xl font-bold text-white font-mono">AES-256</div>
+            <div className="text-[9px] sm:text-[10px] text-[#a1a1aa] font-mono uppercase tracking-wider mt-0.5">Cifrado Bancario</div>
           </div>
-          <div className="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-[#01033E]/55 hover:bg-[#01033E]/70 backdrop-blur-sm border-0 shadow-lg text-center transition">
-            <div className="text-sm sm:text-xl font-black text-white font-mono">100% Digital</div>
-            <div className="text-[8px] sm:text-[10px] text-[#D4D6E6] font-mono uppercase tracking-wider">Cero Monedas</div>
+          <div className="p-3 sm:p-4 rounded-xl bg-[linear-gradient(180deg,rgba(255,255,255,0.03)_0%,rgba(255,255,255,0.008)_100%)] bg-[#0d0d11] border border-white/[0.08] hover:border-white/[0.15] text-center transition-colors">
+            <div className="text-sm sm:text-xl font-bold text-[#a78bfa] font-mono">100% Digital</div>
+            <div className="text-[9px] sm:text-[10px] text-[#a1a1aa] font-mono uppercase tracking-wider mt-0.5">Cero Monedas</div>
           </div>
         </div>
 

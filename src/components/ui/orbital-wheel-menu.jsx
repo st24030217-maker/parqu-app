@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParking } from '../../context/ParkingContext';
 import { sileo } from 'sileo';
 import { OptionWheel } from './OptionWheel';
@@ -8,7 +8,6 @@ import { triggerHaptic } from '../../utils/haptics';
 import {
   Play,
   Square,
-  RefreshCw,
   Zap,
   Wifi,
   MapPin,
@@ -20,14 +19,10 @@ import {
   ArrowDown,
   Check,
   Copy,
-  ExternalLink,
-  Sliders,
-  ShieldCheck,
   Sparkles,
   Volume2,
   VolumeX,
 } from 'lucide-react';
-import { PlugConnectedIcon } from '../icons';
 import { isAudioEnabled, setAudioEnabled, playMovementNote } from '../../utils/wheelAudio';
 
 function formatTimeFromSeconds(totalSecs = 0) {
@@ -161,7 +156,6 @@ export const OrbitalWheelMenu = ({
     triggerHaptic();
     onSelectTab?.(targetTab);
     
-    // Desplazamiento fluido hacia abajo al sistema interactivo
     setTimeout(() => {
       const targetEl = document.getElementById('system-tabs-container') || document.getElementById('interactive-system');
       if (targetEl) {
@@ -246,50 +240,49 @@ export const OrbitalWheelMenu = ({
   return (
     <section 
       aria-label="Menú 3D de navegación y acceso al sistema"
-      className={`w-full bg-transparent border-0 shadow-none relative py-3 sm:py-6 font-sans ${className}`}
+      className={`w-full bg-[linear-gradient(180deg,rgba(255,255,255,0.025)_0%,rgba(255,255,255,0.005)_100%)] bg-[#0d0d11] border border-white/[0.08] rounded-2xl relative p-4 sm:p-8 font-sans ${className}`}
     >
-      {/* ═══ ENCABEZADO MINIMALISTA TOTALMENTE TRANSPARENTE ═══ */}
-      <div className="flex items-center justify-between gap-4 mb-2 sm:mb-4">
-        {/* Toggle de música y efectos sonoros interactivos */}
+      {/* ═══ ENCABEZADO MINIMALISTA KAGE STUDIO ═══ */}
+      <div className="flex items-center justify-between gap-4 mb-4 sm:mb-6">
         <button
           type="button"
           aria-label={soundActive ? 'Silenciar música de giros' : 'Activar música de giros'}
           onClick={handleToggleSound}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 hover:bg-slate-200 text-slate-700 hover:text-black transition-all text-[11px] font-sans font-semibold cursor-pointer shadow-sm active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#e4e4e7] hover:text-white transition-all text-[11px] font-mono cursor-pointer active:scale-95"
           title={soundActive ? 'Música interactiva activa al girar' : 'Activar música en movimientos'}
         >
           {soundActive ? (
             <>
-              <Volume2 size={13} className="text-black" />
-              <span>Música Activa</span>
+              <Volume2 size={13} className="text-[#a78bfa]" />
+              <span>AUDIO ACTIVO</span>
             </>
           ) : (
             <>
-              <VolumeX size={13} className="text-slate-400" />
-              <span className="text-slate-500">Silenciado</span>
+              <VolumeX size={13} className="text-[#71717a]" />
+              <span className="text-[#a1a1aa]">SILENCIADO</span>
             </>
           )}
         </button>
 
-        <div className="flex items-center gap-1.5 text-xs font-mono text-slate-400">
-          <span className="font-bold text-slate-900">0{selectedIndex + 1}</span>
+        <div className="flex items-center gap-1.5 text-xs font-mono text-[#71717a]">
+          <span className="font-bold text-[#a78bfa]">0{selectedIndex + 1}</span>
           <span>/</span>
           <span>0{MENU_ITEMS.length}</span>
         </div>
       </div>
 
-      {/* ═══ ESCENARIO PRINCIPAL: CONTENIDO TRANSPARENTE + OPTIONWHEEL 3D ═══ */}
+      {/* ═══ ESCENARIO PRINCIPAL: DETALLES + OPTIONWHEEL 3D ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-14 items-center">
         
-        {/* ═══ COLUMNA IZQUIERDA: DETALLES DE LA FUNCIÓN (TOTALMENTE TRANSPARENTE, SIN BORDES) ═══ */}
+        {/* ═══ COLUMNA IZQUIERDA: DETALLES DE LA FUNCIÓN ═══ */}
         <div className="lg:col-span-5 flex flex-col justify-center space-y-4 sm:space-y-5">
           
           {/* Categoría y Badge de Estado */}
           <div className="flex items-center gap-2.5">
-            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-[10px] font-mono font-bold tracking-widest uppercase text-slate-700 border-0 shadow-sm">
+            <span className="px-2.5 py-0.5 rounded-full bg-[#8b5cf6]/15 border border-[#8b5cf6]/30 text-[10px] font-mono font-semibold tracking-[0.14em] uppercase text-[#a78bfa]">
               {currentItem.category}
             </span>
-            <span className="text-[10px] font-mono font-bold text-slate-400">
+            <span className="text-[10px] font-mono font-semibold text-[#a1a1aa]">
               • {currentItem.badge}
             </span>
           </div>
@@ -297,32 +290,32 @@ export const OrbitalWheelMenu = ({
           {/* Icono y Título */}
           <div>
             <div className="flex items-center gap-2.5 sm:gap-3 mb-1.5">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-black text-white flex items-center justify-center border-0 shadow-md shrink-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#8b5cf6] text-white flex items-center justify-center border border-white/[0.12] shrink-0 shadow-[0_0_20px_rgba(139,92,246,0.35)]">
                 {CurrentIcon && <CurrentIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />}
               </div>
-              <h4 className="text-xl sm:text-3xl font-black text-slate-950 font-sans tracking-tight">
+              <h4 className="text-xl sm:text-3xl font-bold text-white font-sans tracking-[-0.02em]">
                 {currentItem.label}
               </h4>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed font-sans max-w-md">
+            <p className="text-xs sm:text-sm text-[#a1a1aa] leading-relaxed font-sans max-w-md">
               {currentItem.description}
             </p>
           </div>
 
-          {/* Fila de Datos en Vivo (Limpia, con divisores sutiles) */}
-          <div className="py-2 sm:py-3 font-sans text-xs border-0">
+          {/* Fila de Datos en Vivo (Superficie #0a0a0d con borde hairline) */}
+          <div className="p-3 sm:p-3.5 rounded-xl bg-[#0a0a0d] border border-white/[0.08] font-sans text-xs">
             {currentItem.id === 'dashboard' && (
               activeSession ? (
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-[10px] text-slate-400 font-mono uppercase">Tiempo de Estancia</div>
-                    <div className="font-mono font-black text-slate-950 text-base">
+                    <div className="text-[10px] text-[#71717a] font-mono uppercase">Tiempo de Estancia</div>
+                    <div className="font-mono font-bold text-white text-base">
                       {formatTimeFromSeconds(activeSession.secondsElapsed)}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[10px] text-slate-400 font-mono uppercase">Costo Acumulado</div>
-                    <div className="font-mono font-black text-emerald-600 text-base">
+                    <div className="text-[10px] text-[#71717a] font-mono uppercase">Costo Acumulado</div>
+                    <div className="font-mono font-bold text-[#a78bfa] text-base">
                       ${activeSession.currentCost.toFixed(2)} MXN
                     </div>
                   </div>
@@ -330,10 +323,10 @@ export const OrbitalWheelMenu = ({
               ) : (
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-[10px] text-slate-400 font-mono uppercase">Estatus Parquímetro</div>
-                    <div className="font-bold text-slate-900">Listo para Estacionar</div>
+                    <div className="text-[10px] text-[#71717a] font-mono uppercase">Estatus Parquímetro</div>
+                    <div className="font-semibold text-white">Listo para Estacionar</div>
                   </div>
-                  <span className="font-mono text-[11px] font-bold text-slate-500">$6.00/hr</span>
+                  <span className="font-mono text-[11px] font-bold text-[#a78bfa]">$6.00/hr</span>
                 </div>
               )
             )}
@@ -341,12 +334,12 @@ export const OrbitalWheelMenu = ({
             {currentItem.id === 'recharge' && (
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] text-slate-400 font-mono uppercase">Saldo Disponible</div>
-                  <div className="font-mono font-black text-slate-950 text-base">
+                  <div className="text-[10px] text-[#71717a] font-mono uppercase">Saldo Disponible</div>
+                  <div className="font-mono font-bold text-white text-base">
                     ${Number(card?.balance ?? 0).toFixed(2)} MXN
                   </div>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#8b5cf6]/15 text-[#a78bfa] border border-[#8b5cf6]/30 font-semibold">
                   ACTIVO
                 </span>
               </div>
@@ -355,13 +348,15 @@ export const OrbitalWheelMenu = ({
             {currentItem.id === 'autopay' && (
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] text-slate-400 font-mono uppercase">Estado Autocobro</div>
-                  <div className="font-bold text-slate-900">
+                  <div className="text-[10px] text-[#71717a] font-mono uppercase">Estado Autocobro</div>
+                  <div className="font-semibold text-white">
                     {autoPay?.enabled ? 'Débito Activo' : 'Modalidad Pausada'}
                   </div>
                 </div>
-                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${
-                  autoPay?.enabled ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-semibold border ${
+                  autoPay?.enabled
+                    ? 'bg-[#8b5cf6]/15 text-[#a78bfa] border-[#8b5cf6]/30'
+                    : 'bg-white/[0.04] text-[#a1a1aa] border-white/[0.08]'
                 }`}>
                   {autoPay?.enabled ? 'VIGENTE' : 'PAUSADO'}
                 </span>
@@ -371,10 +366,10 @@ export const OrbitalWheelMenu = ({
             {currentItem.id === 'qr-credential' && (
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] text-slate-400 font-mono uppercase">Placas Asignadas</div>
-                  <div className="font-mono font-bold text-slate-900">{vehicle?.plates || 'JNZ-4821'}</div>
+                  <div className="text-[10px] text-[#71717a] font-mono uppercase">Placas Asignadas</div>
+                  <div className="font-mono font-bold text-white">{vehicle?.plates || 'JNZ-4821'}</div>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 font-bold">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[#e4e4e7] font-semibold">
                   NFC AES-256
                 </span>
               </div>
@@ -383,11 +378,11 @@ export const OrbitalWheelMenu = ({
             {currentItem.id === 'parking-map' && (
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] text-slate-400 font-mono uppercase">Ubicación GPS</div>
-                  <div className="font-bold text-slate-900">Centro Histórico • Zona A</div>
+                  <div className="text-[10px] text-[#71717a] font-mono uppercase">Ubicación GPS</div>
+                  <div className="font-semibold text-white">Centro Histórico • Zona A</div>
                 </div>
-                <span className="text-[10px] font-mono text-emerald-600 font-bold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] font-mono text-[#a78bfa] font-semibold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6] animate-pulse" />
                   EN VIVO
                 </span>
               </div>
@@ -396,12 +391,12 @@ export const OrbitalWheelMenu = ({
             {currentItem.id === 'vehicle' && (
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] text-slate-400 font-mono uppercase">Vehículo Registrado</div>
-                  <div className="font-bold text-slate-900">
+                  <div className="text-[10px] text-[#71717a] font-mono uppercase">Vehículo Registrado</div>
+                  <div className="font-semibold text-white">
                     {vehicle?.model || 'Nissan Versa'} ({vehicle?.plates || 'JNZ-4821'})
                   </div>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 font-bold">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[#e4e4e7] font-semibold">
                   VALIDADO
                 </span>
               </div>
@@ -410,12 +405,12 @@ export const OrbitalWheelMenu = ({
             {currentItem.id === 'history' && (
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] text-slate-400 font-mono uppercase">Último Movimiento</div>
-                  <div className="font-bold text-slate-900">
+                  <div className="text-[10px] text-[#71717a] font-mono uppercase">Último Movimiento</div>
+                  <div className="font-semibold text-white">
                     {transactions?.[0]?.description || 'Recarga en Oxxo Pay'}
                   </div>
                 </div>
-                <span className="font-mono font-bold text-slate-950">
+                <span className="font-mono font-bold text-[#a78bfa]">
                   {transactions?.[0] ? `-$${transactions[0].amount.toFixed(2)}` : '$0.00'}
                 </span>
               </div>
@@ -424,25 +419,25 @@ export const OrbitalWheelMenu = ({
 
           {/* Acciones principales y contextuales */}
           <div className="space-y-2.5 pt-1">
-            {/* Botón Principal: Abrir en el Sistema con Scroll */}
+            {/* Botón Principal: Violeta Kage #8b5cf6 */}
             <button
               type="button"
               aria-label={`Abrir ${currentItem.label} y descender al sistema`}
               onClick={() => handleNavigateAndScroll(currentItem.actionTarget)}
-              className="w-full sm:w-auto px-5 py-2 sm:px-6 sm:py-2.5 rounded-full bg-black hover:bg-neutral-800 text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 shadow-md transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+              className="w-full sm:w-auto h-10 px-5 rounded-lg bg-[#8b5cf6] hover:bg-[#9b6ff7] text-white font-sans font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]"
             >
               <span>Abrir en el Sistema</span>
               <ArrowDown className="w-3.5 h-3.5 text-white animate-bounce" />
             </button>
 
-            {/* Acciones secundarias transparentes / pills sutiles */}
+            {/* Acciones secundarias con borde hairline */}
             <div className="flex items-center gap-2 pt-1">
               {currentItem.id === 'dashboard' && (
                 activeSession ? (
                   <button
                     type="button"
                     onClick={handleStopParking}
-                    className="py-1.5 px-3.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border-0 shadow-sm"
+                    className="py-1.5 px-3.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <Square size={12} />
                     <span>Liberar Lugar</span>
@@ -451,9 +446,9 @@ export const OrbitalWheelMenu = ({
                   <button
                     type="button"
                     onClick={handleStartParking}
-                    className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border-0 shadow-sm"
+                    className="py-1.5 px-3.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#e4e4e7] text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Play size={12} />
+                    <Play size={12} className="text-[#a78bfa]" />
                     <span>Iniciar Estancia</span>
                   </button>
                 )
@@ -466,7 +461,7 @@ export const OrbitalWheelMenu = ({
                       key={amt}
                       type="button"
                       onClick={() => handleQuickRechargeAmt(amt)}
-                      className="py-1 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-black font-mono text-xs font-bold transition cursor-pointer border-0 shadow-sm"
+                      className="py-1 px-3 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white font-mono text-xs font-semibold transition cursor-pointer"
                     >
                       +${amt}
                     </button>
@@ -474,7 +469,7 @@ export const OrbitalWheelMenu = ({
                   <button
                     type="button"
                     onClick={onOpenRecharge}
-                    className="py-1 px-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition cursor-pointer border-0 shadow-sm"
+                    className="py-1 px-3 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#a78bfa] text-xs font-semibold transition cursor-pointer"
                   >
                     Otro
                   </button>
@@ -485,9 +480,9 @@ export const OrbitalWheelMenu = ({
                 <button
                   type="button"
                   onClick={handleToggleAutoPay}
-                  className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border-0 shadow-sm"
+                  className="py-1.5 px-3.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#e4e4e7] text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Zap size={12} />
+                  <Zap size={12} className="text-[#a78bfa]" />
                   <span>{autoPay?.enabled ? 'Pausar Autocobro' : 'Activar Autocobro'}</span>
                 </button>
               )}
@@ -497,17 +492,17 @@ export const OrbitalWheelMenu = ({
                   <button
                     type="button"
                     onClick={handleCopyPlates}
-                    className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border-0 shadow-sm"
+                    className="py-1.5 px-3.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#e4e4e7] text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
                   >
-                    {copied ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                    {copied ? <Check size={12} className="text-[#a78bfa]" /> : <Copy size={12} />}
                     <span>{copied ? 'Copiado' : 'Copiar Placas'}</span>
                   </button>
                   <button
                     type="button"
                     onClick={onOpenQR}
-                    className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border-0 shadow-sm"
+                    className="py-1.5 px-3.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#e4e4e7] text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Wifi size={12} className="rotate-90" />
+                    <Wifi size={12} className="rotate-90 text-[#a78bfa]" />
                     <span>Ver NFC</span>
                   </button>
                 </div>
@@ -517,9 +512,9 @@ export const OrbitalWheelMenu = ({
                 <button
                   type="button"
                   onClick={() => handleNavigateAndScroll('dashboard')}
-                  className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border-0 shadow-sm"
+                  className="py-1.5 px-3.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#e4e4e7] text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
                 >
-                  <MapPin size={12} />
+                  <MapPin size={12} className="text-[#a78bfa]" />
                   <span>Ver Mapa en Panel</span>
                 </button>
               )}
@@ -528,9 +523,9 @@ export const OrbitalWheelMenu = ({
                 <button
                   type="button"
                   onClick={() => handleNavigateAndScroll('vehicle')}
-                  className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border-0 shadow-sm"
+                  className="py-1.5 px-3.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#e4e4e7] text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Car size={12} />
+                  <Car size={12} className="text-[#a78bfa]" />
                   <span>Editar Vehículo</span>
                 </button>
               )}
@@ -539,9 +534,9 @@ export const OrbitalWheelMenu = ({
                 <button
                   type="button"
                   onClick={() => handleNavigateAndScroll('history')}
-                  className="py-1.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border-0 shadow-sm"
+                  className="py-1.5 px-3.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#e4e4e7] text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
                 >
-                  <History size={12} />
+                  <History size={12} className="text-[#a78bfa]" />
                   <span>Ver Todos los Recibos</span>
                 </button>
               )}
@@ -550,21 +545,19 @@ export const OrbitalWheelMenu = ({
 
         </div>
 
-        {/* ═══ COLUMNA DERECHA: OPTIONWHEEL 3D TOTALMENTE TRANSPARENTE (SIN CAJAS NI BORDES) ═══ */}
+        {/* ═══ COLUMNA DERECHA: OPTIONWHEEL 3D SOBRE LIENZO OSCURO KAGE ═══ */}
         <div className="lg:col-span-7 flex flex-col items-center justify-center relative">
           
-          {/* Contenedor del OptionWheel 100% transparente sin bordes ni sombras de caja */}
           <div 
             className="w-full h-[220px] sm:h-[360px] md:h-[400px] relative bg-transparent border-0 shadow-none overflow-hidden"
           >
-            {/* Componente OptionWheel de React Bits con difuminado infinito sobre blanco */}
             <OptionWheel
               items={MENU_ITEMS}
               selectedIndex={selectedIndex}
               onChange={handleWheelChange}
               onSelect={(idx, item) => handleNavigateAndScroll(item.actionTarget)}
-              textColor="#94a3b8"
-              activeColor="#020617"
+              textColor="#71717a"
+              activeColor="#ffffff"
               side={isMobile ? 'left' : 'left'}
               fontSize={isMobile ? 1.05 : 2.0}
               spacing={isMobile ? 1.28 : 1.6}
@@ -572,7 +565,7 @@ export const OrbitalWheelMenu = ({
               tilt={isMobile ? 4.2 : 5.6}
               blur={2.8}
               fade={0.38}
-              minOpacity={0.06}
+              minOpacity={0.08}
               smoothing={45}
               inset={isMobile ? 8 : 32}
               loop={true}
@@ -584,13 +577,13 @@ export const OrbitalWheelMenu = ({
                     <span 
                       className={`inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full transition-all duration-200 ${
                         isSelected 
-                          ? 'bg-black text-white shadow-sm scale-105 sm:scale-110' 
-                          : 'bg-transparent text-slate-400'
+                          ? 'bg-[#8b5cf6] text-white shadow-[0_0_16px_rgba(139,92,246,0.5)] scale-105 sm:scale-110' 
+                          : 'bg-white/[0.04] text-[#71717a]'
                       }`}
                     >
                       {ItemIcon && <ItemIcon size={isMobile ? 12 : 16} />}
                     </span>
-                    <span className={`tracking-tight ${isSelected ? 'font-black text-slate-950' : 'font-medium'}`}>
+                    <span className={`tracking-tight ${isSelected ? 'font-bold text-white' : 'font-medium text-[#71717a]'}`}>
                       {item.label}
                     </span>
                   </span>
@@ -599,7 +592,7 @@ export const OrbitalWheelMenu = ({
             />
           </div>
 
-          {/* Controles de navegación y acceso al sistema (sin textos invasivos) */}
+          {/* Controles de navegación y acceso al sistema */}
           <div className="flex items-center justify-between w-full px-2 pt-2 text-[11px] font-sans">
             <div className="flex items-center gap-1.5">
               <button
@@ -609,7 +602,7 @@ export const OrbitalWheelMenu = ({
                   const newIdx = (selectedIndex - 1 + MENU_ITEMS.length) % MENU_ITEMS.length;
                   handleWheelChange(newIdx, MENU_ITEMS[newIdx]);
                 }}
-                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#e4e4e7] flex items-center justify-center transition-colors cursor-pointer"
                 title="Opción anterior"
               >
                 <ChevronUp size={14} />
@@ -621,7 +614,7 @@ export const OrbitalWheelMenu = ({
                   const newIdx = (selectedIndex + 1) % MENU_ITEMS.length;
                   handleWheelChange(newIdx, MENU_ITEMS[newIdx]);
                 }}
-                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#e4e4e7] flex items-center justify-center transition-colors cursor-pointer"
                 title="Opción siguiente"
               >
                 <ChevronDown size={14} />
@@ -631,10 +624,10 @@ export const OrbitalWheelMenu = ({
             <button
               type="button"
               onClick={() => handleNavigateAndScroll(currentItem.actionTarget)}
-              className="text-slate-600 hover:text-black font-bold flex items-center gap-1 cursor-pointer transition-colors"
+              className="text-[#a1a1aa] hover:text-white font-semibold flex items-center gap-1 cursor-pointer transition-colors"
             >
               <span>Descender al sistema</span>
-              <ChevronDown size={14} />
+              <ChevronDown size={14} className="text-[#a78bfa]" />
             </button>
           </div>
 
