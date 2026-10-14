@@ -40,27 +40,27 @@ const STORAGE_KEYS = {
 };
 
 const defaultVehicle = {
-  plates: 'XYZ-7842',
-  brand: 'Volkswagen',
-  model: 'Jetta Sportline',
-  color: 'Plata Metálico',
-  year: '2023',
+  plates: 'NUEVO-01',
+  brand: 'Marca Vehículo',
+  model: 'Modelo',
+  color: 'Blanco',
+  year: '2025',
   type: 'Sedán',
 };
 
 const defaultOwner = {
-  fullName: 'Sebastián Salinas',
-  email: 'sebastian.salinas@email.com',
-  phone: '55 4912 3456',
-  idNumber: 'INE-78912304',
+  fullName: 'Nuevo Conductor',
+  email: 'conductor@parqu.app',
+  phone: '55 0000 0000',
+  idNumber: 'REG-00000001',
 };
 
 const defaultCard = {
-  cardNumber: '4890 •••• •••• 9142',
-  validThru: '12/28',
+  cardNumber: '4890 •••• •••• 0001',
+  validThru: '12/29',
   status: 'ACTIVA', // 'ACTIVA' | 'EN_PARQUIMETRO' | 'BLOQUEADA'
-  balance: 320.00,
-  rfidTag: 'NFC-MX-09142-PK',
+  balance: 0.00,
+  rfidTag: 'NFC-MX-00001-PK',
   designId: 'blue', // 'blue' | 'white' | 'red'
   customLabel: 'PARQU PASS NFC',
   overlayStyle: 'glass', // 'glass' | 'light' | 'minimal'
@@ -69,54 +69,18 @@ const defaultCard = {
 const defaultAutoPay = {
   enabled: true,
   fundingSource: 'CARD', // 'CARD' (Débito/Crédito) | 'WALLET_BALANCE' (Saldo monedero)
-  cardHolder: 'Sebastián Salinas',
-  cardNumber: '•••• •••• •••• 8821',
-  bank: 'Santander Platinum Débito',
+  cardHolder: 'Nuevo Conductor',
+  cardNumber: '•••• •••• •••• 0000',
+  bank: 'Tarjeta de Débito / Crédito',
   maxLimitPerSession: 180.00,
   autoRenew: true,
   smsNotification: true,
-  authorizedAt: '2026-01-15',
+  authorizedAt: '2026-01-01',
 };
 
-const defaultTransactions = [
-  {
-    id: 'TXN-901',
-    folio: 'PQM-88A2',
-    date: new Date(Date.now() - 86400000 * 2).toISOString(),
-    zone: 'Zona Financiera (Espacio #1042)',
-    durationMinutes: 75,
-    amount: 7.50,
-    method: 'Autocobro Débito Directo (Santander •••• 8821)',
-    plate: 'XYZ-7842',
-    status: 'COMPLETADO',
-  },
-  {
-    id: 'TXN-902',
-    folio: 'PQM-34F1',
-    date: new Date(Date.now() - 86400000).toISOString(),
-    zone: 'Centro Cultural (Espacio #2055)',
-    durationMinutes: 120,
-    amount: 12.00,
-    method: 'Autocobro Débito Directo (Santander •••• 8821)',
-    plate: 'XYZ-7842',
-    status: 'COMPLETADO',
-  }
-];
+const defaultTransactions = [];
 
-const defaultPinnedLocations = [
-  {
-    id: 'PIN-101',
-    name: 'Espacio #1042 • Centro Histórico',
-    address: 'Av. Juárez y Eje Central, Cuauhtémoc',
-    lat: 19.4342,
-    lng: -99.1318,
-    date: new Date(Date.now() - 3600000 * 2.5).toISOString(),
-    plates: 'XYZ-7842',
-    notes: 'Junto al parquímetro municipal #04',
-    status: 'COMPLETADO',
-    ratePerHour: 6.00,
-  }
-];
+const defaultPinnedLocations = [];
 
 export const ParkingProvider = ({ children }) => {
   const [vehicle, setVehicle] = useState(() => {
@@ -950,6 +914,44 @@ export const ParkingProvider = ({ children }) => {
     });
   }, [vehicle, owner, card, autoPay, transactions, pinnedLocations, activeSession]);
 
+  const resetAllDataToClean = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEYS.VEHICLE);
+    localStorage.removeItem(STORAGE_KEYS.OWNER);
+    localStorage.removeItem(STORAGE_KEYS.CARD);
+    localStorage.removeItem(STORAGE_KEYS.AUTOPAY);
+    localStorage.removeItem(STORAGE_KEYS.HISTORY);
+    localStorage.removeItem(STORAGE_KEYS.PINNED_LOCATIONS);
+    localStorage.removeItem(STORAGE_KEYS.ACTIVE_SESSION);
+    localStorage.removeItem(STORAGE_KEYS.INFRACTIONS);
+    localStorage.removeItem(STORAGE_KEYS.LAST_INSPECTION);
+    setVehicle(defaultVehicle);
+    setOwner(defaultOwner);
+    setCard(defaultCard);
+    setAutoPay(defaultAutoPay);
+    setTransactions([]);
+    setPinnedLocations([]);
+    setActiveSession(null);
+    setInfractions([]);
+    setLastInspection(null);
+    setActivePinnedLocation(null);
+    setLastReceipt(null);
+    syncNowToCloud({
+      vehicle: defaultVehicle,
+      owner: defaultOwner,
+      card: defaultCard,
+      autoPay: defaultAutoPay,
+      transactions: [],
+      pinnedLocations: [],
+      activeSession: null,
+      infractions: [],
+      lastInspection: null,
+    });
+    sileo.success({
+      title: 'Sistema Restablecido',
+      description: 'Saldo en $0.00 y base de datos limpia para nuevos ingresos.',
+    });
+  }, [syncNowToCloud]);
+
   return (
     <ParkingContext.Provider
       value={{
@@ -988,6 +990,7 @@ export const ParkingProvider = ({ children }) => {
         restoreFromCloudBackup,
         exportBackupFile,
         applyBackupSnapshot,
+        resetAllDataToClean,
       }}
     >
       {children}
