@@ -110,7 +110,7 @@ export const AutoPaymentConfig = () => {
       </div>
 
       {statusMessage && (
-        <div className="mb-6 p-4 bg-neutral-900 border-0 rounded-2xl text-white text-xs font-sans font-semibold flex items-center gap-2.5 shadow-2xl">
+        <div className="mb-6 p-4 bg-[#0033FF]/20 border border-[#0033FF]/40 rounded-2xl text-white text-xs font-sans font-semibold flex items-center gap-2.5 shadow-lg backdrop-blur-md">
           <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
           <span>{statusMessage}</span>
         </div>

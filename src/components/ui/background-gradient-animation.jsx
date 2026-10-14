@@ -6,14 +6,14 @@ import { cn } from "../../lib/utils";
  * High performance fluid aurora gradient background with zero re-render overhead
  */
 export const BackgroundGradientAnimation = ({
-  gradientBackgroundStart = "rgb(5, 5, 10)",
-  gradientBackgroundEnd = "rgb(0, 0, 0)",
-  firstColor = "45, 85, 255",     // Indigo vibrante
-  secondColor = "147, 51, 234",   // Púrpura royal
-  thirdColor = "6, 182, 212",     // Cian / Turquesa
-  fourthColor = "99, 102, 241",   // Azul ultramar
-  fifthColor = "168, 85, 247",    // Violeta
-  pointerColor = "59, 130, 246",  // Azul eléctrico para cursor
+  gradientBackgroundStart = "rgb(1, 3, 62)",      // Azul Marino #01033E
+  gradientBackgroundEnd = "rgb(0, 16, 80)",       // Navy Profundo
+  firstColor = "0, 51, 255",                      // Azul Eléctrico #0033FF
+  secondColor = "128, 125, 254",                  // Periwinkle / Lavanda #807DFE
+  thirdColor = "59, 130, 246",                    // Azul Cielo
+  fourthColor = "0, 51, 255",                     // Azul Eléctrico #0033FF
+  fifthColor = "212, 214, 230",                   // Lavanda Hielo #D4D6E6
+  pointerColor = "0, 51, 255",                    // Azul Eléctrico para cursor
   size = "70%",
   blendingValue = "screen",
   children,

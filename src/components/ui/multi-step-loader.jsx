@@ -132,13 +132,13 @@ export const MultiStepLoader = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="w-full h-full fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-2xl bg-black/90 select-none"
+          className="w-full h-full fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-2xl bg-[#01033E]/95 select-none"
         >
           {/* Botón de cierre en esquina superior derecha */}
           {onClose && (
             <button
               onClick={onClose}
-              className="absolute top-6 right-6 z-30 p-2.5 rounded-full bg-neutral-900/80 border border-neutral-700 text-neutral-400 hover:text-white hover:bg-neutral-800 transition"
+              className="absolute top-6 right-6 z-30 p-2.5 rounded-full bg-[#001050]/80 border border-blue-500/30 text-blue-200 hover:text-white hover:bg-[#0033FF]/40 transition"
               title="Cerrar animación"
             >
               <X className="w-5 h-5" />
@@ -146,8 +146,8 @@ export const MultiStepLoader = ({
           )}
 
           {/* Insignia superior */}
-          <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 py-1.5 rounded-full bg-neutral-900/80 border border-neutral-700/80 text-xs font-mono text-neutral-300">
-            <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+          <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#001050]/80 border border-blue-500/30 text-xs font-mono text-[#D4D6E6]">
+            <span className="w-2 h-2 rounded-full bg-[#0033FF] animate-pulse" />
             <span className="uppercase tracking-[0.2em] font-bold text-[11px] text-white">
               SISTEMA METROPOLITANO PARQU • TELEMETRÍA
             </span>
@@ -158,7 +158,7 @@ export const MultiStepLoader = ({
           </div>
 
           {/* Máscara de gradiente sutil Aceternity */}
-          <div className="bg-gradient-to-t inset-x-0 z-20 bottom-0 bg-black/85 h-full absolute pointer-events-none [mask-image:radial-gradient(900px_at_center,transparent_35%,white)]" />
+          <div className="bg-gradient-to-t inset-x-0 z-20 bottom-0 bg-[#01033E]/85 h-full absolute pointer-events-none [mask-image:radial-gradient(900px_at_center,transparent_35%,white)]" />
         </motion.div>
       )}
     </AnimatePresence>

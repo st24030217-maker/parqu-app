@@ -148,10 +148,10 @@ export const LiquidMetalButton = forwardRef(
           <div
             className={cn(
               "relative z-10 rounded-full flex items-center justify-center font-mono font-bold tracking-wide",
-              "bg-black text-white",
+              "bg-[#0033FF] text-white shadow-lg shadow-blue-500/25",
               "border border-white/20 group-hover:border-white/50",
               "transition-all duration-200",
-              "group-hover:bg-neutral-950",
+              "group-hover:bg-[#0026cc]",
               sizeStyles[size]
             )}
           >

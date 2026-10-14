@@ -105,13 +105,13 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
           }}
           onMouseEnter={() => setHoveredCard(1)}
           onMouseLeave={() => setHoveredCard(null)}
-          className="metric-hub-card group relative p-3.5 sm:p-5 rounded-2xl bg-white hover:bg-slate-50/95 transition-all cursor-pointer shadow-xl shadow-slate-200/50 flex flex-col justify-between overflow-hidden border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          className="metric-hub-card group relative p-3.5 sm:p-5 rounded-2xl bg-white hover:bg-slate-50/95 transition-all cursor-pointer shadow-xl shadow-slate-200/50 flex flex-col justify-between overflow-hidden border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033FF] focus-visible:ring-offset-2"
         >
           {/* Aceternity Corner Cross Accents */}
-          <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
-          <AceternityCornerIcon className="absolute -bottom-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
-          <AceternityCornerIcon className="absolute -top-1.5 -right-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
-          <AceternityCornerIcon className="absolute -bottom-1.5 -right-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -bottom-1.5 -left-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -top-1.5 -right-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -bottom-1.5 -right-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
 
           {/* Aceternity Canvas Reveal Effect */}
           <AnimatePresence>
@@ -139,8 +139,8 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
 
           <div className="relative z-10 font-sans">
             <div className="flex items-center justify-between mb-2 sm:mb-3">
-              <span className="p-1.5 sm:p-2 rounded-xl bg-slate-100 text-black shadow-sm border-0">
-                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
+              <span className="p-1.5 sm:p-2 rounded-xl bg-[#0033FF]/10 text-[#0033FF] shadow-sm border border-[#0033FF]/15">
+                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0033FF]" />
               </span>
               <span className={`text-[9px] sm:text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border-0 ${
                 activeSession 
@@ -179,11 +179,11 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
             </div>
           </div>
 
-          <div className="relative z-10 pt-2 sm:pt-3 mt-2 sm:mt-3 border-0 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-600 group-hover:text-black transition">
+          <div className="relative z-10 pt-2 sm:pt-3 mt-2 sm:mt-3 border-0 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-600 group-hover:text-[#0033FF] transition">
             <span className="truncate max-w-[110px] sm:max-w-[140px]">
               {activeSession ? activeSession.zoneName : '4 Zonas Activas'}
             </span>
-            <ArrowUpRight className="w-3.5 h-3.5 text-black group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition shrink-0" />
+            <ArrowUpRight className="w-3.5 h-3.5 text-[#0033FF] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition shrink-0" />
           </div>
         </div>
 
@@ -201,13 +201,13 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
           }}
           onMouseEnter={() => setHoveredCard(2)}
           onMouseLeave={() => setHoveredCard(null)}
-          className="metric-hub-card group relative p-3.5 sm:p-5 rounded-2xl bg-white hover:bg-slate-50/95 transition-all cursor-pointer shadow-xl shadow-slate-200/50 flex flex-col justify-between overflow-hidden border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          className="metric-hub-card group relative p-3.5 sm:p-5 rounded-2xl bg-white hover:bg-slate-50/95 transition-all cursor-pointer shadow-xl shadow-slate-200/50 flex flex-col justify-between overflow-hidden border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033FF] focus-visible:ring-offset-2"
         >
           {/* Aceternity Corner Cross Accents */}
-          <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
-          <AceternityCornerIcon className="absolute -bottom-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
-          <AceternityCornerIcon className="absolute -top-1.5 -right-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
-          <AceternityCornerIcon className="absolute -bottom-1.5 -right-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -bottom-1.5 -left-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -top-1.5 -right-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -bottom-1.5 -right-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
 
           {/* Aceternity Canvas Reveal Effect */}
           <AnimatePresence>
@@ -235,10 +235,10 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
 
           <div className="relative z-10 font-sans">
             <div className="flex items-center justify-between mb-2 sm:mb-3">
-              <span className="p-1.5 sm:p-2 rounded-xl bg-slate-100 text-black shadow-sm border-0">
-                <CurrencyDollarIcon size={15} strokeWidth={2.2} className="text-black" />
+              <span className="p-1.5 sm:p-2 rounded-xl bg-[#0033FF]/10 text-[#0033FF] shadow-sm border border-[#0033FF]/15">
+                <CurrencyDollarIcon size={15} strokeWidth={2.2} className="text-[#0033FF]" />
               </span>
-              <span className="text-[9px] sm:text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-black border-0">
+              <span className="text-[9px] sm:text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#0033FF]/10 text-[#0033FF] border border-[#0033FF]/20">
                 + RECARGAR
               </span>
             </div>
@@ -259,9 +259,9 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
             </div>
           </div>
 
-          <div className="relative z-10 pt-2 sm:pt-3 mt-2 sm:mt-3 border-0 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-600 group-hover:text-black transition font-sans">
+          <div className="relative z-10 pt-2 sm:pt-3 mt-2 sm:mt-3 border-0 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-600 group-hover:text-[#0033FF] transition font-sans">
             <span className="truncate">Pase NFC Activo</span>
-            <ArrowUpRight className="w-3.5 h-3.5 text-black group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition shrink-0" />
+            <ArrowUpRight className="w-3.5 h-3.5 text-[#0033FF] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition shrink-0" />
           </div>
         </div>
 
@@ -279,13 +279,13 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
           }}
           onMouseEnter={() => setHoveredCard(3)}
           onMouseLeave={() => setHoveredCard(null)}
-          className="metric-hub-card group relative p-3.5 sm:p-5 rounded-2xl bg-white hover:bg-slate-50/95 transition-all cursor-pointer shadow-xl shadow-slate-200/50 flex flex-col justify-between overflow-hidden border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          className="metric-hub-card group relative p-3.5 sm:p-5 rounded-2xl bg-white hover:bg-slate-50/95 transition-all cursor-pointer shadow-xl shadow-slate-200/50 flex flex-col justify-between overflow-hidden border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033FF] focus-visible:ring-offset-2"
         >
           {/* Aceternity Corner Cross Accents */}
-          <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
-          <AceternityCornerIcon className="absolute -bottom-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
-          <AceternityCornerIcon className="absolute -top-1.5 -right-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
-          <AceternityCornerIcon className="absolute -bottom-1.5 -right-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -bottom-1.5 -left-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -top-1.5 -right-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -bottom-1.5 -right-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
 
           {/* Aceternity Canvas Reveal Effect */}
           <AnimatePresence>
@@ -313,8 +313,8 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
 
           <div className="relative z-10 font-sans">
             <div className="flex items-center justify-between mb-2 sm:mb-3">
-              <span className="p-1.5 sm:p-2 rounded-xl bg-slate-100 text-black shadow-sm border-0">
-                <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
+              <span className="p-1.5 sm:p-2 rounded-xl bg-[#0033FF]/10 text-[#0033FF] shadow-sm border border-[#0033FF]/15">
+                <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0033FF]" />
               </span>
               <span className="text-[9px] sm:text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border-0">
                 VINCULADO
@@ -330,9 +330,9 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
             </div>
           </div>
 
-          <div className="relative z-10 pt-2 sm:pt-3 mt-2 sm:mt-3 border-0 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-600 group-hover:text-black transition font-sans">
+          <div className="relative z-10 pt-2 sm:pt-3 mt-2 sm:mt-3 border-0 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-600 group-hover:text-[#0033FF] transition font-sans">
             <span className="truncate max-w-[110px] sm:max-w-[140px]">{vehicle.brand} {vehicle.model}</span>
-            <ArrowUpRight className="w-3.5 h-3.5 text-black group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition shrink-0" />
+            <ArrowUpRight className="w-3.5 h-3.5 text-[#0033FF] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition shrink-0" />
           </div>
         </div>
 
@@ -350,13 +350,13 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
           }}
           onMouseEnter={() => setHoveredCard(4)}
           onMouseLeave={() => setHoveredCard(null)}
-          className="metric-hub-card group relative p-3.5 sm:p-5 rounded-2xl bg-white hover:bg-slate-50/95 transition-all cursor-pointer shadow-xl shadow-slate-200/50 flex flex-col justify-between overflow-hidden border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          className="metric-hub-card group relative p-3.5 sm:p-5 rounded-2xl bg-white hover:bg-slate-50/95 transition-all cursor-pointer shadow-xl shadow-slate-200/50 flex flex-col justify-between overflow-hidden border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033FF] focus-visible:ring-offset-2"
         >
           {/* Aceternity Corner Cross Accents */}
-          <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
-          <AceternityCornerIcon className="absolute -bottom-1.5 -left-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
-          <AceternityCornerIcon className="absolute -top-1.5 -right-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
-          <AceternityCornerIcon className="absolute -bottom-1.5 -right-1.5 text-slate-300 group-hover:text-black transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -top-1.5 -left-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -bottom-1.5 -left-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -top-1.5 -right-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
+          <AceternityCornerIcon className="absolute -bottom-1.5 -right-1.5 text-slate-300 group-hover:text-[#0033FF] transition-colors z-20" />
 
           {/* Aceternity Canvas Reveal Effect */}
           <AnimatePresence>
@@ -384,8 +384,8 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
 
           <div className="relative z-10 font-sans">
             <div className="flex items-center justify-between mb-2 sm:mb-3">
-              <span className="p-1.5 sm:p-2 rounded-xl bg-slate-100 text-black shadow-sm border-0">
-                <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
+              <span className="p-1.5 sm:p-2 rounded-xl bg-[#0033FF]/10 text-[#0033FF] shadow-sm border border-[#0033FF]/15">
+                <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0033FF]" />
               </span>
               <span className="text-[9px] sm:text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border-0">
                 GPS ACTIVO
@@ -402,9 +402,9 @@ export const AnimeMetricsHub = ({ onNavigateTab, onOpenRecharge, onOpenQR }) => 
             </div>
           </div>
 
-          <div className="relative z-10 pt-2 sm:pt-3 mt-2 sm:mt-3 border-0 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-600 group-hover:text-black transition font-sans">
+          <div className="relative z-10 pt-2 sm:pt-3 mt-2 sm:mt-3 border-0 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-600 group-hover:text-[#0033FF] transition font-sans">
             <span className="truncate">Autocobro: {autoPay?.enabled ? 'Activo' : 'Pausado'}</span>
-            <ArrowUpRight className="w-3.5 h-3.5 text-black group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition shrink-0" />
+            <ArrowUpRight className="w-3.5 h-3.5 text-[#0033FF] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition shrink-0" />
           </div>
         </div>
 

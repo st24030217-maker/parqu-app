@@ -297,7 +297,7 @@ export const OrbitalWheelMenu = ({
           {/* Icono y Título */}
           <div>
             <div className="flex items-center gap-2.5 sm:gap-3 mb-1.5">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-black text-white flex items-center justify-center border-0 shadow-md shrink-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#0033FF] text-white flex items-center justify-center border-0 shadow-md shadow-blue-500/25 shrink-0">
                 {CurrentIcon && <CurrentIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />}
               </div>
               <h4 className="text-xl sm:text-3xl font-black text-slate-950 font-sans tracking-tight">
@@ -429,7 +429,7 @@ export const OrbitalWheelMenu = ({
               type="button"
               aria-label={`Abrir ${currentItem.label} y descender al sistema`}
               onClick={() => handleNavigateAndScroll(currentItem.actionTarget)}
-              className="w-full sm:w-auto px-5 py-2 sm:px-6 sm:py-2.5 rounded-full bg-black hover:bg-neutral-800 text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 shadow-md transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+              className="w-full sm:w-auto px-5 py-2 sm:px-6 sm:py-2.5 rounded-full bg-[#0033FF] hover:bg-[#0026cc] text-white font-sans font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-0 shadow-md shadow-blue-500/25 transition-all transform active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033FF]"
             >
               <span>Abrir en el Sistema</span>
               <ArrowDown className="w-3.5 h-3.5 text-white animate-bounce" />
@@ -584,7 +584,7 @@ export const OrbitalWheelMenu = ({
                     <span 
                       className={`inline-flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full transition-all duration-200 ${
                         isSelected 
-                          ? 'bg-black text-white shadow-sm scale-105 sm:scale-110' 
+                          ? 'bg-[#0033FF] text-white shadow-md shadow-blue-500/30 scale-105 sm:scale-110' 
                           : 'bg-transparent text-slate-400'
                       }`}
                     >

@@ -64,10 +64,10 @@ export const Tabs = ({
               aria-controls={`system-tabpanel-${tabVal}`}
               onClick={() => handleSelectTab(tab)}
               className={cn(
-                "relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-sans font-bold transition-colors select-none cursor-pointer z-10 shrink-0 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2",
+                "relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-sans font-bold transition-colors select-none cursor-pointer z-10 shrink-0 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033FF] focus-visible:ring-offset-2",
                 isActive
-                  ? "text-black font-extrabold"
-                  : "text-slate-600 hover:text-black hover:bg-slate-200/60",
+                  ? "text-[#0033FF] font-black"
+                  : "text-slate-600 hover:text-[#01033E] hover:bg-slate-200/60",
                 tabClassName
               )}
             >
@@ -76,22 +76,31 @@ export const Tabs = ({
                   layoutId="activeAceternityTabPill"
                   transition={{ type: "spring", bounce: 0.22, duration: 0.45 }}
                   className={cn(
-                    "absolute inset-0 bg-white rounded-xl shadow-md border-0",
+                    "absolute inset-0 bg-white rounded-xl shadow-md shadow-blue-900/10 border border-slate-100",
                     activeTabClassName
                   )}
                 />
               )}
 
               <span className="relative z-10 flex items-center gap-1.5 sm:gap-2">
-                {Icon && <Icon className="w-3.5 sm:w-4 h-3.5 sm:h-4 flex-shrink-0 text-black" />}
-                <span className="text-black font-bold">{tabTitle}</span>
+                {Icon && (
+                  <Icon
+                    className={cn(
+                      "w-3.5 sm:w-4 h-3.5 sm:h-4 flex-shrink-0 transition-colors",
+                      isActive ? "text-[#0033FF]" : "text-slate-500"
+                    )}
+                  />
+                )}
+                <span className={isActive ? "text-[#01033E] font-black" : "text-slate-700 font-bold"}>
+                  {tabTitle}
+                </span>
                 {tab.badge && (
                   <span
                     className={cn(
                       "text-[9px] px-2 py-0.5 rounded-full font-mono transition-colors font-bold border-0",
                       isActive
-                        ? "bg-slate-100 text-black"
-                        : "bg-slate-200 text-slate-800"
+                        ? "bg-[#0033FF]/10 text-[#0033FF]"
+                        : "bg-slate-200 text-slate-700"
                     )}
                   >
                     {tab.badge}

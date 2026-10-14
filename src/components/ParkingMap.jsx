@@ -275,18 +275,18 @@ export const ParkingMap = ({
       html: `
         <div class="relative flex flex-col items-center cursor-grab active:cursor-grabbing transform transition-transform hover:scale-105 select-none">
           <!-- Badge Superior con Número de Espacio y Placas -->
-          <div class="px-3 py-1.5 rounded-2xl bg-amber-400 text-black border-2 border-white shadow-[0_0_30px_rgba(245,158,11,0.9)] font-mono text-[11px] font-black flex items-center gap-1.5 whitespace-nowrap animate-bounce">
-            <span class="w-2 h-2 rounded-full bg-black animate-ping"></span>
+          <div class="px-3 py-1.5 rounded-2xl bg-[#0033FF] text-white border-2 border-white shadow-[0_0_30px_rgba(0,51,255,0.9)] font-mono text-[11px] font-black flex items-center gap-1.5 whitespace-nowrap animate-bounce">
+            <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
             <span>ESPACIO #${currentNum}</span>
-            <span class="bg-black text-amber-300 px-1.5 py-0.5 rounded text-[9px]">${vehicle?.plates || 'XYZ-7842'}</span>
+            <span class="bg-[#01033E] text-white px-1.5 py-0.5 rounded text-[9px]">${vehicle?.plates || 'XYZ-7842'}</span>
           </div>
 
           <!-- Flecha de anclaje -->
-          <div class="w-3.5 h-3.5 rotate-45 -mt-2 bg-amber-400 border-r-2 border-b-2 border-white"></div>
+          <div class="w-3.5 h-3.5 rotate-45 -mt-2 bg-[#0033FF] border-r-2 border-b-2 border-white"></div>
 
           <!-- Radar de suelo pulsante -->
-          <div class="w-12 h-12 rounded-full bg-amber-400/30 animate-ping absolute -bottom-3 pointer-events-none"></div>
-          <div class="w-4 h-1.5 rounded-full bg-black/80 blur-[1px] mt-0.5"></div>
+          <div class="w-12 h-12 rounded-full bg-[#0033FF]/30 animate-ping absolute -bottom-3 pointer-events-none"></div>
+          <div class="w-4 h-1.5 rounded-full bg-[#01033E]/60 blur-[1px] mt-0.5"></div>
         </div>
       `,
       iconSize: [160, 60],
@@ -499,14 +499,14 @@ export const ParkingMap = ({
         <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 z-[400] flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 pointer-events-none">
           
           {/* Badge GPS y Estado */}
-          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-neutral-950/90 backdrop-blur-md border border-neutral-700/80 shadow-xl text-xs font-mono pointer-events-auto">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-[#01033E]/95 backdrop-blur-md border border-blue-500/30 shadow-xl text-xs font-mono pointer-events-auto">
             <span className={`w-2 h-2 rounded-full ${
               gpsStatus === 'locked' ? 'bg-emerald-400 animate-pulse' : 'bg-blue-400'
             }`} />
             <span className="text-white font-bold text-[10px] sm:text-[11px] uppercase tracking-wider">
               {gpsStatus === 'locked' ? 'GPS SATELITAL EN VIVO' : 'MAPA SATELITAL'}
             </span>
-            <span className="text-neutral-500">•</span>
+            <span className="text-blue-300/60">•</span>
             <span className="text-amber-300 font-bold text-[10px]">
               {pinnedLocations.length} Registros
             </span>
@@ -560,7 +560,7 @@ export const ParkingMap = ({
             type="button"
             onClick={handleRecenter}
             title="Centrar en mi ubicación GPS"
-            className="w-11 h-11 ml-auto rounded-2xl bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-700/80 backdrop-blur-md flex items-center justify-center text-white shadow-2xl hover:scale-105 active:scale-95 transition-all"
+            className="w-11 h-11 ml-auto rounded-2xl bg-[#01033E]/90 hover:bg-[#0033FF] border border-blue-500/30 backdrop-blur-md flex items-center justify-center text-white shadow-2xl hover:scale-105 active:scale-95 transition-all"
           >
             <Crosshair className={`w-5 h-5 text-blue-400 ${isCentering ? 'animate-spin' : ''}`} />
           </button>
@@ -573,18 +573,18 @@ export const ParkingMap = ({
         />
 
         {/* 4. PANEL INFERIOR: REGISTRO DIRECTO POR NÚMERO Y UBICACIÓN */}
-        <div className="relative z-10 p-4 sm:p-5 bg-gradient-to-t from-neutral-950 via-neutral-950 to-neutral-900/95 border-t border-neutral-800/90 space-y-4">
+        <div className="relative z-10 p-4 sm:p-5 bg-gradient-to-t from-[#01033E] via-[#01033E] to-[#01033E]/95 border-t border-blue-500/30 space-y-4">
           
           {/* Tabs: [Fijar y Registrar] | [Historial de Ubicaciones] */}
-          <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+          <div className="flex items-center justify-between border-b border-blue-900/40 pb-3">
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setActiveTabMode('register')}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-sans font-bold flex items-center gap-2 transition ${
                   activeTabMode === 'register'
-                    ? 'bg-white text-black shadow-md'
-                    : 'bg-neutral-900 text-neutral-400 hover:text-white border border-neutral-800'
+                    ? 'bg-[#0033FF] text-white shadow-md shadow-blue-500/30'
+                    : 'bg-white/10 text-white/70 hover:text-white border border-white/10'
                 }`}
               >
                 <MapPin className="w-3.5 h-3.5" />
@@ -596,8 +596,8 @@ export const ParkingMap = ({
                 onClick={() => setActiveTabMode('history')}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-sans font-bold flex items-center gap-2 transition ${
                   activeTabMode === 'history'
-                    ? 'bg-amber-400 text-black shadow-md'
-                    : 'bg-neutral-900 text-neutral-400 hover:text-white border border-neutral-800'
+                    ? 'bg-[#0033FF] text-white shadow-md shadow-blue-500/30'
+                    : 'bg-white/10 text-white/70 hover:text-white border border-white/10'
                 }`}
               >
                 <History className="w-3.5 h-3.5" />
@@ -736,15 +736,15 @@ export const ParkingMap = ({
             /* MODO HISTORIAL DE UBICACIONES */
             <div className="space-y-3 font-sans">
               {pinnedLocations.length === 0 ? (
-                <div className="py-6 text-center border border-dashed border-neutral-800 rounded-2xl bg-neutral-900/40 space-y-2">
-                  <Bookmark className="w-8 h-8 text-neutral-600 mx-auto" />
-                  <p className="text-xs text-neutral-400">
+                <div className="py-6 text-center border border-dashed border-blue-900/60 rounded-2xl bg-white/5 space-y-2">
+                  <Bookmark className="w-8 h-8 text-blue-400 mx-auto" />
+                  <p className="text-xs text-blue-200">
                     No has registrado ninguna ubicación fijada todavía.
                   </p>
                   <button
                     type="button"
                     onClick={handlePinCurrentLocation}
-                    className="px-4 py-2 rounded-xl bg-amber-400 text-black font-bold text-xs inline-flex items-center gap-1.5 shadow"
+                    className="px-4 py-2 rounded-xl bg-[#0033FF] hover:bg-[#0026cc] text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-md shadow-blue-500/30 transition"
                   >
                     <MapPin className="w-3.5 h-3.5" />
                     <span>Fijar mi ubicación GPS actual ahora</span>
@@ -757,14 +757,14 @@ export const ParkingMap = ({
                     return (
                       <div
                         key={item.id}
-                        className="p-3 rounded-2xl bg-neutral-900/90 border border-neutral-800 hover:border-neutral-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition"
+                        className="p-3 rounded-2xl bg-[#001050]/80 border border-blue-900/40 hover:border-blue-500/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition"
                       >
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                               isItemActive 
                                 ? 'bg-emerald-950 text-emerald-400 border border-emerald-700/60 animate-pulse'
-                                : 'bg-neutral-800 text-neutral-300'
+                                : 'bg-white/10 text-slate-300'
                             }`}>
                               {isItemActive ? '● ESTACIONADO AQUÍ' : 'HISTÓRICO'}
                             </span>

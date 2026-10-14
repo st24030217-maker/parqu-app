@@ -410,7 +410,7 @@ const MainContent = () => {
                     type="button"
                     aria-label="Configurar reglas del autocobro"
                     onClick={() => setActiveTab('autopay')}
-                    className="w-full py-2.5 rounded-xl bg-black/75 hover:bg-black/90 backdrop-blur-md text-white font-sans font-bold text-xs transition flex items-center justify-center gap-2 border border-black/10 shadow-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                    className="w-full py-2.5 rounded-xl bg-[#0033FF] hover:bg-[#0026cc] text-white font-sans font-bold text-xs transition flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033FF] focus-visible:ring-offset-2"
                   >
                     <Zap className="w-4 h-4 text-white" />
                     Configurar Reglas del Autocobro
@@ -501,11 +501,11 @@ const MainContent = () => {
                 handleSelectFeature('dashboard');
               }
             }}
-            className="bg-black/60 border-b border-white/10 px-4 py-2.5 text-center text-xs font-sans font-semibold text-white flex items-center justify-center gap-2 cursor-pointer hover:bg-black/80 transition backdrop-blur-xl sticky top-20 z-30 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            className="bg-[#01033E] border-b border-blue-400/20 px-4 py-2.5 text-center text-xs font-sans font-semibold text-white flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0026cc] transition backdrop-blur-xl sticky top-20 z-30 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
           >
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
             <span>Vehículo <span className="font-mono">{vehicle.plates}</span> actualmente en parquímetro. Clic para ver contador o liberar estacionamiento.</span>
-            <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />
+            <ChevronRight className="w-3.5 h-3.5 text-blue-200" />
           </div>
         )}
 
@@ -530,7 +530,7 @@ const MainContent = () => {
         {/* 2. SECCIÓN DEL SISTEMA INTERACTIVO CON FONDO TRANSPARENTE Y LUMINOSO */}
         <section className="w-full relative bg-slate-50/30 pb-10 sm:pb-16 -mt-px overflow-hidden">
           {/* Resplandor ambiental para resaltar las tarjetas translúcidas */}
-          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-gradient-to-tr from-blue-100/30 via-indigo-50/20 to-purple-100/20 rounded-full blur-3xl pointer-events-none -z-0" />
+          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-gradient-to-tr from-blue-100/30 via-indigo-50/20 to-blue-100/30 rounded-full blur-3xl pointer-events-none -z-0" />
 
           <main 
             ref={systemRef} 
@@ -551,13 +551,13 @@ const MainContent = () => {
               role="dialog"
               aria-modal="true"
               aria-labelledby="quick-recharge-dialog-title"
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
+              className="fixed inset-0 z-50 bg-[#01033E]/70 backdrop-blur-md flex items-center justify-center p-4"
             >
-              <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative border-0 animate-in fade-in zoom-in-95 duration-200">
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 text-black flex items-center justify-center mx-auto mb-3 shadow-sm border-0">
-                  <CurrencyDollarIcon size={24} strokeWidth={2} className="text-black" />
+              <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+                <div className="w-12 h-12 rounded-2xl bg-[#0033FF]/10 text-[#0033FF] flex items-center justify-center mx-auto mb-3 shadow-sm border-0">
+                  <CurrencyDollarIcon size={24} strokeWidth={2} className="text-[#0033FF]" />
                 </div>
-                <h3 id="quick-recharge-dialog-title" className="text-lg font-black text-black mb-1 font-sans">Recarga Rápida de Saldo</h3>
+                <h3 id="quick-recharge-dialog-title" className="text-lg font-black text-[#01033E] mb-1 font-sans">Recarga Rápida de Saldo</h3>
                 <p className="text-xs text-slate-600 mb-6 font-sans">
                   Saldo disponible: <span className="text-emerald-600 font-bold font-mono">${Number(card?.balance ?? 0).toFixed(2)} MXN</span>
                 </p>
@@ -572,9 +572,9 @@ const MainContent = () => {
                           type="button"
                           aria-label={`Seleccionar recarga de ${amt} pesos`}
                           onClick={() => setRechargeAmt(amt)}
-                          className={`py-2 rounded-xl text-xs font-sans font-bold transition flex items-center justify-center gap-1 border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${
+                          className={`py-2 rounded-xl text-xs font-sans font-bold transition flex items-center justify-center gap-1 border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033FF] focus-visible:ring-offset-2 ${
                             rechargeAmt === amt
-                              ? 'bg-black text-white shadow-md'
+                              ? 'bg-[#0033FF] text-white shadow-md shadow-blue-500/30'
                               : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
                           }`}
                         >
@@ -589,13 +589,13 @@ const MainContent = () => {
                     <button
                       type="button"
                       onClick={() => setShowRechargeQuickModal(false)}
-                      className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-sans hover:bg-slate-200 transition cursor-pointer border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                      className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-sans hover:bg-slate-200 transition cursor-pointer border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 py-2.5 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-sans font-bold transition shadow-md border-0 flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                      className="flex-1 py-2.5 rounded-xl bg-[#0033FF] hover:bg-[#0026cc] text-white text-xs font-sans font-bold transition shadow-md shadow-blue-500/30 border-0 flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033FF] focus-visible:ring-offset-2"
                     >
                       <CurrencyDollarIcon size={14} strokeWidth={2.2} />
                       <span>Recargar <span className="font-mono">${rechargeAmt}</span></span>
@@ -612,16 +612,16 @@ const MainContent = () => {
               role="dialog"
               aria-modal="true"
               aria-labelledby="quick-qr-dialog-title"
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
+              className="fixed inset-0 z-50 bg-[#01033E]/70 backdrop-blur-md flex items-center justify-center p-4"
             >
-              <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative border-0 animate-in fade-in zoom-in-95 duration-200">
-                <h3 id="quick-qr-dialog-title" className="text-lg font-black text-black mb-1 font-sans">Credencial NFC de Inspección</h3>
+              <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+                <h3 id="quick-qr-dialog-title" className="text-lg font-black text-[#01033E] mb-1 font-sans">Credencial NFC de Inspección</h3>
                 <p className="text-xs text-slate-600 mb-6 font-sans">
                   Lectura NFC sin contacto para agentes de tránsito vial
                 </p>
 
                 <div className="py-6 flex flex-col items-center justify-center mb-4">
-                  <div className="relative w-36 h-36 rounded-full bg-gradient-to-br from-[#01033E] to-[#0033FF] flex items-center justify-center shadow-xl">
+                  <div className="relative w-36 h-36 rounded-full bg-gradient-to-br from-[#01033E] to-[#0033FF] flex items-center justify-center shadow-xl shadow-blue-900/30">
                     <span className="absolute inset-0 rounded-full bg-[#0033FF]/30 animate-ping" />
                     <span className="absolute -inset-3 rounded-full border-2 border-[#0033FF]/25" />
                     <div className="relative z-10 flex flex-col items-center justify-center text-white">
@@ -634,14 +634,14 @@ const MainContent = () => {
                 </div>
 
                 <div className="bg-slate-100 rounded-xl p-2.5 mb-6 text-xs font-sans text-slate-800 flex items-center justify-between border-0 shadow-sm">
-                  <span>Placas: <strong className="text-black font-mono">{vehicle.plates}</strong></span>
+                  <span>Placas: <strong className="text-[#01033E] font-mono">{vehicle.plates}</strong></span>
                   <span className="text-emerald-700 font-bold">● NFC Validado</span>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setShowQRQuickModal(false)}
-                  className="w-full py-2.5 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-sans font-bold transition shadow-md border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+                  className="w-full py-2.5 rounded-xl bg-[#0033FF] hover:bg-[#0026cc] text-white text-xs font-sans font-bold transition shadow-md shadow-blue-500/30 border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033FF] focus-visible:ring-offset-2"
                 >
                   Cerrar Credencial NFC
                 </button>

@@ -546,12 +546,12 @@ export const LoadingScreen = ({ onComplete }) => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="parqu-auth-title"
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-[#01033E]/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
         >
           <AnimeCardSheen className="w-full max-w-[360px] sm:max-w-[380px] my-auto">
             <div
               ref={authCardRef}
-              className="relative w-full max-h-[92dvh] overflow-y-auto overflow-x-hidden rounded-3xl bg-[#070B2E]/95 border border-white/15 p-4 sm:p-6 text-white shadow-[0_28px_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl"
+              className="relative w-full max-h-[92dvh] overflow-y-auto overflow-x-hidden rounded-3xl bg-[#01033E]/95 border border-[#0033FF]/30 p-4 sm:p-6 text-white shadow-[0_28px_80px_rgba(1,3,62,0.85)] backdrop-blur-2xl"
             >
               {/* Botón cerrar */}
               <button

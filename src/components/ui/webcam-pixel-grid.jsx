@@ -303,7 +303,7 @@ export function WebcamPixelGrid({
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className={`relative w-full h-full overflow-hidden bg-black ${className}`}
+      className={`relative w-full h-full overflow-hidden bg-[#01033E] ${className}`}
     >
       <video
         ref={videoRef}

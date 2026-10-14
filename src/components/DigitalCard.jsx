@@ -505,7 +505,7 @@ export const DigitalCard = () => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="card-qr-dialog-title"
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-[#01033E]/75 backdrop-blur-xl flex items-center justify-center p-4"
         >
           <div className="bg-[#01033E] rounded-3xl border-0 max-w-sm w-full p-5 sm:p-6 text-center shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
             <h3
@@ -579,7 +579,7 @@ export const DigitalCard = () => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="card-recharge-dialog-title"
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-[#01033E]/75 backdrop-blur-xl flex items-center justify-center p-4"
         >
           <div className="bg-[#01033E] rounded-3xl border-0 max-w-sm w-full p-5 sm:p-6 shadow-2xl relative">
             <div className="w-12 h-12 rounded-2xl bg-[#0033FF]/20 text-[#807DFE] flex items-center justify-center mx-auto mb-3 shadow-md border-0">

@@ -54,17 +54,17 @@ export const InterfaceCraftsCards = ({
               damping: 25,
             }}
             className={cn(
-              "relative group/card cursor-pointer rounded-2xl p-4 flex flex-col justify-between overflow-hidden border backdrop-blur-xl transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2",
-              item.borderClassName || "border-neutral-800/80 hover:border-neutral-600",
-              item.bgClassName || "bg-neutral-950/80 hover:bg-neutral-900/90",
-              isSelected && "ring-2 ring-white border-transparent"
+              "relative group/card cursor-pointer rounded-2xl p-4 flex flex-col justify-between overflow-hidden border backdrop-blur-xl transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033FF] focus-visible:ring-offset-2",
+              item.borderClassName || "border-slate-200/90 hover:border-[#0033FF]/40",
+              item.bgClassName || "bg-white hover:bg-slate-50",
+              isSelected && "ring-2 ring-[#0033FF] border-transparent"
             )}
           >
             {/* Resplandor de Gradiente Ambiental al pasar el mouse */}
             <div
               className={cn(
                 "absolute inset-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br",
-                item.glowGradient || "from-white/10 via-transparent to-transparent"
+                item.glowGradient || "from-blue-500/10 via-transparent to-transparent"
               )}
             />
 
@@ -73,10 +73,10 @@ export const InterfaceCraftsCards = ({
               <div
                 className={cn(
                   "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm group-hover/card:scale-110",
-                  item.iconBg || "bg-slate-100 border border-slate-200 text-black"
+                  item.iconBg || "bg-[#0033FF]/10 border border-[#0033FF]/20 text-[#0033FF]"
                 )}
               >
-                {Icon && <Icon className="w-5 h-5 text-black" />}
+                {Icon && <Icon className="w-5 h-5 text-[#0033FF]" />}
               </div>
 
               <div className="flex items-center gap-1">
@@ -84,13 +84,13 @@ export const InterfaceCraftsCards = ({
                   <span
                     className={cn(
                       "text-[9px] uppercase font-mono tracking-wider font-bold px-2 py-0.5 rounded-full border",
-                      item.badgeClassName || "bg-slate-100 text-slate-800 border-slate-200"
+                      item.badgeClassName || "bg-[#0033FF]/10 text-[#0033FF] border-[#0033FF]/20"
                     )}
                   >
                     {item.badge}
                   </span>
                 )}
-                <div className="w-6 h-6 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 opacity-60 group-hover/card:opacity-100 group-hover/card:bg-black group-hover/card:text-white transition-all">
+                <div className="w-6 h-6 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 opacity-60 group-hover/card:opacity-100 group-hover/card:bg-[#0033FF] group-hover/card:text-white transition-all shadow-sm">
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 </div>
               </div>

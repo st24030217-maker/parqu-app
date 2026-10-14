@@ -149,9 +149,9 @@ export const HighPriorityPushModal = ({ isOpen, onClose, onNavigateToMeter }) =>
       role="dialog"
       aria-modal="true"
       aria-label="Seguimiento en Vivo de Parquímetro"
-      className="fixed inset-0 z-[120] bg-black/75 backdrop-blur-md flex items-end sm:items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[120] bg-[#01033E]/75 backdrop-blur-md flex items-end sm:items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
     >
-      <div className="w-full max-w-lg rounded-3xl bg-[#0b0d13] text-white border border-white/15 shadow-2xl overflow-hidden font-sans">
+      <div className="w-full max-w-lg rounded-3xl bg-[#01033E] text-white border border-blue-500/30 shadow-2xl overflow-hidden font-sans">
         {/* Barra Superior */}
         <div className="px-5 py-3.5 bg-gradient-to-r from-[#0033FF] via-[#0a2599] to-[#01033E] flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -172,7 +172,7 @@ export const HighPriorityPushModal = ({ isOpen, onClose, onNavigateToMeter }) =>
 
         <div className="p-5 space-y-4">
           {/* Vista en vivo exacta de la tarjeta gráfica de la notificación */}
-          <div className="rounded-2xl overflow-hidden border border-sky-500/30 bg-[#07090e] shadow-xl">
+          <div className="rounded-2xl overflow-hidden border border-blue-400/30 bg-[#001050]/80 shadow-xl">
             <canvas
               ref={previewCanvasRef}
               width={800}

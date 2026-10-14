@@ -321,7 +321,7 @@ export const InspectorNFCView = ({ initialPlate = '' }) => {
   return (
     <div className="space-y-5 sm:space-y-6 font-sans">
       {/* ── ENCABEZADO DE CONEXIÓN EN TIEMPO REAL Y LECTOR DE CHIP NFC ── */}
-      <div className="p-4 sm:p-6 rounded-3xl bg-[#070B2E] text-white border border-white/10 shadow-xl relative overflow-hidden">
+      <div className="p-4 sm:p-6 rounded-3xl bg-[#01033E] text-white border border-blue-500/30 shadow-xl relative overflow-hidden">
         <div
           className="absolute -right-20 -top-20 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-30"
           style={{
@@ -444,7 +444,7 @@ export const InspectorNFCView = ({ initialPlate = '' }) => {
               </div>
 
               {/* Cronómetro en Vivo y Monto Cubierto */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-black/30 border border-white/10">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-[#01033E]/40 border border-white/10">
                 <div>
                   <span className="text-[10px] font-mono uppercase text-emerald-300/80 block">
                     Tiempo Activo en Vivo
@@ -518,7 +518,7 @@ export const InspectorNFCView = ({ initialPlate = '' }) => {
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-black/30 border border-rose-400/20 text-xs text-rose-100 leading-relaxed">
+              <div className="p-3.5 rounded-2xl bg-[#01033E]/40 border border-rose-400/20 text-xs text-rose-100 leading-relaxed">
                 El chip NFC vinculado a la placa <strong className="font-mono text-white">{inspectedPlate}</strong> no registra un pago de parquímetro activo en este instante. El agente vial puede emitir la boleta de infracción digital o el conductor puede activar su parquímetro para cambiar el semáforo a verde en vivo.
               </div>
 
@@ -531,7 +531,7 @@ export const InspectorNFCView = ({ initialPlate = '' }) => {
                   <select
                     value={selectedReasonId}
                     onChange={(e) => setSelectedReasonId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/20 text-xs text-white focus:outline-none focus:border-rose-400"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#01033E]/50 border border-white/20 text-xs text-white focus:outline-none focus:border-rose-400"
                   >
                     {INFRACTION_REASONS.map((reason) => (
                       <option key={reason.id} value={reason.id} className="bg-slate-900 text-white">
@@ -550,11 +550,11 @@ export const InspectorNFCView = ({ initialPlate = '' }) => {
                       type="text"
                       value={officerBadge}
                       onChange={(e) => setOfficerBadge(e.target.value.toUpperCase())}
-                      className="w-full px-3.5 py-2 rounded-xl bg-black/40 border border-white/20 text-xs font-mono text-white"
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#01033E]/50 border border-white/20 text-xs font-mono text-white"
                     />
                   </div>
                   <div className="flex flex-col justify-end">
-                    <div className="px-3.5 py-2 rounded-xl bg-black/30 border border-white/10 flex items-center justify-between text-xs">
+                    <div className="px-3.5 py-2 rounded-xl bg-[#01033E]/40 border border-white/10 flex items-center justify-between text-xs">
                       <span className="text-rose-200">50% Pronto Pago:</span>
                       <strong className="font-mono text-emerald-300">
                         $

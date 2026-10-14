@@ -96,22 +96,22 @@ export const ParkingMeter = () => {
 
       {/* Notificación de Autocobro Ejecutado */}
       {justChargedNotice && !activeSession && (
-        <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-neutral-900 border-0 shadow-2xl animate-in fade-in slide-in-from-top-2">
+        <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-[#01033E] border border-blue-500/30 shadow-2xl shadow-blue-900/40 animate-in fade-in slide-in-from-top-2">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-neutral-800 border-0 text-white flex items-center justify-center flex-shrink-0 shadow-md">
+              <div className="w-10 h-10 rounded-xl bg-[#0033FF]/20 border border-[#0033FF]/40 text-emerald-400 flex items-center justify-center flex-shrink-0 shadow-md">
                 <CheckCircle className="w-6 h-6 text-emerald-400" />
               </div>
               <div>
                 <h4 className="text-sm font-bold text-white flex items-center gap-2 font-sans">
                   ¡Autocobro Liquidado con Éxito!
-                  <span className="text-xs font-normal text-white bg-neutral-800 px-2.5 py-0.5 rounded-full border-0 font-mono">
+                  <span className="text-xs font-normal text-white bg-[#0033FF]/30 border border-[#0033FF]/40 px-2.5 py-0.5 rounded-full font-mono">
                     Folio: {justChargedNotice.folio}
                   </span>
                 </h4>
-                <p className="text-xs text-neutral-300 mt-1 font-sans">
+                <p className="text-xs text-blue-100 mt-1 font-sans">
                   Se ha cobrado <strong className="text-white font-bold font-mono">{formatCurrency(justChargedNotice.amount)}</strong> a través de{' '}
-                  <strong className="text-neutral-100 underline decoration-neutral-500">{justChargedNotice.method}</strong> por un tiempo de{' '}
+                  <strong className="text-white underline decoration-blue-400">{justChargedNotice.method}</strong> por un tiempo de{' '}
                   <strong className="text-white font-bold font-mono">{justChargedNotice.durationMinutes} min</strong>.
                 </p>
               </div>
@@ -121,7 +121,7 @@ export const ParkingMeter = () => {
               type="button"
               aria-label="Cerrar notificación de autocobro"
               onClick={() => setJustChargedNotice(null)}
-              className="text-xs text-neutral-400 hover:text-white px-2 py-1 font-sans transition cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="text-xs text-blue-200 hover:text-white px-2 py-1 font-sans transition cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
             >
               ✕
             </button>
