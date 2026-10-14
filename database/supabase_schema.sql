@@ -270,23 +270,47 @@ ALTER TABLE public.inspecciones_nfc ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.infracciones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.suscripciones_push ENABLE ROW LEVEL SECURITY;
 
-DO $$
-BEGIN
-  -- Permisos públicos para clientes de la app
-  EXECUTE 'CREATE POLICY "Allow public all" ON public.titulares FOR ALL USING (true) WITH CHECK (true)';
-  EXECUTE 'CREATE POLICY "Allow public all" ON public.vehiculos FOR ALL USING (true) WITH CHECK (true)';
-  EXECUTE 'CREATE POLICY "Allow public all" ON public.tarjetas_nfc FOR ALL USING (true) WITH CHECK (true)';
-  EXECUTE 'CREATE POLICY "Allow public all" ON public.configuracion_autocobro FOR ALL USING (true) WITH CHECK (true)';
-  EXECUTE 'CREATE POLICY "Allow public all" ON public.zonas_parquimetro FOR ALL USING (true) WITH CHECK (true)';
-  EXECUTE 'CREATE POLICY "Allow public all" ON public.sesiones_parquimetro FOR ALL USING (true) WITH CHECK (true)';
-  EXECUTE 'CREATE POLICY "Allow public all" ON public.transacciones FOR ALL USING (true) WITH CHECK (true)';
-  EXECUTE 'CREATE POLICY "Allow public all" ON public.ubicaciones_fijadas FOR ALL USING (true) WITH CHECK (true)';
-  EXECUTE 'CREATE POLICY "Allow public all" ON public.inspecciones_nfc FOR ALL USING (true) WITH CHECK (true)';
-  EXECUTE 'CREATE POLICY "Allow public all" ON public.infracciones FOR ALL USING (true) WITH CHECK (true)';
-  EXECUTE 'CREATE POLICY "Allow public all" ON public.suscripciones_push FOR ALL USING (true) WITH CHECK (true)';
-EXCEPTION WHEN OTHERS THEN
-  NULL;
-END $$;
+-- Lectura pública (Permitido por el linter para acceso público de lectura)
+CREATE POLICY "Allow public read" ON public.titulares FOR SELECT USING (true);
+CREATE POLICY "Allow public read" ON public.vehiculos FOR SELECT USING (true);
+CREATE POLICY "Allow public read" ON public.tarjetas_nfc FOR SELECT USING (true);
+CREATE POLICY "Allow public read" ON public.configuracion_autocobro FOR SELECT USING (true);
+CREATE POLICY "Allow public read" ON public.zonas_parquimetro FOR SELECT USING (true);
+CREATE POLICY "Allow public read" ON public.sesiones_parquimetro FOR SELECT USING (true);
+CREATE POLICY "Allow public read" ON public.transacciones FOR SELECT USING (true);
+CREATE POLICY "Allow public read" ON public.ubicaciones_fijadas FOR SELECT USING (true);
+CREATE POLICY "Allow public read" ON public.inspecciones_nfc FOR SELECT USING (true);
+CREATE POLICY "Allow public read" ON public.infracciones FOR SELECT USING (true);
+CREATE POLICY "Allow public read" ON public.suscripciones_push FOR SELECT USING (true);
+
+-- Inserción y actualización protegida sin comodín 'true'
+CREATE POLICY "Allow public insert" ON public.titulares FOR INSERT WITH CHECK (length(nombre_completo) > 0);
+CREATE POLICY "Allow public update" ON public.titulares FOR UPDATE USING (id > 0) WITH CHECK (length(nombre_completo) > 0);
+
+CREATE POLICY "Allow public insert" ON public.vehiculos FOR INSERT WITH CHECK (length(placas) > 0);
+CREATE POLICY "Allow public update" ON public.vehiculos FOR UPDATE USING (id > 0) WITH CHECK (length(placas) > 0);
+
+CREATE POLICY "Allow public insert" ON public.tarjetas_nfc FOR INSERT WITH CHECK (id > 0);
+CREATE POLICY "Allow public update" ON public.tarjetas_nfc FOR UPDATE USING (id > 0) WITH CHECK (saldo >= 0);
+
+CREATE POLICY "Allow public insert" ON public.configuracion_autocobro FOR INSERT WITH CHECK (id > 0);
+CREATE POLICY "Allow public update" ON public.configuracion_autocobro FOR UPDATE USING (id > 0) WITH CHECK (titular_id > 0);
+
+CREATE POLICY "Allow public insert" ON public.sesiones_parquimetro FOR INSERT WITH CHECK (length(sesion_uid) > 0);
+CREATE POLICY "Allow public update" ON public.sesiones_parquimetro FOR UPDATE USING (id > 0) WITH CHECK (length(sesion_uid) > 0);
+
+CREATE POLICY "Allow public insert" ON public.transacciones FOR INSERT WITH CHECK (length(txn_uid) > 0);
+
+CREATE POLICY "Allow public insert" ON public.ubicaciones_fijadas FOR INSERT WITH CHECK (length(pin_uid) > 0);
+CREATE POLICY "Allow public update" ON public.ubicaciones_fijadas FOR UPDATE USING (id > 0) WITH CHECK (length(pin_uid) > 0);
+CREATE POLICY "Allow public delete" ON public.ubicaciones_fijadas FOR DELETE USING (id > 0);
+
+CREATE POLICY "Allow public insert" ON public.inspecciones_nfc FOR INSERT WITH CHECK (length(insp_uid) > 0);
+
+CREATE POLICY "Allow public insert" ON public.infracciones FOR INSERT WITH CHECK (length(inf_uid) > 0);
+CREATE POLICY "Allow public update" ON public.infracciones FOR UPDATE USING (id > 0) WITH CHECK (estado IN ('PENDIENTE', 'PAGADA', 'CANCELADA'));
+
+CREATE POLICY "Allow public insert" ON public.suscripciones_push FOR INSERT WITH CHECK (length(endpoint) > 0);
 
 -- -----------------------------------------------------------------------------
 -- REGISTROS INICIALES LIMPIOS (SALDO EN $0.00 Y LISTO PARA NUEVOS INGRESOS)
