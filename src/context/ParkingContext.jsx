@@ -24,6 +24,11 @@ import {
   fetchStateFromXamppDb,
   syncStateToXamppDb,
 } from '../utils/xamppDbSync';
+import {
+  isSupabaseConfigured,
+  fetchStateFromSupabase,
+  syncStateToSupabase,
+} from '../utils/supabaseClient';
 
 const ParkingContext = createContext();
 
@@ -286,8 +291,11 @@ export const ParkingProvider = ({ children }) => {
         transactions:
           overrides.transactions !== undefined ? overrides.transactions : transactions,
       };
-      // Sincronizar en paralelo con XAMPP MySQL (http://localhost/parqu-api/index.php) y Cloud Sync
+      // Sincronizar en paralelo con XAMPP MySQL, Supabase Cloud y Cloud Sync
       syncStateToXamppDb(stateToPublish).catch(() => {});
+      if (isSupabaseConfigured()) {
+        syncStateToSupabase(stateToPublish).catch(() => {});
+      }
       const ok = await publishVehicleStateToCloud(stateToPublish);
       if (ok) {
         setLastCloudSyncAt(new Date().toISOString());
@@ -297,12 +305,32 @@ export const ParkingProvider = ({ children }) => {
     [vehicle, owner, card, autoPay, pinnedLocations, activeSession, infractions, lastInspection, transactions]
   );
 
-  // Sincronización inicial con XAMPP MySQL (parqu_db) si el servidor local está activo
+  // Sincronización inicial con Supabase Cloud o XAMPP MySQL
   useEffect(() => {
     let active = true;
+
+    // 1. Si Supabase está configurado, sincronizar con la nube
+    if (isSupabaseConfigured()) {
+      fetchStateFromSupabase(vehicle?.plates || 'NUEVO-01').then((cloudState) => {
+        if (!active || !cloudState) return;
+        syncStateToSupabase({
+          vehicle,
+          owner,
+          card,
+          autoPay,
+          activeSession,
+          transactions,
+          pinnedLocations,
+          infractions,
+          lastInspection,
+        }).catch(() => {});
+      });
+    }
+
+    // 2. Si XAMPP local está activo, sincronizar con MySQL
     checkXamppDatabaseStatus().then((status) => {
       if (!active || !status?.ok) return;
-      fetchStateFromXamppDb(vehicle?.plates || 'XYZ-7842').then((dbState) => {
+      fetchStateFromXamppDb(vehicle?.plates || 'NUEVO-01').then((dbState) => {
         if (!active || !dbState) return;
         syncStateToXamppDb({
           vehicle,
@@ -317,6 +345,7 @@ export const ParkingProvider = ({ children }) => {
         }).catch(() => {});
       });
     });
+
     return () => {
       active = false;
     };
