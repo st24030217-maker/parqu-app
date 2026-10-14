@@ -3,10 +3,12 @@ import {
   History,
   Receipt,
   CheckCircle2,
+  Clock,
   MapPin,
   ExternalLink,
   Trash2,
   Navigation,
+  Car,
   CreditCard,
   Wifi,
   Calendar,
@@ -16,6 +18,7 @@ import {
 } from 'lucide-react';
 import { animate, stagger } from 'animejs';
 import { sileo } from 'sileo';
+import { CurrencyDollarIcon } from './icons/currency-dollar-icon';
 import { useParking } from '../context/ParkingContext';
 import { formatCurrency, formatDate, formatPlate } from '../utils/formatters';
 import { AnimeCounter } from './ui/anime-counter';
@@ -76,73 +79,73 @@ export const TransactionHistory = () => {
   return (
     <section
       aria-label="Historial de Autocobros y Ubicaciones Fijadas"
-      className="w-full rounded-2xl bg-[linear-gradient(180deg,rgba(255,255,255,0.03)_0%,rgba(255,255,255,0.008)_100%)] bg-[#0d0d11] border border-white/[0.08] p-4 sm:p-7 text-white overflow-hidden font-sans"
+      className="w-full rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 shadow-xl shadow-slate-200/50 p-4 sm:p-7 text-slate-900 overflow-hidden font-sans"
     >
-      {/* Cabecera Kage Studio */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 sm:pb-6 border-b border-white/[0.08]">
+      {/* Cabecera Clara y Adaptada a Móvil (Sin desbordes horizontales) */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 sm:pb-6 border-b border-slate-100">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-[#8b5cf6]/15 border border-[#8b5cf6]/30 text-[#a78bfa] text-[10px] font-mono font-semibold uppercase tracking-[0.14em]">
+            <span className="px-2.5 py-0.5 rounded-full bg-[#0033FF]/10 text-[#0033FF] text-[10px] font-mono font-bold uppercase tracking-wider">
               BITACORA OFICIAL NFC & GPS
             </span>
-            <span className="text-[10px] font-mono text-[#a1a1aa] bg-white/[0.04] border border-white/[0.08] px-2.5 py-0.5 rounded-full font-medium">
+            <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full font-semibold">
               Tarifa Oficial $6.00/hr
             </span>
           </div>
 
-          <h2 className="text-lg sm:text-2xl font-bold text-white tracking-[-0.02em] flex items-center gap-2">
-            <History className="w-5 h-5 sm:w-6 sm:h-6 text-[#a78bfa] shrink-0" />
-            <span className="leading-tight">
+          <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <History className="w-5 h-5 sm:w-6 sm:h-6 text-[#0033FF] shrink-0" />
+            <span className=" leading-tight">
               Historial de Autocobros & Ubicaciones Fijadas
             </span>
           </h2>
-          <p className="text-xs sm:text-sm text-[#a1a1aa] mt-1 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
             Detalle completo de tus estancias cobradas a $6.00/hr, comprobantes digitales NFC y puntos GPS donde estacionaste tu vehículo.
           </p>
         </div>
 
-        {/* Resumen de Métricas Compacto */}
+        {/* Resumen de Métricas Compacto (3 tarjetas que caben perfecto en celular) */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3 shrink-0">
-          <div className="rounded-xl bg-[#0a0a0d] border border-white/[0.08] px-2.5 py-2 sm:px-3.5 sm:py-2.5 text-center sm:text-right">
-            <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-[#71717a] block truncate">
+          <div className="rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/70 px-2.5 py-2 sm:px-3.5 sm:py-2.5 text-center sm:text-right">
+            <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-500 block truncate">
               Total Cobrado
             </span>
-            <div className="text-sm sm:text-lg font-bold text-[#a78bfa] font-mono flex items-center justify-center sm:justify-end gap-0.5 mt-0.5">
+            <div className="text-sm sm:text-lg font-black text-emerald-600 font-mono flex items-center justify-center sm:justify-end gap-0.5 mt-0.5">
               <AnimeCounter
                 value={totalSpent}
                 prefix="$"
                 decimals={2}
                 duration={700}
-                className="font-bold text-[#a78bfa] font-mono"
+                className="font-black text-emerald-600 font-mono"
               />
             </div>
           </div>
 
-          <div className="rounded-xl bg-[#0a0a0d] border border-white/[0.08] px-2.5 py-2 sm:px-3.5 sm:py-2.5 text-center sm:text-right">
-            <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-[#71717a] block truncate">
+          <div className="rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/70 px-2.5 py-2 sm:px-3.5 sm:py-2.5 text-center sm:text-right">
+            <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-500 block truncate">
               Tiempo Total
             </span>
-            <span className="text-sm sm:text-lg font-bold text-white font-mono block mt-0.5">
+            <span className="text-sm sm:text-lg font-black text-slate-900 font-mono block mt-0.5">
               {totalHours}h {String(remainingMinutes).padStart(2, '0')}m
             </span>
           </div>
 
-          <div className="rounded-xl bg-[#0a0a0d] border border-white/[0.08] px-2.5 py-2 sm:px-3.5 sm:py-2.5 text-center sm:text-right">
-            <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-[#71717a] block truncate">
+          <div className="rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/70 px-2.5 py-2 sm:px-3.5 sm:py-2.5 text-center sm:text-right">
+            <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-500 block truncate">
               Registros
             </span>
-            <span className="text-sm sm:text-lg font-bold text-[#a78bfa] font-mono block mt-0.5">
+            <span className="text-sm sm:text-lg font-black text-[#0033FF] font-mono block mt-0.5">
               {transactions.length} / {pinnedLocations.length} GPS
             </span>
           </div>
         </div>
       </div>
 
-      {/* Selector de Sub-pestañas */}
+      {/* Selector de Sub-pestañas en Grid de 2 Columnas (Nunca se corta en celular) */}
       <div
         role="tablist"
         aria-label="Sub-pestañas del historial"
-        className="grid grid-cols-2 gap-2 my-4 sm:my-5 p-1 rounded-xl bg-[#0a0a0d] border border-white/[0.08]"
+        className="grid grid-cols-2 gap-2 my-4 sm:my-5 p-1 rounded-2xl bg-slate-100 border border-slate-200/60"
       >
         <button
           type="button"
@@ -150,10 +153,10 @@ export const TransactionHistory = () => {
           aria-selected={activeSubTab === 'payments'}
           aria-controls="subtab-payments-panel"
           onClick={() => setActiveSubTab('payments')}
-          className={`py-2 px-3 rounded-lg text-[11px] sm:text-xs font-sans font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`py-2.5 px-3 rounded-xl text-[11px] sm:text-xs font-sans font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
             activeSubTab === 'payments'
-              ? 'bg-[#8b5cf6] text-white shadow-[0_0_16px_rgba(139,92,246,0.3)]'
-              : 'text-[#a1a1aa] hover:text-white'
+              ? 'bg-[#0033FF] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
           <Receipt className="w-3.5 h-3.5 shrink-0" />
@@ -166,10 +169,10 @@ export const TransactionHistory = () => {
           aria-selected={activeSubTab === 'locations'}
           aria-controls="subtab-locations-panel"
           onClick={() => setActiveSubTab('locations')}
-          className={`py-2 px-3 rounded-lg text-[11px] sm:text-xs font-sans font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`py-2.5 px-3 rounded-xl text-[11px] sm:text-xs font-sans font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
             activeSubTab === 'locations'
-              ? 'bg-[#8b5cf6] text-white shadow-[0_0_16px_rgba(139,92,246,0.3)]'
-              : 'text-[#a1a1aa] hover:text-white'
+              ? 'bg-[#0033FF] text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
           <MapPin className="w-3.5 h-3.5 shrink-0" />
@@ -184,47 +187,48 @@ export const TransactionHistory = () => {
             <div
               id="subtab-payments-panel"
               role="tabpanel"
-              className="text-center py-10 px-4 rounded-xl bg-[#0a0a0d] border border-white/[0.08]"
+              className="text-center py-10 px-4 rounded-2xl bg-slate-50 border border-slate-200/70"
             >
-              <Receipt className="w-10 h-10 text-[#71717a] mx-auto mb-2.5" />
-              <h4 className="text-sm font-semibold text-white">No hay autocobros registrados aún</h4>
-              <p className="text-xs text-[#a1a1aa] max-w-sm mx-auto mt-1">
+              <Receipt className="w-10 h-10 text-slate-400 mx-auto mb-2.5" />
+              <h4 className="text-sm font-bold text-slate-800">No hay autocobros registrados aún</h4>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
                 Cada vez que finalices una estancia en el parquímetro a $6.00/hr, tu recibo digital aparecerá aquí automáticamente.
               </p>
             </div>
           ) : (
             <div id="subtab-payments-panel" role="tabpanel" className="space-y-3">
+              {/* VISTA EN TARJETAS DETALLADAS PARA CELULAR (< md) Y DESKTOP */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 {transactions.map((txn) => {
                   const plateStr = formatPlate(txn.plate || vehicle.plates || 'XYZ-7842');
                   return (
                     <div
                       key={txn.id}
-                      className="anime-history-item rounded-xl bg-[#0a0a0d] hover:border-white/[0.15] border border-white/[0.08] p-3.5 sm:p-4 flex flex-col justify-between gap-3 transition"
+                      className="anime-history-item rounded-2xl bg-slate-50/90 hover:bg-slate-50 border border-slate-200/80 p-3.5 sm:p-4 flex flex-col justify-between gap-3 transition shadow-sm"
                     >
                       {/* Fila 1: Folio, Estado y Monto Total */}
-                      <div className="flex items-start justify-between gap-2 pb-2.5 border-b border-white/[0.06]">
+                      <div className="flex items-start justify-between gap-2 pb-2.5 border-b border-slate-200/70">
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-mono font-bold text-xs sm:text-sm text-white bg-white/[0.04] px-2.5 py-0.5 rounded-md border border-white/[0.08]">
+                            <span className="font-mono font-black text-xs sm:text-sm text-slate-900 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200/80">
                               {txn.folio}
                             </span>
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#8b5cf6]/15 border border-[#8b5cf6]/30 text-[#a78bfa] font-mono font-semibold text-[10px]">
-                              <CheckCircle2 className="w-3 h-3 text-[#a78bfa] shrink-0" />
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-mono font-bold text-[10px]">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
                               {txn.status || 'COMPLETADO'}
                             </span>
                           </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-[#71717a] font-mono mt-1.5">
-                            <Calendar className="w-3 h-3 text-[#71717a] shrink-0" />
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-mono mt-1.5">
+                            <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
                             <span className="truncate">{formatDate(txn.date)}</span>
                           </div>
                         </div>
 
                         <div className="text-right shrink-0">
-                          <span className="text-[9px] font-mono uppercase tracking-wider text-[#71717a] block">
+                          <span className="text-[9px] font-mono uppercase tracking-wider text-slate-400 block">
                             Importe Cobrado
                           </span>
-                          <span className="font-mono font-bold text-base sm:text-lg text-[#a78bfa]">
+                          <span className="font-mono font-black text-base sm:text-lg text-emerald-600">
                             {formatCurrency(txn.amount)}
                           </span>
                         </div>
@@ -232,44 +236,44 @@ export const TransactionHistory = () => {
 
                       {/* Fila 2: Zona de Estacionamiento */}
                       <div className="flex items-start gap-2 min-w-0">
-                        <div className="w-7 h-7 rounded-lg bg-[#8b5cf6]/15 border border-[#8b5cf6]/30 text-[#a78bfa] flex items-center justify-center shrink-0 mt-0.5">
+                        <div className="w-7 h-7 rounded-xl bg-[#0033FF]/10 text-[#0033FF] flex items-center justify-center shrink-0 mt-0.5">
                           <MapPin className="w-3.5 h-3.5" />
                         </div>
                         <div className="min-w-0">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-[#71717a] block">
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">
                             Zona / Cajón de Parquímetro
                           </span>
-                          <p className="text-xs sm:text-sm font-semibold text-white break-words leading-snug">
+                          <p className="text-xs sm:text-sm font-bold text-slate-900 break-words leading-snug">
                             {txn.zone}
                           </p>
                         </div>
                       </div>
 
-                      {/* Fila 3: Desglose de Tiempo, Placas y Tarifa */}
-                      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 bg-[#0d0d11] rounded-lg p-2.5 border border-white/[0.06] text-center">
+                      {/* Fila 3: Desglose de Tiempo, Placas y Tarifa (3 celdas adaptadas a móvil) */}
+                      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 bg-white rounded-xl p-2.5 border border-slate-200/60 text-center">
                         <div className="min-w-0">
-                          <span className="text-[9px] font-mono uppercase text-[#71717a] block">
+                          <span className="text-[9px] font-mono uppercase text-slate-400 block">
                             Tiempo
                           </span>
-                          <span className="font-mono font-semibold text-[11px] sm:text-xs text-white truncate block mt-0.5">
+                          <span className="font-mono font-bold text-[11px] sm:text-xs text-slate-900 truncate block mt-0.5">
                             {formatDurationDetailed(txn.durationMinutes)}
                           </span>
                         </div>
 
-                        <div className="min-w-0 border-x border-white/[0.06] px-1">
-                          <span className="text-[9px] font-mono uppercase text-[#71717a] block">
+                        <div className="min-w-0 border-x border-slate-100 px-1">
+                          <span className="text-[9px] font-mono uppercase text-slate-400 block">
                             Tarifa
                           </span>
-                          <span className="font-mono font-semibold text-[11px] sm:text-xs text-[#a78bfa] block mt-0.5">
+                          <span className="font-mono font-bold text-[11px] sm:text-xs text-[#0033FF] block mt-0.5">
                             $6.00/hr
                           </span>
                         </div>
 
                         <div className="min-w-0">
-                          <span className="text-[9px] font-mono uppercase text-[#71717a] block">
+                          <span className="text-[9px] font-mono uppercase text-slate-400 block">
                             Placas
                           </span>
-                          <span className="font-mono font-semibold text-[11px] sm:text-xs text-white truncate block mt-0.5">
+                          <span className="font-mono font-bold text-[11px] sm:text-xs text-slate-900 truncate block mt-0.5">
                             {plateStr}
                           </span>
                         </div>
@@ -277,15 +281,15 @@ export const TransactionHistory = () => {
 
                       {/* Fila 4: Método de Pago y Botón de Comprobante Digital */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
-                        <div className="flex items-center gap-1.5 text-[11px] text-[#a1a1aa] min-w-0">
-                          <CreditCard className="w-3.5 h-3.5 text-[#71717a] shrink-0" />
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-600 min-w-0">
+                          <CreditCard className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                           <span className="truncate">{txn.method}</span>
                         </div>
 
                         <button
                           type="button"
                           onClick={() => setSelectedTicket(txn)}
-                          className="w-full sm:w-auto px-3.5 py-2 rounded-lg bg-[#8b5cf6] hover:bg-[#9b6ff7] active:scale-95 text-white text-xs font-sans font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0"
+                          className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-[#0033FF] hover:bg-[#1e4bff] active:scale-95 text-white text-xs font-sans font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 shadow-sm"
                         >
                           <FileText className="w-3.5 h-3.5" />
                           <span>Ver Comprobante</span>
@@ -297,17 +301,18 @@ export const TransactionHistory = () => {
               </div>
             </div>
           )
-        ) : pinnedLocations.length === 0 ? (
+        ) : /* SUB-PESTAÑA DE UBICACIONES GPS FIJADAS */
+        pinnedLocations.length === 0 ? (
           <div
             id="subtab-locations-panel"
             role="tabpanel"
-            className="text-center py-10 px-4 rounded-xl bg-[#0a0a0d] border border-white/[0.08] space-y-2"
+            className="text-center py-10 px-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2"
           >
-            <MapPin className="w-10 h-10 text-[#71717a] mx-auto" />
-            <h4 className="text-sm font-semibold text-white">
+            <MapPin className="w-10 h-10 text-slate-400 mx-auto" />
+            <h4 className="text-sm font-bold text-slate-800">
               No hay ubicaciones registradas en la bitácora
             </h4>
-            <p className="text-xs text-[#a1a1aa] max-w-sm mx-auto">
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
               Fija tu ubicación en el mapa satelital para guardar las coordenadas exactas donde dejaste estacionado tu vehículo.
             </p>
           </div>
@@ -325,82 +330,86 @@ export const TransactionHistory = () => {
               return (
                 <div
                   key={item.id}
-                  className="anime-history-item p-3.5 sm:p-5 rounded-xl bg-[#0a0a0d] border border-white/[0.08] hover:border-white/[0.15] flex flex-col justify-between gap-3.5 transition"
+                  className="anime-history-item p-3.5 sm:p-5 rounded-2xl bg-slate-50/90 border border-slate-200/80 flex flex-col justify-between gap-3.5 shadow-sm"
                 >
                   <div className="space-y-2.5">
+                    {/* Estado y Fecha */}
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold border ${
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                           isItemActive
-                            ? 'bg-[#8b5cf6]/20 text-[#a78bfa] border-[#8b5cf6]/40 animate-pulse'
-                            : 'bg-white/[0.04] text-[#a1a1aa] border-white/[0.08]'
+                            ? 'bg-emerald-100 text-emerald-800 animate-pulse'
+                            : 'bg-slate-200/80 text-slate-700'
                         }`}
                       >
                         {isItemActive ? '● AUTO ESTACIONADO AQUI' : 'ESTANCIA REGISTRADA'}
                       </span>
-                      <span className="text-[11px] font-mono text-[#71717a]">
+                      <span className="text-[11px] font-mono text-slate-500">
                         {formatDate(item.date)}
                       </span>
                     </div>
 
+                    {/* Nombre del Espacio y Dirección */}
                     <div className="flex items-start gap-2.5 min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-[#8b5cf6]/15 border border-[#8b5cf6]/30 text-[#a78bfa] flex items-center justify-center shrink-0 mt-0.5">
+                      <div className="w-8 h-8 rounded-xl bg-[#0033FF]/10 text-[#0033FF] flex items-center justify-center shrink-0 mt-0.5">
                         <MapPin className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
-                        <h4 className="text-xs sm:text-sm font-bold text-white break-words leading-snug">
+                        <h4 className="text-xs sm:text-sm font-black text-slate-900 break-words leading-snug">
                           {item.name}
                         </h4>
                         {item.address && (
-                          <p className="text-[11px] text-[#a1a1aa] mt-0.5 break-words">
+                          <p className="text-[11px] text-slate-500 mt-0.5 break-words">
                             {item.address}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-1.5 bg-[#0d0d11] rounded-lg p-2.5 border border-white/[0.06] text-center">
+                    {/* Detalles Técnicos GPS, Placas y Tarifa */}
+                    <div className="grid grid-cols-3 gap-1.5 bg-white rounded-xl p-2.5 border border-slate-200/60 text-center">
                       <div className="min-w-0">
-                        <span className="text-[9px] font-mono uppercase text-[#71717a] block">
+                        <span className="text-[9px] font-mono uppercase text-slate-400 block">
                           GPS Lat/Lng
                         </span>
-                        <span className="font-mono font-semibold text-[10px] sm:text-[11px] text-[#e4e4e7] truncate block mt-0.5">
+                        <span className="font-mono font-bold text-[10px] sm:text-[11px] text-slate-800 truncate block mt-0.5">
                           {latNum.toFixed(4)}, {lngNum.toFixed(4)}
                         </span>
                       </div>
 
-                      <div className="min-w-0 border-x border-white/[0.06] px-1">
-                        <span className="text-[9px] font-mono uppercase text-[#71717a] block">
+                      <div className="min-w-0 border-x border-slate-100 px-1">
+                        <span className="text-[9px] font-mono uppercase text-slate-400 block">
                           Placas
                         </span>
-                        <span className="font-mono font-semibold text-[11px] text-white truncate block mt-0.5">
+                        <span className="font-mono font-bold text-[11px] text-slate-900 truncate block mt-0.5">
                           {formatPlate(item.plates || vehicle.plates)}
                         </span>
                       </div>
 
                       <div className="min-w-0">
-                        <span className="text-[9px] font-mono uppercase text-[#71717a] block">
+                        <span className="text-[9px] font-mono uppercase text-slate-400 block">
                           Tarifa Zona
                         </span>
-                        <span className="font-mono font-semibold text-[11px] text-[#a78bfa] block mt-0.5">
+                        <span className="font-mono font-bold text-[11px] text-[#0033FF] block mt-0.5">
                           ${Number(item.ratePerHour || 6).toFixed(2)}/hr
                         </span>
                       </div>
                     </div>
 
                     {item.notes && (
-                      <p className="text-[11px] text-[#a1a1aa] bg-white/[0.03] px-3 py-1.5 rounded-lg border border-white/[0.06]">
+                      <p className="text-[11px] text-slate-600 bg-white/70 px-3 py-1.5 rounded-lg border border-slate-200/50">
                         Nota: {item.notes}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/[0.06]">
+                  {/* Botones de Acción (Adaptados a móvil) */}
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/70">
                     <a
                       href={`https://www.google.com/maps?q=${latNum},${lngNum}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 py-2 px-3 rounded-lg bg-[#8b5cf6] hover:bg-[#9b6ff7] text-xs font-sans font-semibold text-white flex items-center justify-center gap-1.5 transition"
+                      className="flex-1 py-2 px-3 rounded-xl bg-[#0033FF] hover:bg-[#1e4bff] text-xs font-sans font-bold text-white flex items-center justify-center gap-1.5 transition shadow-sm"
                     >
                       <Navigation className="w-3.5 h-3.5 shrink-0" />
                       <span className="truncate">Cómo Llegar a mi Auto</span>
@@ -417,7 +426,7 @@ export const TransactionHistory = () => {
                           description: 'El registro GPS fue removido de tu bitácora.',
                         });
                       }}
-                      className="p-2 rounded-lg bg-white/[0.04] hover:bg-rose-500/20 text-[#a1a1aa] hover:text-rose-400 border border-white/[0.08] transition cursor-pointer shrink-0"
+                      className="p-2 rounded-xl bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200/80 transition cursor-pointer shrink-0"
                       title="Eliminar de la bitácora"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -430,110 +439,113 @@ export const TransactionHistory = () => {
         )}
       </div>
 
-      {/* Modal de Comprobante Digital NFC */}
+      {/* Modal de Comprobante Digital NFC (Adaptado a pantallas de celular) */}
       {selectedTicket && (
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="ticket-modal-title"
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4"
+          className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-4"
         >
-          <div className="bg-[#0d0d11] text-white rounded-2xl max-w-sm w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-white/[0.08] relative">
+          <div className="bg-white text-slate-900 rounded-3xl max-w-sm w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-slate-200 relative">
             <button
               type="button"
               onClick={() => setSelectedTicket(null)}
               aria-label="Cerrar comprobante"
-              className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#a1a1aa] hover:text-white flex items-center justify-center cursor-pointer"
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="text-center pb-4 border-b border-dashed border-white/[0.12]">
-              <div className="w-11 h-11 rounded-xl bg-[#8b5cf6] text-white flex items-center justify-center mx-auto mb-2.5 shadow-[0_0_20px_rgba(139,92,246,0.4)]">
+            {/* Cabecera del Comprobante */}
+            <div className="text-center pb-4 border-b border-dashed border-slate-200">
+              <div className="w-11 h-11 rounded-2xl bg-[#0033FF] text-white flex items-center justify-center mx-auto mb-2.5 shadow-md">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
-              <span className="text-[10px] uppercase tracking-widest text-[#a78bfa] font-mono font-semibold block">
+              <span className="text-[10px] uppercase tracking-widest text-[#0033FF] font-mono font-bold block">
                 COMPROBANTE OFICIAL DE AUTOCOBRO
               </span>
-              <h3 id="ticket-modal-title" className="text-base font-bold text-white mt-0.5">
+              <h3 id="ticket-modal-title" className="text-base font-black text-slate-900 mt-0.5">
                 Parqu • Pase Digital NFC
               </h3>
-              <p className="text-xs text-[#a1a1aa] font-mono mt-0.5">
-                Folio: <span className="font-bold text-white">{selectedTicket.folio}</span>
+              <p className="text-xs text-slate-500 font-mono mt-0.5">
+                Folio: <span className="font-bold text-slate-900">{selectedTicket.folio}</span>
               </p>
             </div>
 
-            <div className="py-4 space-y-2.5 text-xs border-b border-dashed border-white/[0.12]">
+            {/* Desglose Detallado */}
+            <div className="py-4 space-y-2.5 text-xs border-b border-dashed border-slate-200">
               <div className="flex justify-between gap-2">
-                <span className="text-[#a1a1aa]">Fecha y Hora:</span>
-                <span className="text-white font-mono font-semibold text-right">
+                <span className="text-slate-500">Fecha y Hora:</span>
+                <span className="text-slate-900 font-mono font-semibold text-right">
                   {formatDate(selectedTicket.date)}
                 </span>
               </div>
               <div className="flex justify-between gap-2">
-                <span className="text-[#a1a1aa]">Titular:</span>
-                <span className="text-white font-semibold text-right truncate max-w-[180px]">
+                <span className="text-slate-500">Titular:</span>
+                <span className="text-slate-900 font-bold text-right truncate max-w-[180px]">
                   {owner.fullName}
                 </span>
               </div>
               <div className="flex justify-between gap-2">
-                <span className="text-[#a1a1aa]">Vehículo y Placas:</span>
-                <span className="text-white font-mono font-semibold text-right">
+                <span className="text-slate-500">Vehículo y Placas:</span>
+                <span className="text-slate-900 font-mono font-bold text-right">
                   {vehicle.brand} {vehicle.model} • {formatPlate(selectedTicket.plate || vehicle.plates)}
                 </span>
               </div>
               <div className="flex justify-between gap-2">
-                <span className="text-[#a1a1aa]">Zona / Espacio:</span>
-                <span className="text-white font-semibold text-right max-w-[190px]">
+                <span className="text-slate-500">Zona / Espacio:</span>
+                <span className="text-slate-900 font-semibold text-right max-w-[190px]">
                   {selectedTicket.zone}
                 </span>
               </div>
               <div className="flex justify-between gap-2">
-                <span className="text-[#a1a1aa]">Tiempo Ocupado:</span>
-                <span className="text-white font-mono font-semibold">
+                <span className="text-slate-500">Tiempo Ocupado:</span>
+                <span className="text-slate-900 font-mono font-bold">
                   {formatDurationDetailed(selectedTicket.durationMinutes)}
                 </span>
               </div>
               <div className="flex justify-between gap-2">
-                <span className="text-[#a1a1aa]">Tarifa Oficial:</span>
-                <span className="text-[#a78bfa] font-mono font-semibold">$6.00 MXN / hora</span>
+                <span className="text-slate-500">Tarifa Oficial:</span>
+                <span className="text-[#0033FF] font-mono font-bold">$6.00 MXN / hora</span>
               </div>
-              <div className="flex justify-between gap-2 pt-2 border-t border-white/[0.06]">
-                <span className="text-[#a1a1aa]">Método de Cargo:</span>
-                <span className="text-[#e4e4e7] font-medium text-right max-w-[185px]">
+              <div className="flex justify-between gap-2 pt-2 border-t border-slate-100">
+                <span className="text-slate-500">Método de Cargo:</span>
+                <span className="text-slate-700 font-medium text-right max-w-[185px]">
                   {selectedTicket.method}
                 </span>
               </div>
-              <div className="flex justify-between items-center pt-2 text-base font-bold">
-                <span className="text-white">Total Cobrado:</span>
-                <span className="text-[#a78bfa] text-lg font-mono">
+              <div className="flex justify-between items-center pt-2 text-base font-black">
+                <span className="text-slate-900">Total Cobrado:</span>
+                <span className="text-emerald-600 text-lg font-mono">
                   {formatCurrency(selectedTicket.amount)}
                 </span>
               </div>
             </div>
 
+            {/* Sello Digital NFC Contactless */}
             <div className="pt-4 space-y-3">
-              <div className="rounded-xl bg-[#0a0a0d] border border-white/[0.08] p-3 flex items-center justify-between gap-2">
+              <div className="rounded-2xl bg-slate-50 border border-slate-200/80 p-3 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-lg bg-[#8b5cf6]/15 border border-[#8b5cf6]/30 text-[#a78bfa] flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-[#0033FF]/10 text-[#0033FF] flex items-center justify-center shrink-0">
                     <Wifi className="w-4 h-4 rotate-90" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#71717a] block">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">
                       SELLO DIGITAL CONTACTLESS
                     </span>
-                    <span className="font-mono font-semibold text-xs text-white truncate block">
+                    <span className="font-mono font-bold text-xs text-slate-900 truncate block">
                       {card?.rfidTag || 'NFC-MX-09142-PK'}
                     </span>
                   </div>
                 </div>
-                <ShieldCheck className="w-5 h-5 text-[#a78bfa] shrink-0" />
+                <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0" />
               </div>
 
               <button
                 type="button"
                 onClick={() => setSelectedTicket(null)}
-                className="w-full h-10 rounded-lg bg-[#8b5cf6] hover:bg-[#9b6ff7] text-white font-semibold text-xs transition cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-[#0033FF] hover:bg-[#1e4bff] text-white font-bold text-xs transition cursor-pointer shadow-sm"
               >
                 Cerrar Comprobante
               </button>

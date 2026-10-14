@@ -19,6 +19,11 @@ import {
   restoreBackupFromCloud,
   exportBackupAsJsonFile,
 } from '../utils/dataBackup';
+import {
+  checkXamppDatabaseStatus,
+  fetchStateFromXamppDb,
+  syncStateToXamppDb,
+} from '../utils/xamppDbSync';
 
 const ParkingContext = createContext();
 
@@ -298,7 +303,7 @@ export const ParkingProvider = ({ children }) => {
     }
   }, [activeSession]);
 
-  // Función central para publicar el estado actual a la nube en tiempo real
+  // Función central para publicar el estado actual a la nube y a XAMPP MySQL en tiempo real
   const syncNowToCloud = useCallback(
     async (overrides = {}) => {
       if (isApplyingRemoteUpdateRef.current) return;
@@ -306,6 +311,9 @@ export const ParkingProvider = ({ children }) => {
         vehicle: overrides.vehicle !== undefined ? overrides.vehicle : vehicle,
         owner: overrides.owner !== undefined ? overrides.owner : owner,
         card: overrides.card !== undefined ? overrides.card : card,
+        autoPay: overrides.autoPay !== undefined ? overrides.autoPay : autoPay,
+        pinnedLocations:
+          overrides.pinnedLocations !== undefined ? overrides.pinnedLocations : pinnedLocations,
         activeSession:
           overrides.activeSession !== undefined ? overrides.activeSession : activeSession,
         infractions: overrides.infractions !== undefined ? overrides.infractions : infractions,
@@ -314,14 +322,41 @@ export const ParkingProvider = ({ children }) => {
         transactions:
           overrides.transactions !== undefined ? overrides.transactions : transactions,
       };
+      // Sincronizar en paralelo con XAMPP MySQL (http://localhost/parqu-api/index.php) y Cloud Sync
+      syncStateToXamppDb(stateToPublish).catch(() => {});
       const ok = await publishVehicleStateToCloud(stateToPublish);
       if (ok) {
         setLastCloudSyncAt(new Date().toISOString());
         setCloudStatus('CONNECTED');
       }
     },
-    [vehicle, owner, card, activeSession, infractions, lastInspection, transactions]
+    [vehicle, owner, card, autoPay, pinnedLocations, activeSession, infractions, lastInspection, transactions]
   );
+
+  // Sincronización inicial con XAMPP MySQL (parqu_db) si el servidor local está activo
+  useEffect(() => {
+    let active = true;
+    checkXamppDatabaseStatus().then((status) => {
+      if (!active || !status?.ok) return;
+      fetchStateFromXamppDb(vehicle?.plates || 'XYZ-7842').then((dbState) => {
+        if (!active || !dbState) return;
+        syncStateToXamppDb({
+          vehicle,
+          owner,
+          card,
+          autoPay,
+          activeSession,
+          transactions,
+          pinnedLocations,
+          infractions,
+          lastInspection,
+        }).catch(() => {});
+      });
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Suscripción en vivo a la placa actual para recibir cambios desde otro celular (ej. Inspector NFC o segundo dispositivo)
   useEffect(() => {

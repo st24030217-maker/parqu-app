@@ -137,32 +137,32 @@ export const VehicleOwnerForm = () => {
 
   return (
     <WobbleCard
-      containerClassName="w-full bg-[#0d0d11] text-white border border-white/[0.08] shadow-none transition-colors"
+      containerClassName="w-full bg-slate-950 text-white border-0 shadow-2xl shadow-slate-950/50 transition-colors"
       className="p-5 sm:p-8 flex flex-col justify-between"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-white/[0.08] mb-6 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-0 mb-6 gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-2">
-            <span className="px-3 py-1 rounded-full bg-[#8b5cf6]/15 border border-[#8b5cf6]/30 text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-[#a78bfa]">
+            <span className="px-3 py-1 rounded-full bg-[#0033FF]/20 border-0 text-[10px] font-mono font-bold uppercase tracking-widest text-[#D4D6E6]">
               PADRÓN VIAL METROPOLITANO
             </span>
-            <span className="px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[#e4e4e7] text-[10px] font-mono font-semibold flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6] animate-pulse" />
+            <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               RESPALDO AUTOMÁTICO ACTIVO
             </span>
           </div>
-          <h2 className="text-xl sm:text-3xl font-bold text-white tracking-[-0.02em] flex items-center gap-2.5">
-            <Car className="w-6 h-6 text-[#a78bfa]" />
+          <h2 className="text-xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
+            <Car className="w-6 h-6 text-white" />
             Registro de Vehículo, Titular & Respaldo
           </h2>
-          <p className="text-xs sm:text-sm text-[#a1a1aa] mt-1 font-sans max-w-2xl leading-relaxed">
-            Todos tus cambios se guardan automáticamente en triple respaldo (<span className="text-white font-semibold">Memoria Local + Bóveda IndexedDB + Nube</span>).
+          <p className="text-xs sm:text-sm text-slate-300 mt-1 font-sans max-w-2xl leading-relaxed">
+            Todos tus cambios se guardan automáticamente en triple respaldo (<span className="text-white font-bold">Memoria Local + Bóveda IndexedDB + Nube</span>).
           </p>
         </div>
 
         {savedNotification && (
-          <span className="flex items-center gap-1.5 text-xs font-sans font-semibold px-3.5 py-1.5 rounded-full bg-[#8b5cf6]/15 text-[#a78bfa] border border-[#8b5cf6]/30 animate-in fade-in self-start sm:self-auto">
-            <Check className="w-3.5 h-3.5 text-[#a78bfa]" />
+          <span className="flex items-center gap-1.5 text-xs font-sans font-semibold px-3.5 py-1.5 rounded-full bg-white/10 text-[#D4D6E6] border-0 animate-in fade-in self-start sm:self-auto shadow-xl">
+            <Check className="w-3.5 h-3.5 text-emerald-400" />
             ¡Guardado y Respaldado!
           </span>
         )}
@@ -171,8 +171,8 @@ export const VehicleOwnerForm = () => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Sección del Coche */}
         <div>
-          <h3 className="text-xs uppercase tracking-wider font-semibold text-[#e4e4e7] mb-3.5 flex items-center gap-2 font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6]"></span>
+          <h3 className="text-xs uppercase tracking-wider font-bold text-slate-300 mb-3.5 flex items-center gap-2 font-sans">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0033FF]"></span>
             1. Datos del Vehículo
           </h3>
 
@@ -419,7 +419,7 @@ export const VehicleOwnerForm = () => {
           <button
             type="submit"
             aria-label="Guardar datos y actualizar tarjeta virtual"
-            className="w-full sm:w-auto justify-center px-6 py-3 rounded-lg bg-[#8b5cf6] hover:bg-[#9b6ff7] text-white font-semibold font-sans text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(139,92,246,0.35)] transition transform active:scale-95 cursor-pointer border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]"
+            className="w-full sm:w-auto justify-center px-6 py-3.5 rounded-2xl bg-[#0033FF] hover:bg-[#2250ff] text-white font-bold font-sans text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(0,51,255,0.6)] transition transform active:scale-95 cursor-pointer border-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#01033E]"
           >
             <RefreshCw className="w-4 h-4 text-white" />
             Guardar & Respaldar Tarjeta Virtual

@@ -76,7 +76,7 @@ export default function HeroText({
                         }}
                         className={cn(
                           sizeClass,
-                          "absolute inset-0 leading-none font-black text-[#8b5cf6] z-10 pointer-events-none drop-shadow-[0_0_25px_rgba(139,92,246,0.7)]"
+                          "absolute inset-0 leading-none font-black text-[#0033FF] z-10 pointer-events-none drop-shadow-[0_0_25px_rgba(0,51,255,0.7)]"
                         )}
                         style={{ clipPath: "polygon(0 0, 100% 0, 100% 35%, 0 35%)" }}
                       >
@@ -94,7 +94,7 @@ export default function HeroText({
                         }}
                         className={cn(
                           sizeClass,
-                          "absolute inset-0 leading-none font-black text-[#e4e4e7] z-10 pointer-events-none"
+                          "absolute inset-0 leading-none font-black text-[#D4D6E6] z-10 pointer-events-none"
                         )}
                         style={{
                           clipPath: "polygon(0 35%, 100% 35%, 100% 65%, 0 65%)",
@@ -114,7 +114,7 @@ export default function HeroText({
                         }}
                         className={cn(
                           sizeClass,
-                          "absolute inset-0 leading-none font-black text-[#a78bfa] z-10 pointer-events-none drop-shadow-[0_0_25px_rgba(167,139,250,0.7)]"
+                          "absolute inset-0 leading-none font-black text-[#807DFE] z-10 pointer-events-none drop-shadow-[0_0_25px_rgba(128,125,254,0.7)]"
                         )}
                         style={{
                           clipPath: "polygon(0 65%, 100% 65%, 100% 100%, 0 100%)",
