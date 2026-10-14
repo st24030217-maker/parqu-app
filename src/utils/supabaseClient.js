@@ -8,9 +8,17 @@ import { createClient } from '@supabase/supabase-js';
 const STORAGE_KEY_URL = 'parqu_supabase_url';
 const STORAGE_KEY_KEY = 'parqu_supabase_anon_key';
 
+const DEFAULT_SUPABASE_URL = 'https://tylmqyiyplessgyrxvyq.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5bG1xeWl5cGxlc3NneXJ4dnlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5OTk0MTQsImV4cCI6MjEwNzU3NTQxNH0.WLdhgY36EZ2cztchQpQVAkW4wsI1ojk8QYc0HfErYZk';
+
 export function getSupabaseCredentials() {
-  let url = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || '';
-  let anonKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || '';
+  let url =
+    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) ||
+    DEFAULT_SUPABASE_URL;
+  let anonKey =
+    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) ||
+    DEFAULT_SUPABASE_ANON_KEY;
 
   if (typeof window !== 'undefined') {
     const customUrl = localStorage.getItem(STORAGE_KEY_URL);
