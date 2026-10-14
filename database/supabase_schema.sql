@@ -205,7 +205,8 @@ CREATE TABLE IF NOT EXISTS public.suscripciones_push (
 -- -----------------------------------------------------------------------------
 -- VISTA COMPLETA: vista_estado_vehicular_completo
 -- -----------------------------------------------------------------------------
-CREATE OR REPLACE VIEW public.vista_estado_vehicular_completo AS
+CREATE OR REPLACE VIEW public.vista_estado_vehicular_completo
+WITH (security_invoker = true) AS
 SELECT
   v.id AS vehiculo_id,
   v.placas,
