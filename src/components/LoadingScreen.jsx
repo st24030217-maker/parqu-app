@@ -11,32 +11,47 @@ import {
   Eye,
   EyeOff,
   X,
-  Menu,
-  MapPin,
-  Clock,
-  Sparkles,
 } from 'lucide-react';
 import { animate, stagger } from 'animejs';
 import { AnimeCardSheen } from './ui/anime-card-sheen';
+import CurvedLoop from './ui/CurvedLoop';
+import { RadialGlowButton } from './ui/radial-glow-button';
 import { Button as StatefulButton } from './ui/stateful-button';
 import { GtaViPoster } from './ui/gta-vi-poster';
 import { useParking } from '../context/ParkingContext';
 import { requestParkingNotificationPermission } from '../utils/parkingNotification';
 
-/**
- * ══════════════════════════════════════════════════════════════════════════
- * PHONE MOCKUP BELIEVABLE PRODUCT UI (PARQU DIGITAL)
- * Diseño fiel al lenguaje Cash App:
- * - Chasis de teléfono matte black con bocina / dynamic island
- * - Barra de estado real (9:41, Wi-Fi, 5G, Batería)
- * - Header oscuro con logo Parqu, placa del vehículo y avatar
- * - Tarjeta blanca redondeada con número enmascarado ●●●● y gran saldo numeral
- * - Dos botones en píldora (+ Recargar / Estacionar)
- * - Fila de actividad (Cajón #1042 / Autocobro Inteligente)
- * - Recorte intencional que desborda por el pliegue inferior del hero
- * ══════════════════════════════════════════════════════════════════════════
- */
-const ParquPhoneMockup = memo(({ plates, balance, ownerName, onAction }) => {
+// Cronómetro en vivo ligero para la fila de autocobro del panel trasero
+const LiveSecondsRow = memo(() => {
+  const [seconds, setSeconds] = useState(865); // 00:14:25 inicial
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  const formatted = `00:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+  return (
+    <div
+      style={{ letterSpacing: '-0.03em' }}
+      className="text-[16px] sm:text-[22px] lg:text-[24px] font-black font-mono text-[#01033E] leading-none"
+    >
+      {formatted}
+    </div>
+  );
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// COMPOSICIÓN HERO DE PARQU (ESTRUCTURA DE PANELES SUPERPUESTOS + DISEÑO OFICIAL PARQU)
+// Respeta al 100% la paleta (#01033E, #0033FF, #807DFE), el fondo blanco limpio,
+// los logotipos transparentes oficiales y las tarjetas reales de Parqu.
+// ══════════════════════════════════════════════════════════════════════════
+const ParquHeroComposition = memo(({ plates, balance, ownerName, onEnter }) => {
   const formattedBalance = Number(balance ?? 320).toFixed(2);
   const activePlates = plates || 'XYZ-7842';
   const initials =
@@ -48,131 +63,238 @@ const ParquPhoneMockup = memo(({ plates, balance, ownerName, onAction }) => {
       .join('') || 'SS';
 
   return (
-    <div className="relative mx-auto w-[290px] sm:w-[330px] lg:w-[350px] select-none translate-y-12 sm:translate-y-16 lg:translate-y-24">
-      {/* Sombra ambiental suave bajo el marco del teléfono (única elevación permitida) */}
-      <div className="absolute -inset-4 bg-black/40 blur-3xl rounded-[60px] pointer-events-none" />
+    <div className="relative w-full h-full flex items-center justify-center lg:justify-end select-none">
+      {/* Resplandor atmosférico suave de Parqu detrás de los paneles sobre el fondo blanco */}
+      <div
+        className="absolute inset-0 rounded-full blur-3xl pointer-events-none opacity-65"
+        style={{
+          background:
+            'radial-gradient(circle at 55% 50%, rgba(0, 51, 255, 0.22) 0%, rgba(128, 125, 254, 0.16) 48%, transparent 74%)',
+        }}
+      />
 
-      {/* Chasis matte black del dispositivo */}
-      <div className="relative rounded-[48px] border-[10px] border-black bg-black shadow-[0_50px_110px_rgba(0,0,0,0.65)] overflow-hidden">
-        {/* Dynamic Island / Parlante superior */}
-        <div className="pt-2 pb-1 bg-black flex justify-center items-center">
-          <div className="w-24 h-4 bg-[#141414] rounded-full flex items-center justify-end px-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          </div>
-        </div>
-
-        {/* Barra de estado del sistema (9:41, Wi-Fi, 5G, Batería) */}
-        <div className="bg-[#01033E] text-white/90 px-5 pt-1 pb-2 flex items-center justify-between text-[11px] font-mono">
-          <span className="font-bold tracking-tight">9:41</span>
-          <div className="flex items-center gap-1.5">
-            <Wifi className="w-3.5 h-3.5 rotate-90 text-white/90" />
-            <span className="text-[10px] font-bold">5G</span>
-            <div className="w-5 h-2.5 rounded-[3px] border border-white/80 p-0.5 flex items-center">
-              <div className="w-full h-full bg-white rounded-2xs" />
-            </div>
-          </div>
-        </div>
-
-        {/* Cabecera oscura de la App (Parqu Digital + Placa + Avatar) */}
-        <div className="bg-[#01033E] text-white px-4 py-3 flex items-center justify-between border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-[#0033FF] ring-2 ring-blue-400" />
-            <span className="font-black text-xs sm:text-sm tracking-tight font-sans">PARQU DIGITAL</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-md bg-white/10 text-[10px] font-mono font-bold text-sky-200">
-              {activePlates}
-            </span>
-            <div className="w-7 h-7 rounded-full bg-[#0033FF] text-white text-[11px] font-black flex items-center justify-center border border-white/30">
-              {initials}
-            </div>
-          </div>
-        </div>
-
-        {/* Cuerpo interno de la aplicación */}
-        <div className="bg-[#F6F8FB] p-3.5 sm:p-4 space-y-3.5 text-slate-800">
-          {/* Tarjeta blanca con esquinas redondeadas (~16-24px): número enmascarado + gran saldo */}
-          <div className="bg-white rounded-[20px] p-4 shadow-[0_4px_16px_rgba(0,0,0,0.04)] border border-slate-100 space-y-2.5">
-            <div className="flex items-center justify-between text-slate-500 text-[11px] font-mono">
-              <span className="flex items-center gap-1.5 font-semibold text-slate-600">
-                <Wifi className="w-3 h-3 rotate-90 text-[#0033FF]" />
-                ●●●● {activePlates.slice(-4)}
+      {/* Contenedor escalable que preserva la proporción y solapamiento en celular y escritorio */}
+      <div className="relative w-[335px] h-[360px] sm:w-[555px] sm:h-[485px] lg:w-[660px] lg:h-[540px]">
+        
+        {/* ── 1. PANEL TRASERO (BILLETERA DIGITAL PARQU — ~60% IZQUIERDO VISIBLE) ── */}
+        <div
+          onClick={onEnter}
+          style={{
+            boxShadow: '0 24px 60px rgba(1, 3, 62, 0.14)',
+          }}
+          className="absolute left-0 sm:left-2 lg:left-0 top-6 sm:top-10 lg:top-11 z-10 w-[212px] sm:w-[308px] lg:w-[342px] min-h-[300px] sm:min-h-[410px] lg:min-h-[448px] rounded-[24px] sm:rounded-[28px] bg-white border border-slate-200/90 text-[#01033E] p-4 sm:p-6 flex flex-col justify-between overflow-hidden cursor-pointer transition-transform duration-300 hover:-translate-y-1"
+        >
+          {/* Encabezado y Saldo Principal */}
+          <div>
+            <div className="flex items-center justify-between pr-6 sm:pr-10">
+              <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-[#0033FF] font-bold">
+                01 • Billetera Digital
               </span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
-                NFC ACTIVO
+              <span className="text-[10px] sm:text-[11px] font-mono font-bold text-slate-400">
+                MXN
               </span>
             </div>
 
-            {/* Número de saldo muy grande */}
+            <div
+              style={{ letterSpacing: '-0.02em' }}
+              className="mt-1 text-[14px] sm:text-[18px] font-extrabold text-[#01033E] leading-none"
+            >
+              Saldo Parqu
+            </div>
+
+            <div
+              style={{ letterSpacing: '-0.04em' }}
+              className="mt-2 sm:mt-2.5 text-[24px] sm:text-[34px] lg:text-[38px] font-black text-[#01033E] leading-none"
+            >
+              ${formattedBalance}
+            </div>
+
+            {/* Metadatos del vehículo y pase NFC */}
+            <div className="mt-1.5 sm:mt-2 space-y-0.5 text-[10px] sm:text-[12px] font-medium text-slate-500">
+              <div>
+                Placa <strong className="font-mono text-[#01033E]">{activePlates}</strong>
+              </div>
+              <div className="flex items-center gap-1 text-emerald-600 font-semibold">
+                <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span>Pase NFC Activo • Sin comisión</span>
+              </div>
+            </div>
+
+            {/* Dos botones tipo píldora con la identidad de Parqu */}
+            <div className="mt-3.5 sm:mt-5 flex items-center gap-2 sm:gap-2.5">
+              <span className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#0033FF] text-white text-[10px] sm:text-[12px] font-bold leading-none shadow-sm">
+                Recargar
+              </span>
+              <span className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-slate-100 text-[#01033E] text-[10px] sm:text-[12px] font-bold leading-none">
+                Autocobro
+              </span>
+            </div>
+          </div>
+
+          {/* 3 Filas de métricas del parquímetro */}
+          <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-slate-200/80 space-y-2.5 sm:space-y-3.5">
+            <div className="flex items-center justify-between">
+              <div>
+                <div
+                  style={{ letterSpacing: '-0.03em' }}
+                  className="text-[16px] sm:text-[22px] lg:text-[24px] font-black text-[#01033E] leading-none"
+                >
+                  $6.00
+                </div>
+                <div className="text-[9.5px] sm:text-[11.5px] font-medium text-slate-500 mt-0.5">
+                  Tarifa oficial por hora
+                </div>
+              </div>
+              {/* Mini sparkline en azul eléctrico Parqu */}
+              <svg
+                width="48"
+                height="20"
+                viewBox="0 0 48 20"
+                fill="none"
+                className="opacity-85 mr-8 sm:mr-14"
+              >
+                <path
+                  d="M2 15L12 11L21 13L31 6L45 3"
+                  stroke="#0033FF"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+
             <div>
-              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
-                Saldo Disponible
-              </div>
-              <div className="text-[38px] sm:text-[44px] font-black text-[#01033E] tracking-tight leading-none my-1 font-sans">
-                ${formattedBalance}
-              </div>
-              <div className="text-[11px] text-slate-500 font-medium">
-                MXN • Tarifa $6.00/h ($0.10/min)
+              <LiveSecondsRow />
+              <div className="text-[9.5px] sm:text-[11.5px] font-medium text-slate-500 mt-0.5">
+                Cronómetro al segundo
               </div>
             </div>
 
-            {/* Dos botones de acción en píldora */}
-            <div className="pt-1.5 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={onAction}
-                className="flex-1 py-2 px-3 rounded-full bg-black text-white text-xs font-bold font-sans transition-colors hover:bg-slate-800 text-center cursor-pointer border-0"
+            <div>
+              <div
+                style={{ letterSpacing: '-0.03em' }}
+                className="text-[16px] sm:text-[22px] lg:text-[24px] font-black text-[#01033E] leading-none"
               >
-                + Recargar
-              </button>
-              <button
-                type="button"
-                onClick={onAction}
-                className="flex-1 py-2 px-3 rounded-full bg-[#0033FF] text-white text-xs font-bold font-sans transition-colors hover:bg-blue-700 text-center cursor-pointer border-0"
-              >
-                Estacionar
-              </button>
-            </div>
-          </div>
-
-          {/* Filas de actividad del producto */}
-          <div className="space-y-2">
-            <div className="bg-white rounded-xl p-3 flex items-center justify-between border border-slate-100 shadow-2xs">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#0033FF] flex items-center justify-center">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-[#01033E]">Cajón #1042</div>
-                  <div className="text-[10px] text-slate-400">Insurgentes Sur • CDMX</div>
-                </div>
+                $180.00
               </div>
-              <span className="text-xs font-mono font-bold text-[#01033E]">
-                -$6.00/h
-              </span>
-            </div>
-
-            <div className="bg-white rounded-xl p-3 flex items-center justify-between border border-slate-100 shadow-2xs">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-[#01033E]">Autocobro Inteligente</div>
-                  <div className="text-[10px] text-emerald-600 font-semibold">Garantía Cero Multas</div>
-                </div>
+              <div className="text-[9.5px] sm:text-[11.5px] font-medium text-slate-500 mt-0.5">
+                Límite automático protegido
               </div>
-              <span className="text-[9.5px] font-bold font-mono px-2 py-0.5 rounded-full bg-emerald-500 text-white">
-                ACTIVO
-              </span>
             </div>
           </div>
         </div>
 
-        {/* Indicador inferior (Home bar) */}
-        <div className="h-5 bg-[#F6F8FB] flex items-center justify-center">
-          <div className="w-28 h-1 bg-slate-300 rounded-full" />
+        {/* ── 2. PANEL FRONTAL (DEGRADADO INSIGNIA PARQU #01033E → #0033FF + "$6" HERO) ── */}
+        <div
+          onClick={onEnter}
+          style={{
+            background: 'linear-gradient(155deg, #01033E 0%, #0033FF 58%, #807DFE 100%)',
+            boxShadow: '-18px 24px 60px rgba(1, 3, 62, 0.32)',
+          }}
+          className="absolute left-[114px] sm:left-[192px] lg:left-[220px] top-0 sm:top-1 lg:top-2 z-20 w-[212px] sm:w-[312px] lg:w-[348px] h-[312px] sm:h-[425px] lg:h-[468px] rounded-[24px] sm:rounded-[28px] text-white p-4 sm:p-6 flex flex-col justify-between overflow-hidden cursor-pointer transition-transform duration-300 hover:-translate-y-1"
+        >
+          {/* Fila superior: icono QR/NFC arriba a la izquierda + logo oficial/iniciales arriba a la derecha */}
+          <div className="flex items-center justify-between">
+            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center">
+              <QrCode className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <img
+                src="./parqu-logo-white.png"
+                alt="Parqu"
+                className="h-5 sm:h-6 w-auto object-contain bg-transparent"
+              />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#01033E]/50 border border-white/30 flex items-center justify-center text-[10px] sm:text-[11px] font-bold tracking-tight text-white">
+                {initials}
+              </div>
+            </div>
+          </div>
+
+          {/* Columna vertical de dígitos sobre el borde izquierdo interior */}
+          <div className="absolute left-3.5 sm:left-5 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 sm:gap-5 text-[12px] sm:text-[15px] font-mono font-bold text-white/35 pointer-events-none">
+            <span>1</span>
+            <span>4</span>
+            <span>7</span>
+            <span>•</span>
+            <span>0</span>
+          </div>
+
+          {/* HERO FIGURE: "$6" en el centro óptico con el peso más alto */}
+          <div className="my-auto flex flex-col items-center justify-center text-center pl-3 sm:pl-4">
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-400/20 border border-emerald-300/30 text-emerald-200 text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-widest mb-1.5 sm:mb-2">
+              ● AUTOCOBRO POR SEGUNDO
+            </span>
+            <div
+              style={{
+                letterSpacing: '-0.055em',
+                lineHeight: 0.9,
+              }}
+              className="text-[92px] sm:text-[144px] lg:text-[164px] font-black text-white select-none drop-shadow-sm"
+            >
+              $6
+            </div>
+            <span className="mt-2 sm:mt-3 text-[10px] sm:text-[12.5px] font-mono font-bold uppercase tracking-widest text-[#D4D6E6]">
+              MXN / HORA OFICIAL
+            </span>
+          </div>
+
+          {/* Pie minimalista dentro del panel frontal */}
+          <div className="flex items-center justify-between text-[10px] sm:text-[12px] font-mono font-semibold text-[#D4D6E6]">
+            <span className="inline-flex items-center gap-1.5 text-white">
+              <Wifi className="w-3.5 h-3.5 rotate-90 text-emerald-300" />
+              NFC AES-256
+            </span>
+            <span className="text-white font-bold">{activePlates}</span>
+          </div>
         </div>
+
+        {/* ── 3. TARJETA OFICIAL DE PARQU EN ESQUINA INFERIOR DERECHA (SOBREPUESTA Y RECORTADA) ── */}
+        <div
+          onClick={onEnter}
+          style={{
+            boxShadow: '-14px 18px 48px rgba(1, 3, 62, 0.35)',
+          }}
+          className="absolute -right-4 -bottom-4 sm:-right-6 sm:-bottom-6 lg:-right-8 lg:-bottom-8 z-30 w-[195px] h-[122px] sm:w-[285px] sm:h-[178px] lg:w-[325px] lg:h-[202px] rounded-[18px] sm:rounded-[22px] overflow-hidden border border-white/50 cursor-pointer transition-transform duration-300 hover:scale-[1.03]"
+        >
+          {/* Arte oficial de la Tarjeta Azul de Parqu */}
+          <img
+            src="./cards/parqu-card-blue.jpg"
+            alt="Tarjeta Digital Parqu"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+          />
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(1, 3, 62, 0.12) 0%, rgba(1, 3, 62, 0.32) 100%)',
+            }}
+          />
+
+          {/* Contenido legible con el mismo diseño de DigitalCard.jsx */}
+          <div className="relative z-10 p-3 sm:p-4 flex flex-col justify-between h-full">
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#040926]/80 backdrop-blur-md border border-white/20 text-[9px] sm:text-[11px] font-black tracking-tight text-[#0044FF]">
+                <span className="text-white">PARQU</span>
+                <Wifi className="w-3 h-3 rotate-90 text-sky-300" />
+              </span>
+
+              <span className="px-2 py-0.5 rounded-lg bg-[#040926]/80 backdrop-blur-md border border-white/20 text-[8px] sm:text-[10px] font-mono font-bold text-emerald-300">
+                NFC PASS
+              </span>
+            </div>
+
+            <div className="self-start px-2.5 py-1.5 rounded-xl bg-[#040926]/82 backdrop-blur-md border border-white/20">
+              <div className="text-[7.5px] sm:text-[9px] font-mono uppercase tracking-widest text-sky-200 font-bold">
+                Tarjeta Digital Parqu
+              </div>
+              <div className="text-[11px] sm:text-[14px] font-mono font-black text-white tracking-wider leading-tight">
+                {activePlates}
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );
@@ -189,13 +311,10 @@ export const LoadingScreen = ({ onComplete }) => {
     restoreFromCloudBackup,
   } = useParking();
 
-  // Fase 1: Pantalla de carga inicial sobre el logo oficial de Parqu
+  // Fase 1: Pantalla de carga inicial con la animación fluida sobre el logo oficial de Parqu (sin barra de carga)
   const [isBootLoading, setIsBootLoading] = useState(true);
 
-  // Menú hamburguesa slide-over drawer
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // Modal Login / Registro
+  // Fase 2 y 3: Pantalla de bienvenida en fondo blanco con RadialGlowButton "Empecemos" -> Modal Login / Registro
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
   const [showPassword, setShowPassword] = useState(false);
@@ -211,15 +330,15 @@ export const LoadingScreen = ({ onComplete }) => {
   const hasExitedRef = useRef(false);
   const authCardRef = useRef(null);
 
-  // Transición limpia al terminar la animación inicial
+  // Transición limpia al terminar la animación inicial sobre el logo
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsBootLoading(false);
-    }, 2000);
+    }, 2200);
     return () => clearTimeout(timer);
   }, []);
 
-  // Animaciones Anime.js en el Modal de Login
+  // Animaciones Anime.js en el Login
   useEffect(() => {
     if (!showAuthModal || !authCardRef.current) return undefined;
 
@@ -236,41 +355,39 @@ export const LoadingScreen = ({ onComplete }) => {
       animate(items, {
         opacity: [0, 1],
         translateY: [16, 0],
-        delay: stagger(60, { start: 100 }),
-        duration: 450,
-        ease: 'outQuad',
+        delay: stagger(60, { start: 90 }),
+        duration: 520,
+        ease: 'outCubic',
       });
     }
 
-    return () => {};
-  }, [showAuthModal]);
+    return undefined;
+  }, [showAuthModal, authMode]);
 
-  const handleOpenAuthModal = useCallback((mode = 'login') => {
-    setAuthMode(mode);
-    setShowAuthModal(true);
-    setIsMenuOpen(false);
-  }, []);
-
+  // Ejecuta la animación de salida suave hacia el sistema principal después de iniciar sesión o registrarse
   const handleTriggerExit = useCallback(() => {
     if (hasExitedRef.current) return;
     hasExitedRef.current = true;
+    requestParkingNotificationPermission().catch(() => {});
+    document.body.dataset.loadingActive = 'false';
     setIsExiting(true);
 
     setTimeout(() => {
-      if (typeof onComplete === 'function') {
-        onComplete();
-      }
+      if (onComplete) onComplete();
     }, 650);
   }, [onComplete]);
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (authError) setAuthError('');
-  };
+  const handleOpenAuthModal = useCallback(() => {
+    requestParkingNotificationPermission().catch(() => {});
+    setAuthError('');
+    setShowAuthModal(true);
+  }, []);
 
+  // Procesar inicio de sesión o registro con StatefulButton y respaldo automático
   const handleAuthSubmit = async (e) => {
-    if (e) e.preventDefault();
-
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
     requestParkingNotificationPermission().catch(() => {});
     setAuthError('');
 
@@ -324,14 +441,13 @@ export const LoadingScreen = ({ onComplete }) => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        if (showAuthModal) setShowAuthModal(false);
-        if (isMenuOpen) setIsMenuOpen(false);
+      if (e.key === 'Escape' && showAuthModal) {
+        setShowAuthModal(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showAuthModal, isMenuOpen]);
+  }, [showAuthModal]);
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -351,13 +467,12 @@ export const LoadingScreen = ({ onComplete }) => {
         transition: 'transform 0.65s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.45s ease',
         willChange: 'transform, opacity',
       }}
-      className={`fixed inset-0 w-screen h-[100dvh] z-50 overflow-y-auto overflow-x-hidden select-none pointer-events-auto ${
-        isBootLoading ? 'bg-white' : 'bg-[#0033FF]'
-      } font-sans flex flex-col justify-between`}
+      className="fixed inset-0 w-screen h-[100dvh] z-50 overflow-y-auto overflow-x-hidden select-none pointer-events-auto bg-white font-sans flex items-center justify-center px-4 sm:px-10 lg:px-16 py-4 sm:py-0"
     >
       {/* 
         ══════════════════════════════════════════════════════════════
-        FASE 1: PANTALLA DE CARGA INICIAL SOBRE EL LOGO DE PARQU
+        FASE 1: PANTALLA DE CARGA INICIAL (@aceternity/gta-vi-poster SOBRE EL LOGO DE PARQU)
+        Animación fluida a 60fps sobre el logo, sin barra de carga
         ══════════════════════════════════════════════════════════════
       */}
       {isBootLoading ? (
@@ -376,211 +491,54 @@ export const LoadingScreen = ({ onComplete }) => {
       ) : (
         /* 
           ══════════════════════════════════════════════════════════════
-          FASE 2: HERO CASH APP DESIGN LANGUAGE SOBRE CAMPO AZUL ELÉCTRICO
-          - Top bar: Squircle logo a la izquierda, cluster de 3 controles a la derecha
-          - Grid asimétrico 3 columnas: Titular 76px | Teléfono recortado | Copia + CTA
+          FASE 2: PANTALLA DE BIENVENIDA EN FONDO BLANCO RESPETANDO EL DISEÑO DE PARQU
           ══════════════════════════════════════════════════════════════
         */
-        <div className="relative z-10 w-full min-h-[100dvh] flex flex-col justify-between">
-          {/* 1. TOP BAR ON THE COLOUR FIELD */}
-          <header className="relative z-20 w-full flex items-center justify-between px-6 sm:px-12 lg:px-16 pt-6 sm:pt-8 animate-in fade-in duration-500">
-            {/* Logo mark alone inside black squircle container (~25-30% radius) */}
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-[14px] bg-black p-2 sm:p-2.5 flex items-center justify-center shadow-sm select-none">
+        <div className="relative z-10 w-full max-w-[1280px] mx-auto my-auto py-2 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-6 items-center animate-in fade-in duration-500">
+          
+          {/* COLUMNA IZQUIERDA: LOGO OFICIAL PARQU TRANSPARENTE, SLOGAN Y BOTÓN RADIALGLOWBUTTON "EMPECEMOS" */}
+          <div className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-3 sm:space-y-7">
+            {/* Logotipo Oficial Parqu 100% Transparente para Fondo Blanco */}
+            <div className="relative flex items-center justify-center bg-transparent">
               <img
-                src="./parqu-logo-white.png"
-                alt="Parqu"
-                className="w-full h-full object-contain pointer-events-none"
+                src="./parqu-logo-black.png"
+                alt="Parqu Logo"
+                className="h-14 sm:h-28 md:h-32 w-auto object-contain bg-transparent relative z-10"
               />
             </div>
 
-            {/* Tight cluster of three controls: White pill, Black pill, Circular hamburger */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              {/* White pill button with small arrow (primary signup) */}
-              <button
+            {/* Slogan Oficial */}
+            <p className="font-sans text-xs sm:text-lg md:text-xl text-slate-600 font-normal tracking-normal leading-snug sm:leading-relaxed max-w-[290px] sm:max-w-md">
+              Sistema Inteligente de <span className="text-slate-900 font-bold">Parquímetros</span> y Autocobro Digital
+            </p>
+
+            {/* Botón "Empecemos" con RadialGlowButton que veníamos manejando */}
+            <div className="pt-0.5 sm:pt-1">
+              <RadialGlowButton
                 type="button"
-                onClick={() => handleOpenAuthModal('register')}
-                className="group inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-white text-black font-sans font-bold text-xs sm:text-sm transition-all duration-200 hover:bg-black hover:text-white cursor-pointer select-none border-0"
+                onClick={handleOpenAuthModal}
               >
-                <span>Registrarse</span>
-                <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-              </button>
-
-              {/* Black pill button (login) */}
-              <button
-                type="button"
-                onClick={() => handleOpenAuthModal('login')}
-                className="group inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-black text-white font-sans font-bold text-xs sm:text-sm transition-all duration-200 hover:bg-white hover:text-black cursor-pointer select-none border-0"
-              >
-                <span>Iniciar Sesión</span>
-                <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-              </button>
-
-              {/* Black circular hamburger button */}
-              <button
-                type="button"
-                aria-label="Abrir Menú de Opciones"
-                onClick={() => setIsMenuOpen(true)}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black text-white flex items-center justify-center transition-all duration-200 hover:bg-white hover:text-black cursor-pointer border-0"
-              >
-                <Menu className="w-4 h-4" />
-              </button>
+                <span>Empecemos</span>
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white inline transition-transform duration-300 group-hover:translate-x-1.5" />
+              </RadialGlowButton>
             </div>
-          </header>
+          </div>
 
-          {/* 2. HERO VIEWPORT (~100vh): ASYMMETRIC THREE-COLUMN GRID */}
-          <main className="relative z-10 w-full flex-1 max-w-[1400px] mx-auto px-6 sm:px-12 lg:px-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center overflow-hidden animate-in fade-in duration-700">
-            {/* Left third: Oversized two-line headline, left-aligned, optically centered */}
-            <div className="lg:col-span-4 flex flex-col justify-center text-left pt-6 lg:pt-0">
-              <h1 className="text-[44px] sm:text-[62px] lg:text-[76px] font-black text-white tracking-[-0.035em] leading-[1.03] font-sans">
-                Parquímetro<br />
-                sin monedas.
-              </h1>
-            </div>
-
-            {/* Centre: Phone mockup showing believable product UI, cropped by hero's bottom edge */}
-            <div className="lg:col-span-5 flex justify-center items-end self-end overflow-hidden pt-4 sm:pt-6">
-              <ParquPhoneMockup
-                plates={vehicle?.plates}
-                balance={card?.balance}
-                ownerName={owner?.fullName}
-                onAction={() => handleOpenAuthModal('login')}
-              />
-            </div>
-
-            {/* Right third: Narrow copy column (~30 chars per line) + White pill CTA with arrow */}
-            <div className="lg:col-span-3 flex flex-col justify-center items-start space-y-6 text-left pb-8 lg:pb-0">
-              <p className="text-white/95 text-sm sm:text-base font-medium leading-relaxed max-w-[280px] font-sans">
-                Estaciona tu auto y olvídate de las monedas. Cobro por segundo, alertas en tiempo real y pase NFC sin contacto.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => handleOpenAuthModal('register')}
-                className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-white text-black font-sans font-bold text-sm transition-all duration-200 hover:bg-black hover:text-white cursor-pointer select-none border-0"
-              >
-                <span>Empezar ahora</span>
-                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
-              </button>
-            </div>
-          </main>
-        </div>
-      )}
-
-      {/* 
-        ══════════════════════════════════════════════════════════════
-        MENU DRAWER (AL PULSAR EL BOTÓN HAMBURGUESA CIRCULAR)
-        ══════════════════════════════════════════════════════════════
-      */}
-      {isMenuOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end animate-in fade-in duration-200"
-        >
-          <div className="w-full max-w-sm h-full bg-[#01033E] text-white p-6 sm:p-8 flex flex-col justify-between shadow-2xl animate-in slide-in-from-right duration-300">
-            <div>
-              <div className="flex items-center justify-between pb-6 border-b border-white/10">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-black p-2 flex items-center justify-center">
-                    <img
-                      src="./parqu-logo-white.png"
-                      alt="Parqu"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <div>
-                    <div className="font-black text-sm tracking-tight">PARQU</div>
-                    <div className="text-[11px] text-slate-400 font-mono">Menú de Accesos</div>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsMenuOpen(false)}
-                  aria-label="Cerrar Menú"
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer border-0"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="mt-6 space-y-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    handleTriggerExit();
-                  }}
-                  className="w-full p-4 rounded-2xl bg-white/5 hover:bg-white/10 text-left transition-colors flex items-center justify-between group cursor-pointer border-0"
-                >
-                  <div>
-                    <div className="font-bold text-sm text-white group-hover:text-blue-300 transition-colors">
-                      Entrar al Sistema Directo
-                    </div>
-                    <div className="text-xs text-slate-400 mt-0.5">
-                      Acceso express al panel de control
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleOpenAuthModal('login')}
-                  className="w-full p-4 rounded-2xl bg-white/5 hover:bg-white/10 text-left transition-colors flex items-center justify-between group cursor-pointer border-0"
-                >
-                  <div>
-                    <div className="font-bold text-sm text-white group-hover:text-blue-300 transition-colors">
-                      Iniciar Sesión
-                    </div>
-                    <div className="text-xs text-slate-400 mt-0.5">
-                      Restaura tus placas y saldo digital
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleOpenAuthModal('register')}
-                  className="w-full p-4 rounded-2xl bg-[#0033FF] hover:bg-blue-600 text-left transition-colors flex items-center justify-between group cursor-pointer border-0"
-                >
-                  <div>
-                    <div className="font-bold text-sm text-white">
-                      Crear Cuenta Nueva
-                    </div>
-                    <div className="text-xs text-blue-100 mt-0.5">
-                      Registro con placas y monedero
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-all" />
-                </button>
-              </div>
-
-              <div className="mt-8 p-4 rounded-2xl bg-black/40 border border-white/5 space-y-2">
-                <div className="text-[11px] font-mono uppercase tracking-wider text-slate-400">
-                  Tarifa Metropolitana Oficial
-                </div>
-                <div className="text-2xl font-black text-white font-mono">
-                  $6.00 <span className="text-xs font-normal text-slate-300">MXN / hora</span>
-                </div>
-                <div className="text-[11px] text-slate-400">
-                  Cobro exacto por segundo fraccionado ($0.10/min). Sin monedas ni multas.
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-6 border-t border-white/10 text-center">
-              <p className="text-[10px] text-slate-500 font-mono uppercase tracking-wider">
-                PARQU • SISTEMA INTELIGENTE DE MOVILIDAD
-              </p>
-            </div>
+          {/* COLUMNA DERECHA: COMPOSICIÓN DE PANELES SUPERPUESTOS + TARJETA OFICIAL PARQU */}
+          <div className="lg:col-span-7 flex items-center justify-center lg:justify-end">
+            <ParquHeroComposition
+              plates={vehicle?.plates}
+              balance={card?.balance}
+              ownerName={owner?.fullName}
+              onEnter={handleOpenAuthModal}
+            />
           </div>
         </div>
       )}
 
       {/* 
         ══════════════════════════════════════════════════════════════
-        FASE 3: MODAL DE ACCESO (LOGIN / REGISTRO)
+        FASE 3: MODAL DE ACCESO (LOGIN / REGISTRO) AL PRESIONAR "EMPECEMOS"
         ══════════════════════════════════════════════════════════════
       */}
       {showAuthModal && (
@@ -588,7 +546,7 @@ export const LoadingScreen = ({ onComplete }) => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="parqu-auth-title"
-          className="fixed inset-0 z-50 bg-[#01033E]/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 bg-[#01033E]/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
         >
           <AnimeCardSheen className="w-full max-w-[360px] sm:max-w-[380px] my-auto">
             <div
@@ -600,43 +558,57 @@ export const LoadingScreen = ({ onComplete }) => {
                 type="button"
                 aria-label="Cerrar ventana de acceso"
                 onClick={() => setShowAuthModal(false)}
-                className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-20 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-[#D4D6E6] hover:text-white flex items-center justify-center transition-colors cursor-pointer border-0"
+                className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-20 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-[#D4D6E6] hover:text-white transition cursor-pointer border-0"
               >
                 <X className="w-4 h-4" />
               </button>
 
-              {/* Logo Parqu Blanco en Cabecera del Login */}
-              <div className="login-stagger-item flex flex-col items-center justify-center mb-3 text-center">
-                <img
-                  src="./parqu-logo-white.png"
-                  alt="Parqu Logo"
-                  className="h-9 sm:h-10 w-auto object-contain bg-transparent border-0 mb-1"
-                />
+              {/* Encabezado de Bienvenida con Logo 100% Transparente */}
+              <div className="relative z-10 text-center mb-1 bg-transparent border-0 shadow-none">
+                <div className="flex items-center justify-center mb-1.5 sm:mb-2 bg-transparent border-0 shadow-none">
+                  <img
+                    src="./parqu-logo-white.png"
+                    alt="Parqu"
+                    className="h-8 sm:h-11 w-auto object-contain bg-transparent border-0 shadow-none"
+                  />
+                </div>
+
                 <h2
                   id="parqu-auth-title"
-                  className="text-lg sm:text-xl font-black tracking-tight text-white font-sans"
+                  className="text-base sm:text-xl font-black tracking-tight text-white bg-transparent"
                 >
-                  {authMode === 'login' ? 'Bienvenido a Parqu' : 'Registro de Conductor'}
+                  {authMode === 'login' ? 'Bienvenido de vuelta' : 'Bienvenido a Parqu'}
                 </h2>
-                <p className="text-[11px] sm:text-xs text-[#D4D6E6]/80 font-normal">
-                  {authMode === 'login'
-                    ? 'Ingresa tus credenciales para sincronizar tu saldo'
-                    : 'Vincula tus placas y activa tu monedero contactless'}
-                </p>
               </div>
 
-              {/* Selector Login / Registro */}
-              <div className="login-stagger-item flex p-1 rounded-full bg-black/40 border border-white/10 mb-4">
+              {/* Animación CurvedLoop-JS-CSS 100% transparente de lado a lado */}
+              <div className="relative z-10 -mx-4 sm:-mx-6 w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] my-1 sm:my-1.5 bg-transparent border-0 shadow-none overflow-visible">
+                <CurvedLoop
+                  marqueeText={
+                    authMode === 'login'
+                      ? 'ACCESO DIGITAL NFC ✦ AUTOCOBRO EN VIVO ✦ SIN FILAS NI MONEDAS ✦'
+                      : 'CREA TU CUENTA NFC ✦ REGISTRO EN SEGUNDOS ✦ PARQU METROPOLITANO ✦'
+                  }
+                  speed={1.2}
+                  curveAmount={110}
+                  direction="left"
+                  interactive={true}
+                  className="fill-white font-mono"
+                />
+              </div>
+
+              {/* Selector Iniciar Sesión / Registrarse */}
+              <div className="login-stagger-item relative z-10 grid grid-cols-2 gap-1 p-1 rounded-2xl bg-white/10 mb-3.5">
                 <button
                   type="button"
                   onClick={() => {
                     setAuthMode('login');
                     setAuthError('');
                   }}
-                  className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  className={`py-2 rounded-xl text-xs font-bold transition cursor-pointer border-0 ${
                     authMode === 'login'
-                      ? 'bg-[#0033FF] text-white shadow-sm'
-                      : 'text-[#D4D6E6]/70 hover:text-white'
+                      ? 'bg-[#0033FF] text-white shadow-md'
+                      : 'bg-transparent text-[#D4D6E6] hover:text-white'
                   }`}
                 >
                   Iniciar Sesión
@@ -647,87 +619,104 @@ export const LoadingScreen = ({ onComplete }) => {
                     setAuthMode('register');
                     setAuthError('');
                   }}
-                  className={`flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  className={`py-2 rounded-xl text-xs font-bold transition cursor-pointer border-0 ${
                     authMode === 'register'
-                      ? 'bg-[#0033FF] text-white shadow-sm'
-                      : 'text-[#D4D6E6]/70 hover:text-white'
+                      ? 'bg-[#0033FF] text-white shadow-md'
+                      : 'bg-transparent text-[#D4D6E6] hover:text-white'
                   }`}
                 >
                   Registrarse
                 </button>
               </div>
 
-              {/* Formulario */}
-              <form onSubmit={handleAuthSubmit} className="space-y-3">
+              {/* Formulario compacto de Login / Registro */}
+              <form onSubmit={handleAuthSubmit} className="relative z-10 space-y-2.5 text-left">
                 {authMode === 'register' && (
-                  <div className="login-stagger-item space-y-1">
-                    <label className="text-[11px] font-semibold text-[#D4D6E6] flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-[#0033FF]" />
-                      Nombre Completo
+                  <div className="login-stagger-item">
+                    <label className="block text-[11px] font-bold text-[#D4D6E6] mb-1">
+                      Nombre completo
                     </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Ej. Sebastián Salinas"
-                      value={formData.fullName}
-                      onChange={(e) => handleInputChange('fullName', e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-2xl bg-white/5 border border-white/15 focus:border-[#0033FF] focus:bg-white/10 focus:outline-none text-xs text-white placeholder:text-white/35 transition-all"
-                    />
+                    <div className="relative">
+                      <User className="w-4 h-4 text-[#807DFE] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={formData.fullName}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, fullName: e.target.value }))
+                        }
+                        placeholder="Ej. Sebastián Salinas"
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-[#807DFE] transition"
+                      />
+                    </div>
                   </div>
                 )}
 
-                <div className="login-stagger-item space-y-1">
-                  <label className="text-[11px] font-semibold text-[#D4D6E6] flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5 text-[#0033FF]" />
-                    Correo Electrónico
+                <div className="login-stagger-item">
+                  <label className="block text-[11px] font-bold text-[#D4D6E6] mb-1">
+                    Correo electrónico
                   </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="conductor@parqu.mx"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-2xl bg-white/5 border border-white/15 focus:border-[#0033FF] focus:bg-white/10 focus:outline-none text-xs text-white placeholder:text-white/35 transition-all"
-                  />
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-[#807DFE] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, email: e.target.value }))
+                      }
+                      placeholder="usuario@correo.com"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-[#807DFE] transition"
+                    />
+                  </div>
                 </div>
 
                 {authMode === 'register' && (
-                  <div className="login-stagger-item space-y-1">
-                    <label className="text-[11px] font-semibold text-[#D4D6E6] flex items-center gap-1.5">
-                      <Car className="w-3.5 h-3.5 text-[#0033FF]" />
-                      Placas de tu Vehículo
+                  <div className="login-stagger-item">
+                    <label className="block text-[11px] font-bold text-[#D4D6E6] mb-1">
+                      Placas de tu vehículo
                     </label>
-                    <input
-                      type="text"
-                      maxLength={10}
-                      placeholder="Ej. XYZ-7842"
-                      value={formData.plates}
-                      onChange={(e) => handleInputChange('plates', e.target.value.toUpperCase())}
-                      className="w-full px-3.5 py-2.5 rounded-2xl bg-white/5 border border-white/15 focus:border-[#0033FF] focus:bg-white/10 focus:outline-none text-xs font-mono font-bold text-white placeholder:text-white/35 transition-all tracking-wider uppercase"
-                    />
+                    <div className="relative">
+                      <Car className="w-4 h-4 text-[#807DFE] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={formData.plates}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            plates: e.target.value.toUpperCase(),
+                          }))
+                        }
+                        placeholder="XYZ-7842"
+                        className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white/10 border border-white/15 text-xs font-mono uppercase text-white placeholder:text-white/40 focus:outline-none focus:border-[#807DFE] transition"
+                      />
+                    </div>
                   </div>
                 )}
 
-                <div className="login-stagger-item space-y-1">
-                  <label className="text-[11px] font-semibold text-[#D4D6E6] flex items-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5 text-[#0033FF]" />
+                <div className="login-stagger-item">
+                  <label className="block text-[11px] font-bold text-[#D4D6E6] mb-1">
                     Contraseña
                   </label>
                   <div className="relative">
+                    <Lock className="w-4 h-4 text-[#807DFE] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      required
-                      placeholder="••••••••"
                       value={formData.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
-                      className="w-full pl-3.5 pr-10 py-2.5 rounded-2xl bg-white/5 border border-white/15 focus:border-[#0033FF] focus:bg-white/10 focus:outline-none text-xs text-white placeholder:text-white/35 transition-all"
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, password: e.target.value }))
+                      }
+                      placeholder="••••••••"
+                      className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-[#807DFE] transition"
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#D4D6E6] hover:text-white bg-transparent border-0 p-0 cursor-pointer"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? (
+                        <EyeOff className="w-3.5 h-3.5" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5" />
+                      )}
                     </button>
                   </div>
                 </div>
