@@ -16,6 +16,7 @@ import { CurrencyDollarIcon, PlugConnectedIcon } from './components/icons';
 import { AnimeMetricsHub } from './components/ui/anime-metrics-hub';
 import { AnimeStaggerGroup } from './components/ui/anime-stagger-group';
 import { OrbitalWheelMenu } from './components/ui/orbital-wheel-menu';
+import { ParquBentoBlocks } from './components/ui/ParquBentoBlocks';
 
 const ParkingMeter = lazy(() =>
   import('./components/ParkingMeter').then((m) => ({ default: m.ParkingMeter || m.default }))
@@ -650,6 +651,15 @@ const MainContent = () => {
           )}
 
 
+
+          {/* 3. BLOQUES BENTO CON ANIMATED GRADIENT SVG */}
+          <ParquBentoBlocks
+            onNavigateTab={handleSelectFeature}
+            onOpenRecharge={() => setShowRechargeQuickModal(true)}
+            onOpenQR={() => setShowQRQuickModal(true)}
+            balance={card?.balance}
+            plates={vehicle?.plates}
+          />
 
           {/* 4. SELECTOR ORBITAL METROPOLITANO */}
           <div id="selector-orbital-metropolitano" className="scroll-mt-28">
