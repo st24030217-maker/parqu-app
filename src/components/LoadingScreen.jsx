@@ -20,6 +20,8 @@ import { Button as StatefulButton } from './ui/stateful-button';
 import { GtaViPoster } from './ui/gta-vi-poster';
 import { useParking } from '../context/ParkingContext';
 import { requestParkingNotificationPermission } from '../utils/parkingNotification';
+import { LayoutGroup, motion } from 'motion/react';
+import TextRotate from '@/components/fancy/text/text-rotate';
 
 // Cronómetro en vivo ligero para la fila de autocobro del panel trasero
 const LiveSecondsRow = memo(() => {
@@ -508,9 +510,38 @@ export const LoadingScreen = ({ onComplete }) => {
             </div>
 
             {/* Slogan Oficial */}
-            <p className="font-sans text-xs sm:text-lg md:text-xl text-slate-600 font-normal tracking-normal leading-snug sm:leading-relaxed max-w-[290px] sm:max-w-md">
-              Sistema Inteligente de <span className="text-slate-900 font-bold">Parquímetros</span> y Autocobro Digital
-            </p>
+            <LayoutGroup>
+              <motion.div
+                className="font-sans text-xs sm:text-base md:text-lg text-slate-600 font-normal tracking-normal leading-relaxed flex flex-wrap items-center justify-center lg:justify-start gap-1 sm:gap-1.5 max-w-[320px] sm:max-w-md"
+                layout
+              >
+                <motion.span
+                  className="inline-block"
+                  layout
+                  transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                >
+                  Sistema Inteligente de
+                </motion.span>
+                <TextRotate
+                  texts={[
+                    "Parquímetros",
+                    "Autocobro Digital",
+                    "Pase Contactless",
+                    "Cobro por Segundo",
+                    "Cero Multas ✽",
+                  ]}
+                  mainClassName="text-white px-2 sm:px-2.5 md:px-3 bg-[#0033FF] overflow-hidden py-0.5 sm:py-1 justify-center rounded-lg font-bold shadow-sm inline-flex items-center"
+                  staggerFrom="last"
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "-120%" }}
+                  staggerDuration={0.025}
+                  splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1"
+                  transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                  rotationInterval={2200}
+                />
+              </motion.div>
+            </LayoutGroup>
 
             {/* Botón "Empecemos" con RadialGlowButton que veníamos manejando */}
             <div className="pt-0.5 sm:pt-1">
